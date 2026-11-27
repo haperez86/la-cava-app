@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${DB_TEST_URL:jdbc:postgresql://localhost:5432/la_cava_test}
+  flyway:
+    # Solo en pruebas: TestFlywayConfig limpia el esquema al arrancar
+    clean-disabled: false
+
+springdoc:
+  api-docs:
+    enabled: true
+
+app:
+  jwt:
+    # Solo pruebas: secreto fijo de 32+ caracteres
+    secret: test-only-secret-for-la-cava-jwt-0123456789

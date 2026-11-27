@@ -23,6 +23,18 @@
 | D19 | Puertos locales 8081 (backend) y 4201 (frontend); verificación del agente en 8091/4291. En el VPS el backend también usa 8081. | 8080/4200 son de Proto Inventario, y así coincide con el plan del VPS. |
 | D20 | Sistema visual definido en el skill `.claude/skills/lacava-design`, con los colores exactos de `demo/index.html`. | Que todo el frontend use una sola paleta y no se inventen colores. |
 | D21 | Skills `angular-developer` y `angular-new-app` (angular/skills, commit fijado en `skills-lock.json`) y el MCP `angular-cli`, copiados de Proto. | Mismo soporte de Angular que en Proto. |
+| D22 | El repositorio git se inició localmente con `main` (commit inicial con specs y demo). Se ignoran todas las carpetas que empiezan con punto (`.*/`) salvo `.mvn/`; `.claude/` y `.atl/` no se versionan. | Pedido del dueño. `.mvn/` es necesaria para que `./mvnw` funcione en otro clon. Consecuencia: agentes y skills (D20, D21) viven solo en la máquina local. |
+| D23 | Proxy de desarrollo `/api` → 8081 con `timeout: 0`, `proxyTimeout: 0` y `Accept-Encoding: identity` para no cortar ni comprimir `text/event-stream`. | Requisito de SSE de HU-00; se valida con un stream real en la épica 5. |
+| D24 | JWT con `spring-boot-starter-security-oauth2-resource-server` (Nimbus, HS256, emisor `la-cava`) en lugar de jjwt; el rol se lee de la BD en cada petición y un usuario inactivo queda fuera aunque su token siga vigente. | Mismo enfoque que Proto y sin librería extra. |
+| D25 | Rutas por rol: `/dashboard` (A, C), `/mesas` (A, C, M; "Mis mesas" para M), `/preparacion` (A, P; "Comandas"). Las rutas ajenas o desconocidas llevan a la pantalla inicial del rol. | CA1 y CA3 de HU-01; el menú crece con cada HU. |
+| D26 | Sesión (token y usuario) en `localStorage` con la clave `lacava.session`; un 401 cierra la sesión y un 403 solo muestra un toast. Sin selector de rol como en la demo. | Simplicidad; el backend es quien aplica los permisos. |
 
 ## Propuestas
 _(El agente registra aquí los cambios que sugiera, con su motivo. No se aplican hasta que se aprueben.)_
+
+| # | Propuesta | Motivo |
+|---|---|---|
+| P1 | Limitar los intentos de login: tras 5 fallos seguidos por usuario, bloquear 15 min (en memoria, una instancia, D9) y responder con el mismo 401. | Revisión de seguridad de HU-01 (Gentle AI, riesgo): `POST /auth/login` admite intentos ilimitados. No está en la especificación, por eso no se implementó. |
+| P2 | Que `LocalDataSeeder` no arranque si `DB_URL` no apunta a `localhost`, además de exigir el perfil `local`. | Revisión de HU-01: las claves `<usuario>123` (docs/02) son predecibles; si el perfil `local` se activa contra una base compartida, cualquiera entra como admin. |
+| P3 | Revisar D26 antes de producción: token en cookie `httpOnly` o vigencia menor que 10 h (D6). | Revisión de HU-01: un XSS futuro podría leer el token de `localStorage`. Mitigado hoy porque el backend comprueba en cada petición que el usuario siga activo. |
+

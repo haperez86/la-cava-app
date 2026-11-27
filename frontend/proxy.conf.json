@@ -1,0 +1,10 @@
+{
+  "/api": {
+    "target": "http://localhost:8081",
+    "secure": false,
+    "changeOrigin": true,
+    "timeout": 0,
+    "proxyTimeout": 0,
+    "headers": { "Accept-Encoding": "identity" }
+  }
+}

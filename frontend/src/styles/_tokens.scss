@@ -1,0 +1,51 @@
+// Tokens de La Cava tomados de demo/index.html (skill lacava-design).
+// En los componentes se usa siempre var(--...), nunca un hex suelto.
+:root {
+  --green: #10271f;
+  --green2: #19392e;
+  --gold: #c6a16a;
+  --gold-ink: #17251d;
+  --cream: #f7f4ed;
+  --ink: #202821;
+  --muted: #778078;
+  --line: #e6e8e2;
+  --white: #fff;
+  --red: #b84d43;
+  --amber: #c28a35;
+  --shadow: 0 8px 28px #14251a12;
+
+  --bg: #f3f5f1;
+  --surface: #fff;
+  --sidebar-text: #f8f5ed;
+  --nav-text: #dce4dc;
+  --nav-active-bg: #ffffff16;
+  --nav-active: #f1d39f;
+  --brand-title: #e4c38e;
+  --brand-sub: #c9cfc8;
+  --brand-line: #ffffff20;
+
+  --ok-bg: #edf2ed;
+  --ok: #3f7454;
+  --busy-bg: #fff1d9;
+  --busy: #96651e;
+  --ready-bg: #e3eefb;
+  --ready: #2f5f8f;
+  --danger-bg: #fbe9e6;
+  --danger: #a4473d;
+  --season: #7a5a2c;
+  --season-bg: #f1eadb;
+  --avatar-bg: #e8ddc8;
+
+  --radius-card: 14px;
+  --radius-btn: 9px;
+  --radius-nav: 10px;
+  --radius-pill: 99px;
+  --radius-toast: 11px;
+
+  --font-body: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-title: Georgia, serif;
+  --font-ticket: 'Courier New', monospace;
+
+  --side-width: 248px;
+  --top-height: 76px;
+}
