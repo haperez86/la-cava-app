@@ -31,12 +31,13 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA2** Temporada: si indico nombre de temporada, la fecha "disponible hasta" es obligatoria.
 - **CA3** Activo o desactivo productos (retirar o volver a la carta).
 - **CA4** Al crear puedo indicar un lote inicial (cantidad y vencimiento); si hay cantidad, el vencimiento es obligatorio y ≥ hoy.
-- **Desviaciones:** migración V3 crea también `stock_lot` y `stock_movement` (D29); validación de temporada y lote en el servicio con el mismo 400 `errors[]`; una carrera de nombres duplicados responde el 409 genérico; pantalla `/menu` con tarjetas y formulario modal (hoja inferior en móvil). Pendientes menores: inyectar `ZoneId` en el seeder y crear producto y lotes de ejemplo en una transacción; 409 que no sea de nombre → toast; cantidad de lote entera en el formulario; prueba de `sort` anidado → 400.
+- **Desviaciones:** migración V3 crea también `stock_lot` y `stock_movement` (D29); validación de temporada y lote en el servicio con el mismo 400 `errors[]`; una carrera de nombres duplicados responde el 409 genérico; pantalla `/menu` con tarjetas y formulario modal (hoja inferior en móvil). Sus pendientes menores se resolvieron en HU-03.
 
-### LCV-HU-03 · Disponibilidad y filtros del menú ⬜
+### LCV-HU-03 · Disponibilidad y filtros del menú ✅
 - **CA1** `orderable` es verdadero solo si el producto está activo, en temporada y con existencia vigente > 0; si no, `blockReason` dice *Retirado de la carta*, *Fuera de temporada* o *Agotado*.
 - **CA2** Filtros por texto, categoría y estado (En la carta, Agotados, De temporada, Fuera de temporada, Inactivos).
 - **CA3** Con un `Clock` fijo: un producto cuya temporada terminó ayer aparece como *Fuera de temporada*.
+- **Desviaciones:** prioridad de estados y alcance de *De temporada* según D31 (solapa con *En la carta*); `state` sin distinguir mayúsculas y vacío = sin filtro; *De temporada* y *Fuera de temporada* solo incluyen activos; todos los bloqueados usan la pill roja de la demo; la pantalla recarga la lista tras retirar o volver a la carta. Incluye los pendientes de HU-02 (seeder con `ZoneId` y una transacción por producto, `sort` anidado → 400, 409 genérico → toast, cantidad de lote entera). Pendientes menores: código estable en el ProblemDetail del 409 de nombre (hoy el frontend compara el texto); quitar el `items.update` optimista de `menu-page.ts`.
 
 ---
 

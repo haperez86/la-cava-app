@@ -5,12 +5,22 @@ import { ToastService } from '../../core/notifications/toast.service';
 import { formatIsoDate } from '../../shared/dates/business-date';
 import { Pagination } from '../../shared/pagination/pagination';
 import { CopCurrencyPipe } from '../../shared/pipes/cop-currency.pipe';
-import { Category, Product } from './product.model';
+import { Category, Product, ProductStateFilter } from './product.model';
 import { ProductForm } from './product-form';
 import { ProductsService } from './products.service';
 
 export const MENU_PAGE_SIZE = 12;
 const DEFAULT_ICON = '🍽';
+
+/** Opciones del filtro de estado (CA2); `null` = Todos, no se envía. */
+export const STATE_FILTERS: readonly { readonly value: ProductStateFilter | null; readonly label: string }[] = [
+  { value: null, label: 'Todos' },
+  { value: 'ON_MENU', label: 'En la carta' },
+  { value: 'OUT_OF_STOCK', label: 'Agotados' },
+  { value: 'SEASONAL', label: 'De temporada' },
+  { value: 'OUT_OF_SEASON', label: 'Fuera de temporada' },
+  { value: 'INACTIVE', label: 'Inactivos' },
+];
 
 /** Editor abierto: alta (`product` null) o edición. */
 interface EditorState {
@@ -35,6 +45,8 @@ export class MenuPage {
 
   protected readonly q = signal('');
   protected readonly categoryId = signal<number | null>(null);
+  protected readonly state = signal<ProductStateFilter | null>(null);
+  protected readonly stateFilters = STATE_FILTERS;
   protected readonly page = signal(0);
   protected readonly items = signal<readonly Product[]>([]);
   protected readonly totalElements = signal(0);
@@ -58,6 +70,12 @@ export class MenuPage {
 
   protected onCategory(value: string): void {
     this.categoryId.set(value ? Number(value) : null);
+    this.page.set(0);
+    void this.load();
+  }
+
+  protected onState(value: string): void {
+    this.state.set((value || null) as ProductStateFilter | null);
     this.page.set(0);
     void this.load();
   }
@@ -94,6 +112,7 @@ export class MenuPage {
     try {
       await this.#products.setActive(product.id, active);
       this.items.update((list) => list.map((p) => (p.id === product.id ? { ...p, active } : p)));
+      void this.load(); // state, orderable y blockReason los calcula el backend
       this.#toast.success(
         active ? `«${product.name}» volvió a la carta.` : `«${product.name}» se retiró de la carta.`,
       );
@@ -111,6 +130,7 @@ export class MenuPage {
       const result = await this.#products.list({
         q: this.q(),
         categoryId: this.categoryId(),
+        state: this.state(),
         page: this.page(),
         size: MENU_PAGE_SIZE,
       });

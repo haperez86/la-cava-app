@@ -41,11 +41,12 @@ class ProductController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER', 'WAITER', 'KITCHEN')")
-    @Operation(summary = "Productos paginados con existencia vigente; filtros q (nombre) y categoryId")
+    @Operation(summary = "Productos paginados con existencia vigente; filtros q (nombre) categoryId y state "
+            + "(ON_MENU, OUT_OF_STOCK, SEASONAL, OUT_OF_SEASON, INACTIVE)")
     PageResponse<ProductResponse> list(@RequestParam(required = false) String q,
-            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long categoryId, @RequestParam(required = false) String state,
             @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        return PageResponse.of(productService.search(q, categoryId, pageable), ProductResponse::from);
+        return PageResponse.of(productService.search(q, categoryId, state, pageable), ProductResponse::from);
     }
 
     @PostMapping

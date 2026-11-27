@@ -24,11 +24,17 @@
       <option [value]="category.id" [selected]="category.id === categoryId()">{{ category.name }}</option>
     }
   </select>
+  <label class="sr-only" for="menu-state">Estado</label>
+  <select id="menu-state" data-testid="state-filter" (change)="onState($any($event.target).value)">
+    @for (option of stateFilters; track option.label) {
+      <option [value]="option.value ?? ''" [selected]="option.value === state()">{{ option.label }}</option>
+    }
+  </select>
 </div>
 
 <div class="menu-grid" data-testid="product-list" [attr.aria-busy]="loading()">
   @for (product of items(); track product.id) {
-    <article class="product" [class.off]="!product.active" data-testid="product">
+    <article class="product" [class.off]="!product.orderable" data-testid="product">
       <div class="product-art" aria-hidden="true">{{ product.icon || defaultIcon }}</div>
       <div class="product-body">
         <h4>{{ product.name }}</h4>
@@ -40,10 +46,10 @@
         }
         <div class="product-foot">
           <strong class="money">{{ product.price | cop }}</strong>
-          @if (product.active) {
-            <span class="pill" data-testid="product-state">Activo</span>
+          @if (product.orderable) {
+            <span class="pill" data-testid="product-state">En la carta</span>
           } @else {
-            <span class="pill danger" data-testid="product-state">Inactivo</span>
+            <span class="pill danger" data-testid="product-state">{{ product.blockReason }}</span>
           }
         </div>
         <p class="stock" data-testid="product-available">{{ product.available }} disponible(s)</p>

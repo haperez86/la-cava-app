@@ -15,6 +15,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import co.lacava.gestion.inventory.application.InventoryService;
 import co.lacava.gestion.menu.application.ProductData;
@@ -37,18 +38,21 @@ class LocalDataSeeder implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(LocalDataSeeder.class);
     private static final Set<String> LOCAL_HOSTS = Set.of("localhost", "127.0.0.1", "::1", "[::1]");
     private static final String POSTGRES_PREFIX = "jdbc:postgresql:";
-    private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/Bogota");
 
     private final UserService users;
     private final ProductService products;
     private final InventoryService inventory;
+    private final ZoneId businessZone;
+    private final TransactionTemplate transaction;
     private final String datasourceUrl;
 
-    LocalDataSeeder(UserService users, ProductService products, InventoryService inventory,
-            @Value("${spring.datasource.url:}") String datasourceUrl) {
+    LocalDataSeeder(UserService users, ProductService products, InventoryService inventory, ZoneId businessZone,
+            TransactionTemplate transaction, @Value("${spring.datasource.url:}") String datasourceUrl) {
         this.users = users;
         this.products = products;
         this.inventory = inventory;
+        this.businessZone = businessZone;
+        this.transaction = transaction;
         this.datasourceUrl = datasourceUrl;
     }
 
@@ -100,13 +104,17 @@ class LocalDataSeeder implements ApplicationRunner {
         if (products.findByName(name).isPresent()) {
             return;
         }
-        ProductView product = products.create(new ProductData(name, category, BigDecimal.valueOf(price), description,
-                icon, minStock, seasonName, seasonUntil), null, adminId);
-        LocalDate today = inventory.today();
-        for (int[] lot : lots) {
-            inventory.loadSampleLot(product.id(), lot[0], today.plusDays(lot[1]), null,
-                    today.minusDays(2).atStartOfDay(BUSINESS_ZONE).toInstant(), adminId);
-        }
+        // Producto y lotes en una sola transacción: si un lote falla, no queda un producto a medias que la
+        // idempotencia (por nombre) daría por sembrado.
+        transaction.executeWithoutResult(status -> {
+            ProductView product = products.create(new ProductData(name, category, BigDecimal.valueOf(price),
+                    description, icon, minStock, seasonName, seasonUntil), null, adminId);
+            LocalDate today = inventory.today();
+            for (int[] lot : lots) {
+                inventory.loadSampleLot(product.id(), lot[0], today.plusDays(lot[1]), null,
+                        today.minusDays(2).atStartOfDay(businessZone).toInstant(), adminId);
+            }
+        });
     }
 
     /** {@code true} solo si la URL JDBC apunta a {@code localhost}, {@code 127.0.0.1} o {@code ::1}. */

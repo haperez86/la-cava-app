@@ -14,7 +14,18 @@ export interface Product {
   readonly seasonUntil: string | null;
   /** Existencia vigente. */
   readonly available: number;
+  /** Estado de disponibilidad calculado por el backend (HU-03). */
+  readonly state: ProductState;
+  /** Verdadero solo si está activo, en temporada y con existencia vigente > 0. */
+  readonly orderable: boolean;
+  readonly blockReason: BlockReason | null;
 }
+
+export type ProductState = 'ON_MENU' | 'OUT_OF_STOCK' | 'OUT_OF_SEASON' | 'INACTIVE';
+export type BlockReason = 'Retirado de la carta' | 'Fuera de temporada' | 'Agotado';
+
+/** Valores del filtro `state` de GET /api/v1/products. */
+export type ProductStateFilter = 'ON_MENU' | 'OUT_OF_STOCK' | 'SEASONAL' | 'OUT_OF_SEASON' | 'INACTIVE';
 
 export interface Category {
   readonly id: number;
@@ -41,6 +52,7 @@ export interface CreateProductRequest extends ProductRequest {
 export interface ProductQuery {
   readonly q: string;
   readonly categoryId: number | null;
+  readonly state?: ProductStateFilter | null;
   readonly page: number;
   readonly size: number;
 }

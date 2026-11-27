@@ -18,12 +18,16 @@ public record ProductView(
         boolean active,
         String seasonName,
         LocalDate seasonUntil,
-        int available) {
+        int available,
+        ProductState state,
+        boolean orderable,
+        String blockReason) {
 
-    static ProductView of(Product product, int available) {
+    static ProductView of(Product product, int available, LocalDate today) {
+        ProductState state = ProductState.of(product.isActive(), product.getSeasonUntil(), today, available);
         return new ProductView(product.getId(), product.getName(), product.getCategory().getId(),
                 product.getCategory().getName(), product.getPrice(), product.getDescription(), product.getIcon(),
                 product.getMinStock(), product.isActive(), product.getSeasonName(), product.getSeasonUntil(),
-                available);
+                available, state, state.orderable(), state.blockReason());
     }
 }

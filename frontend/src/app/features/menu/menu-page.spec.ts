@@ -22,6 +22,9 @@ const MALBEC: Product = {
   seasonName: null,
   seasonUntil: null,
   available: 18,
+  state: 'ON_MENU',
+  orderable: true,
+  blockReason: null,
 };
 
 const PONCHE: Product = {
@@ -34,6 +37,9 @@ const PONCHE: Product = {
   seasonName: 'Navidad',
   seasonUntil: '2026-12-31',
   available: 0,
+  state: 'INACTIVE',
+  orderable: false,
+  blockReason: 'Retirado de la carta',
 };
 
 function page(content: Product[], totalElements = content.length): Page<Product> {
@@ -97,10 +103,10 @@ describe('MenuPage', () => {
     expect(malbec.textContent).toContain('Vinos');
     expect(malbec.textContent).toContain('$ 22.000');
     expect(malbec.querySelector('[data-testid="product-available"]')?.textContent).toContain('18 disponible(s)');
-    expect(malbec.querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Activo');
+    expect(malbec.querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('En la carta');
     expect(malbec.querySelector('[data-testid="product-season"]')).toBeNull();
     expect(ponche.querySelector('[data-testid="product-season"]')?.textContent).toContain('Navidad · hasta 31/12/2026');
-    expect(ponche.querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Inactivo');
+    expect(ponche.querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Retirado de la carta');
     expect(root.querySelector('[data-testid="pagination-summary"]')?.textContent).toContain('Mostrando 1–2 de 2');
   });
 
@@ -152,9 +158,11 @@ describe('MenuPage', () => {
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({ active: false });
     req.flush({ ...MALBEC, active: false });
+    await settle();
+    expectList().flush(page([{ ...MALBEC, active: false, state: 'INACTIVE', orderable: false, blockReason: 'Retirado de la carta' }, PONCHE]));
     await flushAndRender();
 
-    expect(cards()[0].querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Inactivo');
+    expect(cards()[0].querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Retirado de la carta');
     expect(cards()[0].querySelector('[data-testid="toggle-active"]')?.textContent?.trim()).toBe('Volver a la carta');
     expect(toast).toHaveBeenCalledWith('«Copa de Malbec» se retiró de la carta.');
   });
@@ -167,9 +175,11 @@ describe('MenuPage', () => {
     const req = http.expectOne(`${PRODUCTS_URL}/2/active`);
     expect(req.request.body).toEqual({ active: true });
     req.flush({ ...PONCHE, active: true });
+    await settle();
+    expectList().flush(page([MALBEC, { ...PONCHE, active: true, state: 'OUT_OF_STOCK', blockReason: 'Agotado' }]));
     await flushAndRender();
 
-    expect(cards()[1].querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Activo');
+    expect(cards()[1].querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Agotado');
     expect(toast).toHaveBeenCalledWith('«Ponche navideño» volvió a la carta.');
   });
 
@@ -183,7 +193,7 @@ describe('MenuPage', () => {
       .flush({ status: 403, detail: 'No tienes permiso.' }, { status: 403, statusText: 'Forbidden' });
     await flushAndRender();
 
-    expect(cards()[0].querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Activo');
+    expect(cards()[0].querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('En la carta');
     expect(toast).toHaveBeenCalledWith('No tienes permiso.');
   });
 
@@ -229,5 +239,85 @@ describe('MenuPage', () => {
     root.querySelector<HTMLButtonElement>('.close')!.click();
     await flushAndRender();
     expect(root.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('CA1 each card shows the pill for its state: En la carta, Retirado de la carta, Fuera de temporada, Agotado', async () => {
+    await render([
+      MALBEC,
+      PONCHE,
+      { ...MALBEC, id: 3, name: 'Sangría', state: 'OUT_OF_SEASON', orderable: false, blockReason: 'Fuera de temporada' },
+      { ...MALBEC, id: 4, name: 'Cerveza', available: 0, state: 'OUT_OF_STOCK', orderable: false, blockReason: 'Agotado' },
+    ]);
+    const pills = cards().map((c) => c.querySelector('[data-testid="product-state"]')!);
+    expect(pills.map((p) => p.textContent?.trim())).toEqual([
+      'En la carta',
+      'Retirado de la carta',
+      'Fuera de temporada',
+      'Agotado',
+    ]);
+    expect(pills[0].classList.contains('danger')).toBe(false);
+    pills.slice(1).forEach((p) => expect(p.classList.contains('danger')).toBe(true));
+  });
+
+  it('CA2 each state option sends its `state` value from page 0 and "Todos" sends none', async () => {
+    await render();
+    const select = root.querySelector<HTMLSelectElement>('#menu-state')!;
+    expect(Array.from(select.options).map((o) => o.textContent?.trim())).toEqual([
+      'Todos',
+      'En la carta',
+      'Agotados',
+      'De temporada',
+      'Fuera de temporada',
+      'Inactivos',
+    ]);
+    for (const value of ['ON_MENU', 'OUT_OF_STOCK', 'SEASONAL', 'OUT_OF_SEASON', 'INACTIVE']) {
+      select.value = value;
+      select.dispatchEvent(new Event('change'));
+      const req = expectList();
+      expect(req.request.params.get('state')).toBe(value);
+      expect(req.request.params.get('page')).toBe('0');
+      req.flush(page([MALBEC]));
+      await flushAndRender();
+    }
+    select.value = '';
+    select.dispatchEvent(new Event('change'));
+    const all = expectList();
+    expect(all.request.params.has('state')).toBe(false);
+    all.flush(page([MALBEC]));
+    await flushAndRender();
+  });
+
+  it('CA2 changing the state filter returns to page 0 and combines with q and category', async () => {
+    fixture = TestBed.createComponent(MenuPage);
+    root = fixture.nativeElement as HTMLElement;
+    expectList().flush(page([MALBEC], 30));
+    http.expectOne(CATEGORIES_URL).flush([{ id: 2, name: 'Vinos' }]);
+    await flushAndRender();
+
+    const search = root.querySelector<HTMLInputElement>('#menu-search')!;
+    search.value = 'mal';
+    search.dispatchEvent(new Event('input'));
+    expectList().flush(page([MALBEC], 30));
+    await flushAndRender();
+    const category = root.querySelector<HTMLSelectElement>('#menu-category')!;
+    category.value = '2';
+    category.dispatchEvent(new Event('change'));
+    expectList().flush(page([MALBEC], 30));
+    await flushAndRender();
+
+    root.querySelector<HTMLButtonElement>('[data-testid="pagination-next"]')!.click();
+    expectList().flush({ ...page([MALBEC], 30), page: 1 });
+    await flushAndRender();
+
+    const select = root.querySelector<HTMLSelectElement>('#menu-state')!;
+    select.value = 'OUT_OF_STOCK';
+    select.dispatchEvent(new Event('change'));
+    const req = expectList();
+    expect(req.request.params.get('state')).toBe('OUT_OF_STOCK');
+    expect(req.request.params.get('q')).toBe('mal');
+    expect(req.request.params.get('categoryId')).toBe('2');
+    expect(req.request.params.get('page')).toBe('0');
+    req.flush(page([]));
+    await flushAndRender();
   });
 });

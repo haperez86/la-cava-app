@@ -2,6 +2,7 @@ package co.lacava.gestion.menu.application;
 
 import java.math.RoundingMode;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +34,8 @@ public class ProductService {
     public static final String NOT_FOUND = "El producto no existe.";
     public static final String SEASON_UNTIL_REQUIRED = "Indica la fecha \"disponible hasta\" de la temporada.";
     public static final String EXPIRES_ON_REQUIRED = "La fecha de vencimiento es obligatoria.";
+    public static final String INVALID_STATE =
+            "El estado debe ser ON_MENU, OUT_OF_STOCK, SEASONAL, OUT_OF_SEASON o INACTIVE.";
     public static final String EXPIRES_ON_PAST = "La fecha de vencimiento no puede ser anterior a hoy.";
 
     /** Campos por los que se puede ordenar el listado; se desempata siempre por id. */
@@ -51,10 +54,19 @@ public class ProductService {
         this.clock = clock;
     }
 
-    /** Listado paginado con filtros por nombre (contiene, sin distinguir mayúsculas) y categoría. */
+    /**
+     * Listado paginado con filtros por nombre (contiene, sin distinguir mayúsculas), categoría y estado
+     * ({@link ProductStateFilter}); todos se aplican en la consulta.
+     */
     @Transactional(readOnly = true)
-    public Page<ProductView> search(String q, Long categoryId, Pageable pageable) {
+    public Page<ProductView> search(String q, Long categoryId, String state, Pageable pageable) {
+        LocalDate today = inventory.today();
         Specification<Product> spec = (root, query, cb) -> cb.conjunction();
+        if (state != null && !state.isBlank()) {
+            ProductStateFilter filter = ProductStateFilter.parse(state).orElseThrow(
+                    () -> new InvalidFieldsException(List.of(new FieldError("state", INVALID_STATE))));
+            spec = spec.and(filter.toSpecification(today));
+        }
         if (q != null && !q.isBlank()) {
             String pattern = "%" + escapeLike(q.trim().toLowerCase(Locale.ROOT)) + "%";
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), pattern, '\\'));
@@ -64,7 +76,7 @@ public class ProductService {
         }
         Page<Product> page = products.findAll(spec, withSafeSort(pageable));
         Map<Long, Integer> available = inventory.availableByProduct(page.map(Product::getId).getContent());
-        return page.map(p -> ProductView.of(p, available.getOrDefault(p.getId(), 0)));
+        return page.map(p -> ProductView.of(p, available.getOrDefault(p.getId(), 0), today));
     }
 
     @Transactional(readOnly = true)
@@ -135,7 +147,7 @@ public class ProductService {
     }
 
     private ProductView view(Product product) {
-        return ProductView.of(product, inventory.available(product.getId()));
+        return ProductView.of(product, inventory.available(product.getId()), inventory.today());
     }
 
     /** Reglas entre campos que Bean Validation no expresa (CA2). */

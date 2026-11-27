@@ -33,6 +33,9 @@ const EXISTING: Product = {
   seasonName: null,
   seasonUntil: null,
   available: 18,
+  state: 'ON_MENU',
+  orderable: true,
+  blockReason: null,
 };
 
 describe('ProductForm', () => {
@@ -158,6 +161,33 @@ describe('ProductForm', () => {
 
     expect(errorText('name')).toBe('Ya existe un producto con ese nombre.');
     expect(saved).toEqual([]);
+  });
+
+  it('a 409 other than duplicate name goes to a toast, not to the name field', async () => {
+    const toast = vi.spyOn(TestBed.inject(ToastService), 'error');
+    await render();
+    fillRequired();
+    await save();
+
+    http
+      .expectOne(PRODUCTS_URL)
+      .flush({ status: 409, detail: 'Conflicto de versión.' }, { status: 409, statusText: 'Conflict' });
+    await settle();
+    await fixture.whenStable();
+
+    expect(errorText('name')).toBe('');
+    expect(toast).toHaveBeenCalledWith('Conflicto de versión.');
+  });
+
+  it('rejects a decimal initial lot quantity with a clear message and does not submit', async () => {
+    await render();
+    fillRequired();
+    type('pf-qty', '2.5');
+    type('pf-exp', dayFromToday(30));
+    await save();
+
+    http.expectNone(PRODUCTS_URL);
+    expect(errorText('lotQuantity')).toBe('La cantidad debe ser un número entero.');
   });
 
   it('maps 400 errors[] to their fields and shows unknown ones as a toast', async () => {

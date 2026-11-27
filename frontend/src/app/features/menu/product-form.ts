@@ -19,6 +19,8 @@ import { ProductsService } from './products.service';
 
 export const SEASON_UNTIL_REQUIRED = 'Indica hasta qué fecha está disponible la temporada.';
 export const LOT_EXPIRY_REQUIRED = 'Indica la fecha de vencimiento del lote.';
+export const LOT_QUANTITY_INTEGER = 'La cantidad debe ser un número entero.';
+export const DUPLICATE_NAME_DETAIL = 'Ya existe un producto con ese nombre.';
 export const LOT_EXPIRY_PAST = 'El vencimiento no puede ser anterior a hoy.';
 
 interface ProductFormModel {
@@ -102,6 +104,9 @@ export class ProductForm implements OnInit {
     });
 
     // CA4: solo al crear; con cantidad, el vencimiento es obligatorio y ≥ hoy (America/Bogota).
+    validate(p.lotQuantity, ({ value }) =>
+      Number.isFinite(value()) && !Number.isInteger(value()) ? { kind: 'integer', message: LOT_QUANTITY_INTEGER } : null,
+    );
     min(p.lotQuantity, 0, { message: 'La cantidad no puede ser negativa.' });
     required(p.lotExpiresOn, {
       message: LOT_EXPIRY_REQUIRED,
@@ -177,11 +182,11 @@ export class ProductForm implements OnInit {
       : body;
   }
 
-  /** 409 → error en el nombre; 400 → errores por campo; lo demás → toast. */
+  /** 409 de nombre duplicado → error en el nombre; otro 409 → toast; 400 → errores por campo; lo demás → toast. */
   #serverErrors(error: unknown): ValidationError.WithOptionalFieldTree[] | undefined {
     const problem = problemOf(error);
     const status = error instanceof HttpErrorResponse ? error.status : 0;
-    if (status === 409) {
+    if (status === 409 && problemMessage(error) === DUPLICATE_NAME_DETAIL) {
       return [{ kind: 'server', message: problemMessage(error), fieldTree: this.productForm.name }];
     }
     if (status === 400 && problem?.errors?.length) {

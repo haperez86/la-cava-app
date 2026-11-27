@@ -23,7 +23,7 @@ Roles: **A** Administrador · **C** Cajero · **M** Mesero · **P** Preparación
 | PATCH | `/products/{id}/active` | A | `{active}` |
 | GET | `/categories` | todos | `[{id, name}]` ordenado por nombre |
 
-Respuesta de producto: `{id, name, categoryId, categoryName, price, description, icon, minStock, active, seasonName, seasonUntil, available}`; `GET /products` devuelve `{content, page, size, totalElements, totalPages}` (`page` desde 0; `sort` admite `name`, `price`, `minStock`, `createdAt`). `state`, `orderable` y `blockReason` llegan con HU-03 (D30). Nombre duplicado → 409 "Ya existe un producto con ese nombre.".
+Respuesta de producto: `{id, name, categoryId, categoryName, price, description, icon, minStock, active, seasonName, seasonUntil, available}`; `GET /products` devuelve `{content, page, size, totalElements, totalPages}` (`page` desde 0; `sort` admite `name`, `price`, `minStock`, `createdAt`). Desde HU-03 cada producto trae además `state` (`ON_MENU`, `OUT_OF_STOCK`, `OUT_OF_SEASON`, `INACTIVE`), `orderable` y `blockReason` ("Retirado de la carta", "Fuera de temporada", "Agotado" o `null`); el filtro `state` admite también `SEASONAL` y un valor inválido → 400 (D31). Nombre duplicado → 409 "Ya existe un producto con ese nombre.".
 
 ## Inventario
 | Método | Ruta | Rol | Descripción |

@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -22,9 +23,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
 import co.lacava.gestion.inventory.application.InventoryService;
 import co.lacava.gestion.menu.application.ProductData;
 import co.lacava.gestion.menu.application.ProductService;
+import co.lacava.gestion.menu.application.ProductState;
 import co.lacava.gestion.menu.application.ProductView;
 import co.lacava.gestion.users.application.UserService;
 import co.lacava.gestion.users.domain.AppUser;
@@ -65,11 +70,12 @@ class LocalDataSeederTest {
     private final UserService users = mock(UserService.class);
     private final ProductService products = mock(ProductService.class);
     private final InventoryService inventory = mock(InventoryService.class);
+    private final PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
 
     @Test
     @DisplayName("Con una base remota no siembra usuarios ni productos")
     void doesNotSeedRemoteDatabase() {
-        new LocalDataSeeder(users, products, inventory, "jdbc:postgresql://db.example.com:5432/la_cava").run(null);
+        seeder("jdbc:postgresql://db.example.com:5432/la_cava").run(null);
 
         verifyNoInteractions(users, products, inventory);
     }
@@ -85,8 +91,10 @@ class LocalDataSeederTest {
         when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
         when(products.create(any(), any(), anyLong())).thenAnswer(inv -> view(((ProductData) inv.getArgument(0)).name()));
 
-        new LocalDataSeeder(users, products, inventory, "jdbc:postgresql://localhost:5432/la_cava").run(null);
+        seeder("jdbc:postgresql://localhost:5432/la_cava").run(null);
 
+        // Cada producto con sus lotes se siembra en su propia transacción.
+        verify(txManager, times(11)).getTransaction(any());
         verify(users, times(5)).create(anyString(), anyString(), anyString(), any());
         verify(products, times(11)).create(any(), any(), anyLong());
         // 10 productos con un lote, "Postre de la casa" con dos (uno vencido) y "Tabla vegetariana" sin lotes.
@@ -103,14 +111,20 @@ class LocalDataSeederTest {
         when(products.findByName(anyString())).thenReturn(Optional.of(view("existente")));
         when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
 
-        new LocalDataSeeder(users, products, inventory, "jdbc:postgresql://localhost:5432/la_cava").run(null);
+        seeder("jdbc:postgresql://localhost:5432/la_cava").run(null);
 
         verify(users, never()).create(anyString(), anyString(), anyString(), any());
         verify(products, never()).create(any(), any(), anyLong());
         verify(inventory, never()).loadSampleLot(anyLong(), anyInt(), any(), any(), any(), anyLong());
     }
 
+    private LocalDataSeeder seeder(String url) {
+        return new LocalDataSeeder(users, products, inventory, ZoneId.of("America/Bogota"),
+                new TransactionTemplate(txManager), url);
+    }
+
     private static ProductView view(String name) {
-        return new ProductView(7L, name, 1L, "Tablas", BigDecimal.TEN, null, null, 0, true, null, null, 0);
+        return new ProductView(7L, name, 1L, "Tablas", BigDecimal.TEN, null, null, 0, true, null, null, 0,
+                ProductState.OUT_OF_STOCK, false, "Agotado");
     }
 }

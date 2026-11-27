@@ -3,6 +3,7 @@ package co.lacava.gestion.menu.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -478,7 +479,203 @@ class ProductIntegrationTest extends IntegrationTest {
                 .andExpect(jsonPath("$.errors[0].field").value("sort"));
     }
 
+    @Test
+    @DisplayName("Listado: ordenar por una ruta anidada (category.name) da 400")
+    void listRejectsNestedSort() throws Exception {
+        as(Role.WAITER, get(PRODUCTS).param("sort", "category.name"), null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("sort"));
+    }
+
+    // ---------- HU-03: disponibilidad y filtros ----------
+
+    @Test
+    @DisplayName("CA1 activo, en temporada y con existencia vigente es pedible, sin motivo de bloqueo")
+    void hu03Ca1Orderable() throws Exception {
+        long id = product("Tabla La Cava", null, true, 5, TODAY.plusDays(3));
+
+        assertProduct(id, "ON_MENU", true, null);
+    }
+
+    @Test
+    @DisplayName("CA1 producto retirado: orderable=false y blockReason \"Retirado de la carta\"")
+    void hu03Ca1Inactive() throws Exception {
+        long id = product("Agua", null, false, 5, TODAY.plusDays(3));
+
+        assertProduct(id, "INACTIVE", false, "Retirado de la carta");
+    }
+
+    @Test
+    @DisplayName("CA1 temporada vencida: orderable=false y blockReason \"Fuera de temporada\"")
+    void hu03Ca1OutOfSeason() throws Exception {
+        long id = product("Sangría de verano", TODAY.minusDays(10), true, 5, TODAY.plusDays(3));
+
+        assertProduct(id, "OUT_OF_SEASON", false, "Fuera de temporada");
+    }
+
+    @Test
+    @DisplayName("CA1 sin existencia vigente: orderable=false y blockReason \"Agotado\"")
+    void hu03Ca1OutOfStock() throws Exception {
+        long id = product("Tabla vegetariana", null, true, 0, null);
+
+        assertProduct(id, "OUT_OF_STOCK", false, "Agotado");
+    }
+
+    @Test
+    @DisplayName("CA1 un lote vencido no cuenta como existencia: el producto sale Agotado")
+    void hu03Ca1ExpiredLotIsNotStock() throws Exception {
+        long id = product("Postre de la casa", null, true, 5, TODAY.minusDays(1));
+
+        assertProduct(id, "OUT_OF_STOCK", false, "Agotado");
+    }
+
+    @Test
+    @DisplayName("CA1 un lote vigente con cantidad 0 no cuenta como existencia: Agotado y fuera de ON_MENU")
+    void hu03Ca1ZeroQuantityLotIsNotStock() throws Exception {
+        long id = product("Tabla de quesos", null, true, 5, TODAY.plusDays(9));
+        jdbcTemplate.update("UPDATE stock_lot SET quantity_available = 0 WHERE product_id = ?", id);
+
+        assertProduct(id, "OUT_OF_STOCK", false, "Agotado");
+        as(Role.WAITER, get(PRODUCTS).param("state", "OUT_OF_STOCK"), null)
+                .andExpect(jsonPath("$.content[*].name").value(hasItem("Tabla de quesos")));
+        as(Role.WAITER, get(PRODUCTS).param("state", "ON_MENU"), null)
+                .andExpect(jsonPath("$.content[*].name").value(not(hasItem("Tabla de quesos"))));
+    }
+
+    @Test
+    @DisplayName("CA1 prioridad: inactivo y vencido gana \"Retirado de la carta\"; vencido y sin stock, \"Fuera de temporada\"")
+    void hu03Ca1Priority() throws Exception {
+        long inactiveAndExpired = product("Sangría de verano", TODAY.minusDays(1), false, 0, null);
+        long expiredAndEmpty = product("Vino caliente navideño", TODAY.minusDays(1), true, 0, null);
+
+        assertProduct(inactiveAndExpired, "INACTIVE", false, "Retirado de la carta");
+        assertProduct(expiredAndEmpty, "OUT_OF_SEASON", false, "Fuera de temporada");
+    }
+
+    @Test
+    @DisplayName("CA1 el ProductResponse trae state, orderable y blockReason también al retirar un producto")
+    void hu03Ca1FieldsInPatch() throws Exception {
+        long id = createProduct(body("Agua", "Bebidas"));
+
+        as(Role.ADMIN, patch(PRODUCTS + "/" + id + "/active"), Map.of("active", false))
+                .andExpect(jsonPath("$.state").value("INACTIVE"))
+                .andExpect(jsonPath("$.orderable").value(false))
+                .andExpect(jsonPath("$.blockReason").value("Retirado de la carta"));
+    }
+
+    @Test
+    @DisplayName("CA2 filtro por estado: cada valor devuelve sus productos y su totalElements")
+    void hu03Ca2StateFilters() throws Exception {
+        seedAllStates();
+
+        assertFilter("ON_MENU", "Copa de vino", "Vino caliente navideño");
+        assertFilter("OUT_OF_STOCK", "Tabla vegetariana", "Vino de temporada agotado");
+        assertFilter("SEASONAL", "Vino caliente navideño", "Vino de temporada agotado");
+        assertFilter("OUT_OF_SEASON", "Sangría de verano");
+        assertFilter("INACTIVE", "Agua");
+    }
+
+    @Test
+    @DisplayName("CA2 el filtro de estado se combina con q y categoryId, y la paginación cuenta solo los filtrados")
+    void hu03Ca2CombinedAndPaginated() throws Exception {
+        seedAllStates();
+        long vinos = jdbcTemplate.queryForObject("SELECT id FROM category WHERE name = 'Vinos'", Long.class);
+
+        as(Role.WAITER, get(PRODUCTS).param("state", "ON_MENU").param("q", "navide"), null)
+                .andExpect(jsonPath("$.content[*].name").value(contains("Vino caliente navideño")))
+                .andExpect(jsonPath("$.totalElements").value(1));
+        as(Role.WAITER, get(PRODUCTS).param("state", "ON_MENU").param("categoryId", String.valueOf(vinos)), null)
+                .andExpect(jsonPath("$.content[*].name").value(contains("Copa de vino", "Vino caliente navideño")));
+        as(Role.WAITER, get(PRODUCTS).param("state", "SEASONAL").param("q", "agotado"), null)
+                .andExpect(jsonPath("$.content[*].name").value(contains("Vino de temporada agotado")));
+        as(Role.WAITER, get(PRODUCTS).param("state", "OUT_OF_STOCK").param("size", "1").param("page", "1"), null)
+                .andExpect(jsonPath("$.content[*].name").value(contains("Vino de temporada agotado")))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(2));
+    }
+
+    @Test
+    @DisplayName("CA2 un valor de state inválido da 400 con el error en el campo state")
+    void hu03Ca2InvalidState() throws Exception {
+        as(Role.WAITER, get(PRODUCTS).param("state", "AGOTADOS"), null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("state"));
+    }
+
+    @Test
+    @DisplayName("CA3 con Clock fijo, una temporada que terminó ayer es Fuera de temporada; la que termina hoy sigue vigente")
+    void hu03Ca3SeasonEndedYesterday() throws Exception {
+        long ended = product("Sangría de verano", TODAY.minusDays(1), true, 5, TODAY.plusDays(30));
+        long endsToday = product("Vino caliente navideño", TODAY, true, 5, TODAY.plusDays(30));
+
+        assertProduct(ended, "OUT_OF_SEASON", false, "Fuera de temporada");
+        assertProduct(endsToday, "ON_MENU", true, null);
+
+        clock.fixAt(NOW.plusSeconds(86_400));
+        assertProduct(endsToday, "OUT_OF_SEASON", false, "Fuera de temporada");
+        as(Role.WAITER, get(PRODUCTS).param("state", "OUT_OF_SEASON"), null)
+                .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
     // ---------- Apoyo ----------
+
+    /** Crea un producto (con temporada si seasonUntil != null) y, si qty > 0, un lote que vence en lotExpires. */
+    private long product(String name, LocalDate seasonUntil, boolean active, int qty, LocalDate lotExpires)
+            throws Exception {
+        return product(name, "Vinos", seasonUntil, active, qty, lotExpires);
+    }
+
+    private long product(String name, String category, LocalDate seasonUntil, boolean active, int qty,
+            LocalDate lotExpires) throws Exception {
+        Map<String, Object> body = body(name, category);
+        if (seasonUntil != null) {
+            body.put("seasonName", "Temporada");
+            body.put("seasonUntil", seasonUntil.toString());
+        }
+        long id = createProduct(body);
+        if (qty > 0) {
+            inventory.loadSampleLot(id, qty, lotExpires, null, NOW, adminId);
+        }
+        if (!active) {
+            as(Role.ADMIN, patch(PRODUCTS + "/" + id + "/active"), Map.of("active", false)).andExpect(status().isOk());
+        }
+        return id;
+    }
+
+    private void assertProduct(long id, String state, boolean orderable, String blockReason) throws Exception {
+        String content = as(Role.WAITER, get(PRODUCTS).param("size", "100"), null).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        for (var node : json.readTree(content).get("content")) {
+            if (node.get("id").asLong() == id) {
+                assertThat(node.get("state").asString()).isEqualTo(state);
+                assertThat(node.get("orderable").asBoolean()).isEqualTo(orderable);
+                if (blockReason == null) {
+                    assertThat(node.get("blockReason").isNull()).isTrue();
+                } else {
+                    assertThat(node.get("blockReason").asString()).isEqualTo(blockReason);
+                }
+                return;
+            }
+        }
+        throw new AssertionError("El producto " + id + " no está en el listado");
+    }
+
+    private void assertFilter(String state, String... names) throws Exception {
+        as(Role.WAITER, get(PRODUCTS).param("state", state), null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].name").value(contains((Object[]) names)))
+                .andExpect(jsonPath("$.totalElements").value(names.length));
+    }
+
+    /** Un producto en cada estado, más una temporada vigente sin existencia. */
+    private void seedAllStates() throws Exception {
+        product("Copa de vino", null, true, 5, TODAY.plusDays(9));                              // ON_MENU
+        product("Vino caliente navideño", TODAY.plusDays(20), true, 5, TODAY.plusDays(9));      // ON_MENU y SEASONAL
+        product("Tabla vegetariana", "Tablas", null, true, 0, null);                            // OUT_OF_STOCK
+        product("Vino de temporada agotado", TODAY.plusDays(20), true, 5, TODAY.minusDays(1));  // OUT_OF_STOCK y SEASONAL
+        product("Sangría de verano", TODAY.minusDays(1), true, 5, TODAY.plusDays(9));           // OUT_OF_SEASON
+        product("Agua", "Bebidas", null, false, 5, TODAY.plusDays(9));                          // INACTIVE
+    }
 
     private void assertNothingCreated() {
         assertThat(count("SELECT count(*) FROM product")).isZero();

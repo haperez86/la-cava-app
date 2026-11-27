@@ -23,6 +23,9 @@ export class ProductsService {
     if (query.categoryId !== null) {
       params = params.set('categoryId', query.categoryId);
     }
+    if (query.state) {
+      params = params.set('state', query.state);
+    }
     return firstValueFrom(this.#http.get<Page<Product>>(PRODUCTS_URL, { params }));
   }
 
