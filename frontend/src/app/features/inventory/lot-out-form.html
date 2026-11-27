@@ -1,0 +1,73 @@
+<form class="lot-out-form" (submit)="onSubmit(); $event.preventDefault()" novalidate>
+  <div class="field">
+    <label for="lo-product">Producto *</label>
+    <select
+      id="lo-product"
+      aria-describedby="lo-available"
+      [formField]="outForm.productId"
+      [attr.aria-invalid]="!!errorOf(outForm.productId)"
+    >
+      <option value="">{{ loadingProducts() ? 'Cargando productos…' : 'Elige un producto' }}</option>
+      @for (product of products(); track product.id) {
+        <option [value]="product.id">{{ product.name }}</option>
+      }
+    </select>
+    @if (selected(); as product) {
+      <p id="lo-available" class="hint" data-testid="available">Disponible: {{ product.available }}</p>
+    }
+    @if (errorOf(outForm.productId); as error) {
+      <p class="field-error" data-testid="error-productId">{{ error }}</p>
+    }
+  </div>
+
+  <div class="form2">
+    <div class="field">
+      <label for="lo-type">Tipo *</label>
+      <select id="lo-type" [formField]="outForm.type" [attr.aria-invalid]="!!errorOf(outForm.type)">
+        @for (type of types; track type.value) {
+          <option [value]="type.value">{{ type.label }}</option>
+        }
+      </select>
+      @if (errorOf(outForm.type); as error) {
+        <p class="field-error" data-testid="error-type">{{ error }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="lo-qty">Cantidad *</label>
+      <input
+        id="lo-qty"
+        type="number"
+        step="1"
+        inputmode="numeric"
+        [formField]="outForm.quantity"
+        [attr.aria-invalid]="!!errorOf(outForm.quantity)"
+      />
+      @if (errorOf(outForm.quantity); as error) {
+        <p class="field-error" data-testid="error-quantity">{{ error }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="lo-note">Observación *</label>
+    <textarea
+      id="lo-note"
+      rows="3"
+      placeholder="Ej. Botella rota al descargar"
+      [formField]="outForm.note"
+      [attr.aria-invalid]="!!errorOf(outForm.note)"
+    ></textarea>
+    @if (errorOf(outForm.note); as error) {
+      <p class="field-error" data-testid="error-note">{{ error }}</p>
+    }
+  </div>
+
+  <p class="hint">Se descuenta primero del lote que vence antes; puede repartirse entre varios lotes.</p>
+
+  <div class="modal-actions">
+    <button type="button" class="btn" (click)="cancelled.emit()">Cancelar</button>
+    <button type="submit" class="btn primary" data-testid="save-output" [disabled]="submitting()">
+      {{ submitting() ? 'Guardando…' : 'Guardar salida' }}
+    </button>
+  </div>
+</form>

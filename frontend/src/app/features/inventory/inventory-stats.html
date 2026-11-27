@@ -1,0 +1,37 @@
+<div class="stats" data-testid="inventory-stats">
+  @for (card of cards(); track card.key) {
+    <div class="card stat" [class.active]="activeFilter() === card.filter" [attr.data-testid]="'stat-' + card.key">
+      <button
+        type="button"
+        class="stat-hit"
+        [attr.aria-pressed]="activeFilter() === card.filter"
+        [attr.data-testid]="'stat-filter-' + card.key"
+        (click)="filter.emit(card.filter)"
+      >
+        <span class="stat-label">{{ card.label }}</span>
+        <span
+          class="stat-value"
+          [class.txt-red]="card.value > 0 && card.tone === 'red'"
+          [class.txt-amber]="card.value > 0 && card.tone === 'amber'"
+          data-testid="stat-value"
+          >{{ card.value }}</span
+        >
+      </button>
+      @if (card.key === 'expired') {
+        @if (card.value > 0) {
+          <button
+            type="button"
+            class="btn small"
+            data-testid="write-off-expired-card"
+            [disabled]="writingOff()"
+            (click)="writeOff.emit()"
+          >
+            Dar de baja vencidos
+          </button>
+        } @else {
+          <span class="stat-note">Sin vencidos</span>
+        }
+      }
+    </div>
+  }
+</div>

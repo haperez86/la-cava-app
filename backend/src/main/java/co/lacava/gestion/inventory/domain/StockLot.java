@@ -58,6 +58,22 @@ public class StockLot {
         this.createdBy = createdBy;
     }
 
+    /**
+     * Descuenta hasta {@code wanted} unidades del lote y devuelve cuántas tomó (nunca deja la cantidad negativa).
+     */
+    public int take(int wanted) {
+        int taken = Math.min(wanted, quantityAvailable);
+        quantityAvailable -= taken;
+        return taken;
+    }
+
+    /** Deja el lote en 0 y devuelve las unidades que tenía. */
+    public int writeOff() {
+        int units = quantityAvailable;
+        quantityAvailable = 0;
+        return units;
+    }
+
     public Long getId() {
         return id;
     }

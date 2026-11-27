@@ -5,7 +5,6 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +21,7 @@ import co.lacava.gestion.inventory.application.InventoryService;
 import co.lacava.gestion.menu.domain.Category;
 import co.lacava.gestion.menu.domain.Product;
 import co.lacava.gestion.menu.infrastructure.ProductRepository;
+import co.lacava.gestion.shared.api.LikePattern;
 import co.lacava.gestion.shared.error.BusinessException;
 import co.lacava.gestion.shared.error.FieldError;
 import co.lacava.gestion.shared.error.InvalidFieldsException;
@@ -68,7 +68,7 @@ public class ProductService {
             spec = spec.and(filter.toSpecification(today));
         }
         if (q != null && !q.isBlank()) {
-            String pattern = "%" + escapeLike(q.trim().toLowerCase(Locale.ROOT)) + "%";
+            String pattern = LikePattern.contains(q);
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), pattern, '\\'));
         }
         if (categoryId != null) {
@@ -181,10 +181,6 @@ public class ProductService {
         }
         orders.add(Sort.Order.asc("id"));
         return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(orders));
-    }
-
-    private static String escapeLike(String value) {
-        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private static String trimToNull(String value) {

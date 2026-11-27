@@ -1,0 +1,9 @@
+@use 'modal';
+
+@include modal.modal-shell(440px);
+@include modal.modal-actions;
+
+.message {
+  margin: 12px 0 0;
+  color: var(--ink);
+}

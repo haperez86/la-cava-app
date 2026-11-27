@@ -1,0 +1,25 @@
+<div class="modal-back" (click)="onCancel()">
+  <div
+    class="modal"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="confirm-title"
+    aria-describedby="confirm-message"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-head">
+      <h3 id="confirm-title">{{ heading() }}</h3>
+    </div>
+    <p id="confirm-message" class="message">{{ message() }}</p>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-testid="confirm-cancel" [disabled]="busy()" (click)="onCancel()">
+        {{ cancelLabel() }}
+      </button>
+      <button type="button" class="btn primary" data-testid="confirm-accept" [disabled]="busy()" (click)="confirmed.emit()">
+        {{ confirmLabel() }}
+      </button>
+    </div>
+  </div>
+</div>
