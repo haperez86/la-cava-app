@@ -25,6 +25,10 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  jackson:
+    deserialization:
+      # Un decimal (p. ej. 2.5) en un campo entero da 400 en ese campo en vez de redondearse (HU-05)
+      accept-float-as-int: false
   threads:
     virtual:
       enabled: true

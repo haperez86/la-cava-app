@@ -37,6 +37,7 @@ Respuesta de producto: `{id, name, categoryId, categoryName, price, description,
 | GET | `/inventory/movements` | A | Filtros `productId`, `from`, `to`; paginado |
 
 Lote (`LotResponse`): `{id, productId, productName, quantityReceived, quantityAvailable, expiresOn, seasonName, receivedAt, status}`; `status` = `CONSUMED` (cantidad 0) → `EXPIRED` (vencido con cantidad) → `EXPIRING` (vence en ≤ 3 días) → `ACTIVE`. `POST /inventory/lots` responde 201 con el lote; `seasonName` vacío o nulo toma la temporada del producto; validación → 400 `errors[]` (`productId`, `quantity`, `expiresOn`, `seasonName`); producto inexistente → 404 (D32).
+Salida (`POST /inventory/outputs`): `{productId, quantity, type, note}` con `type` = `WASTE_OUT`, `DAMAGED_OUT`, `INTERNAL_USE_OUT` o `ADJUSTMENT_OUT` y `note` obligatoria (≤ 140) → `{productId, productName, type, quantity, consumed:[{lotId, expiresOn, quantity}], available}`; cantidad mayor que la vigente → 400 en `quantity` ("Solo hay N disponibles."). Baja de vencidos → `{lots, units}`. Cualquier cantidad decimal en un campo entero → 400 en ese campo (D33).
 
 ## Mesas
 | Método | Ruta | Rol | Descripción |

@@ -1,4 +1,7 @@
 @use 'styles/breakpoints' as bp;
+@use 'modal';
+
+@include modal.modal-shell;
 
 .page-head {
   display: flex;
@@ -15,6 +18,13 @@
   p {
     margin: 0;
   }
+}
+
+// Móvil: botones apilados a todo el ancho.
+.head-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 
   .btn {
     width: 100%;
@@ -36,49 +46,6 @@
   font-size: 13px;
 }
 
-.modal-back {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 10;
-}
-
-.modal {
-  background: var(--surface);
-  width: 100%;
-  max-height: 92vh;
-  overflow: auto;
-  overflow-x: clip;
-  border-radius: 17px 17px 0 0;
-  padding: 19px 16px calc(18px + env(safe-area-inset-bottom));
-  box-shadow: var(--shadow-modal);
-}
-
-.modal-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-
-  h3 {
-    font-size: 21px;
-    margin: 0;
-  }
-}
-
-.close {
-  border: 0;
-  background: var(--close-bg);
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  font-size: 18px;
-}
-
 @media (min-width: #{bp.$bp-mobile-max + 1}) {
   .page-head {
     flex-direction: row;
@@ -88,22 +55,16 @@
     h2 {
       font-size: 29px;
     }
+  }
+
+  .head-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex-shrink: 0;
 
     .btn {
       width: auto;
-      flex-shrink: 0;
     }
-  }
-
-  .modal-back {
-    align-items: center;
-    padding: 18px;
-  }
-
-  .modal {
-    width: min(620px, 100%);
-    max-height: 90vh;
-    border-radius: 16px;
-    padding: 22px;
   }
 }

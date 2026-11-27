@@ -1,0 +1,83 @@
+@use 'styles/breakpoints' as bp;
+
+// Hoja inferior en móvil y modal centrado desde tablet (.modal de la demo).
+// Se incluye en cada componente que pinta un diálogo propio de inventario.
+@mixin modal-shell($desktop-width: 620px) {
+  .modal-back {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .modal {
+    background: var(--surface);
+    width: 100%;
+    max-height: 92vh;
+    overflow: auto;
+    overflow-x: clip;
+    border-radius: 17px 17px 0 0;
+    padding: 19px 16px calc(18px + env(safe-area-inset-bottom));
+    box-shadow: var(--shadow-modal);
+  }
+
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+
+    h3 {
+      font-size: 21px;
+      margin: 0;
+    }
+  }
+
+  .close {
+    border: 0;
+    background: var(--close-bg);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  @media (min-width: #{bp.$bp-mobile-max + 1}) {
+    .modal-back {
+      align-items: center;
+      padding: 18px;
+    }
+
+    .modal {
+      width: min($desktop-width, 100%);
+      max-height: 90vh;
+      border-radius: 16px;
+      padding: 22px;
+    }
+  }
+}
+
+// Acciones al pie: botones con flex 1 en móvil, tamaño natural desde tablet.
+@mixin modal-actions {
+  .modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 18px;
+
+    .btn {
+      flex: 1;
+    }
+  }
+
+  @media (min-width: #{bp.$bp-mobile-max + 1}) {
+    .modal-actions .btn {
+      flex: 0 0 auto;
+    }
+  }
+}

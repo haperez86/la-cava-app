@@ -4,27 +4,64 @@
     <h2>Inventario</h2>
     <p class="muted">Existencias por producto, lotes, temporadas y fechas de vencimiento</p>
   </div>
-  <button type="button" class="btn primary" data-testid="register-lot" (click)="openEntry()">＋ Registrar entrada</button>
+  <div class="head-actions">
+    <button type="button" class="btn" data-testid="write-off-expired" [disabled]="writingOff()" (click)="askWriteOff()">
+      Dar de baja vencidos
+    </button>
+    <button type="button" class="btn" data-testid="register-output" (click)="openOutput()">− Registrar salida</button>
+    <button type="button" class="btn primary" data-testid="register-lot" (click)="openEntry()">＋ Registrar entrada</button>
+  </div>
 </div>
 
 <div class="card empty" data-testid="inventory-empty">Registra entradas de mercancía por lote.</div>
 
-@if (entryOpen()) {
-  <div class="modal-back" (click)="closeEntry()">
-    <div
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="lot-modal-title"
-      cdkTrapFocus
-      [cdkTrapFocusAutoCapture]="true"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="modal-head">
-        <h3 id="lot-modal-title">Registrar entrada de inventario</h3>
-        <button type="button" class="close" aria-label="Cerrar" (click)="closeEntry()">×</button>
+@switch (open()) {
+  @case ('entry') {
+    <div class="modal-back" (click)="closeForm()">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lot-modal-title"
+        cdkTrapFocus
+        [cdkTrapFocusAutoCapture]="true"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="modal-head">
+          <h3 id="lot-modal-title">Registrar entrada de inventario</h3>
+          <button type="button" class="close" aria-label="Cerrar" (click)="closeForm()">×</button>
+        </div>
+        <app-lot-in-form (saved)="onSaved($event)" (cancelled)="closeForm()" />
       </div>
-      <app-lot-in-form (saved)="onSaved($event)" (cancelled)="closeEntry()" />
     </div>
-  </div>
+  }
+  @case ('output') {
+    <div class="modal-back" (click)="closeForm()">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="out-modal-title"
+        cdkTrapFocus
+        [cdkTrapFocusAutoCapture]="true"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="modal-head">
+          <h3 id="out-modal-title">Registrar salida de inventario</h3>
+          <button type="button" class="close" aria-label="Cerrar" (click)="closeForm()">×</button>
+        </div>
+        <app-lot-out-form (saved)="onOutputSaved($event)" (cancelled)="closeForm()" />
+      </div>
+    </div>
+  }
+  @case ('writeOff') {
+    <app-confirm-dialog
+      heading="Dar de baja vencidos"
+      confirmLabel="Dar de baja"
+      [message]="writeOffConfirm"
+      [busy]="writingOff()"
+      (confirmed)="confirmWriteOff()"
+      (cancelled)="cancelWriteOff()"
+    />
+  }
 }

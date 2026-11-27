@@ -146,6 +146,21 @@ class LotIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    @DisplayName("CA1 cantidad decimal (2.5) da 400 en quantity y no crea nada (Jackson no la redondea)")
+    void ca1DecimalQuantityRejected() throws Exception {
+        long productId = createProduct("Copa de vino", null, null);
+        Map<String, Object> body = lot(productId, 1, TODAY.plusDays(5), null);
+        body.put("quantity", 2.5);
+
+        as(Role.ADMIN, post(LOTS), body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[*].field").value(contains("quantity")))
+                .andExpect(jsonPath("$.errors[0].message").value("Debe ser un número entero."));
+
+        assertNothingCreated();
+    }
+
+    @Test
     @DisplayName("CA1 vencimiento faltante da 400 con el error en expiresOn y no crea nada")
     void ca1MissingExpiresOn() throws Exception {
         long productId = createProduct("Copa de vino", null, null);

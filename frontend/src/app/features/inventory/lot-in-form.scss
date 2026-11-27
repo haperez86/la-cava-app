@@ -1,4 +1,7 @@
 @use 'styles/breakpoints' as bp;
+@use 'modal';
+
+@include modal.modal-actions;
 
 .form2 {
   display: grid;
@@ -23,24 +26,8 @@
   margin: 14px 0 0;
 }
 
-.modal-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 18px;
-
-  .btn {
-    flex: 1;
-  }
-}
-
 @media (min-width: #{bp.$bp-mobile-max + 1}) {
   .form2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .modal-actions .btn {
-    flex: 0 0 auto;
   }
 }

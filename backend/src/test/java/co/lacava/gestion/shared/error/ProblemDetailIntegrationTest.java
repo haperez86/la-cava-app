@@ -47,6 +47,30 @@ class ProblemDetailIntegrationTest extends IntegrationTest {
 
     @Test
     @WithMockUser
+    void invalidDateInBodyFieldReturns400OnThatField() throws Exception {
+        mockMvc.perform(post(BASE + "/validation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"x\", \"quantity\": 1, \"date\": \"2026-13-45\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(Problems.VALIDATION))
+                .andExpect(jsonPath("$.errors.length()").value(1))
+                .andExpect(jsonPath("$.errors[0].field").value("date"))
+                .andExpect(jsonPath("$.errors[0].message").value("Valor no válido."));
+    }
+
+    @Test
+    @WithMockUser
+    void malformedJsonStillReturnsGeneric400WithoutFieldErrors() throws Exception {
+        mockMvc.perform(post(BASE + "/validation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"x\", \"date\": "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value(Problems.UNREADABLE))
+                .andExpect(jsonPath("$.errors").doesNotExist());
+    }
+
+    @Test
+    @WithMockUser
     void notFoundReturns404WithBusinessMessage() throws Exception {
         mockMvc.perform(get(BASE + "/not-found"))
                 .andExpect(status().isNotFound())

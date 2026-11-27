@@ -41,6 +41,21 @@ class InventoryController {
                 request.seasonName(), CurrentUser.id(jwt)));
     }
 
+    @PostMapping("/inventory/outputs")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Salida manual (merma, dañado, consumo interno, ajuste) consumida en FEFO; exige observación")
+    OutputResponse registerOutput(@RequestBody RegisterOutputRequest request, @AuthenticationPrincipal Jwt jwt) {
+        return OutputResponse.from(inventory.registerOutput(request.productId(), request.quantity(), request.type(),
+                request.note(), CurrentUser.id(jwt)));
+    }
+
+    @PostMapping("/inventory/expired/write-off")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Deja en 0 todos los lotes vencidos con un movimiento EXPIRED_WRITE_OFF por lote")
+    WriteOffResponse writeOffExpired(@AuthenticationPrincipal Jwt jwt) {
+        return WriteOffResponse.from(inventory.writeOffExpired(CurrentUser.id(jwt)));
+    }
+
     @GetMapping("/products/{id}/lots")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Lotes de un producto con su estado, ordenados por vencimiento")
