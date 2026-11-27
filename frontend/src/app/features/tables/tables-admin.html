@@ -1,0 +1,86 @@
+<div class="page-head">
+  <div>
+    <div class="eyebrow">La Cava · Copas y tablas</div>
+    <h2>Mesas</h2>
+    <p class="muted">Crea y desactiva mesas, imprime sus códigos QR y regenéralos si un QR se pierde.</p>
+  </div>
+  <div class="head-actions">
+    <button type="button" class="btn" data-testid="print-all" [disabled]="printing()" (click)="printQr()">
+      Imprimir QR de todas
+    </button>
+    <button type="button" class="btn primary" data-testid="new-table" (click)="openCreate()">＋ Nueva mesa</button>
+  </div>
+</div>
+
+<div class="table-grid" data-testid="table-list" [attr.aria-busy]="loading()">
+  @for (table of tables(); track table.id) {
+    <article class="table-tile" [class.off]="!table.active" data-testid="table">
+      <div class="tile-head">
+        <span class="num"><app-icon name="tables" [size]="16" /> Mesa {{ table.number }}</span>
+        @if (table.active) {
+          <span class="pill" data-testid="table-state">Activa</span>
+        } @else {
+          <span class="pill danger" data-testid="table-state">Inactiva</span>
+        }
+      </div>
+      <div class="actions">
+        <button
+          type="button"
+          class="btn small"
+          data-testid="print-one"
+          [disabled]="!table.active || printing()"
+          (click)="printQr(table.number)"
+        >
+          Imprimir QR
+        </button>
+        <button type="button" class="btn small" data-testid="rotate" (click)="askRotate(table)">
+          Regenerar QR
+        </button>
+        <button
+          type="button"
+          class="btn small"
+          data-testid="toggle-active"
+          [disabled]="toggling() === table.id"
+          (click)="toggleActive(table)"
+        >
+          {{ table.active ? 'Desactivar' : 'Activar' }}
+        </button>
+      </div>
+    </article>
+  } @empty {
+    @if (!loading()) {
+      <div class="card empty" data-testid="empty">Aún no hay mesas. Crea la primera con «Nueva mesa».</div>
+    }
+  }
+</div>
+
+@if (creating()) {
+  <div class="modal-back" (click)="closeForm()">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="table-modal-title"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-head">
+        <h3 id="table-modal-title">Nueva mesa</h3>
+        <button type="button" class="close" aria-label="Cerrar" (click)="closeForm()">×</button>
+      </div>
+      <app-table-form (saved)="onCreated($event)" (cancelled)="closeForm()" />
+    </div>
+  </div>
+}
+
+@if (rotating(); as table) {
+  <app-confirm-dialog
+    [heading]="'Regenerar QR de la mesa ' + table.number"
+    confirmLabel="Regenerar QR"
+    [message]="rotateMessage()"
+    [busy]="rotateBusy()"
+    (confirmed)="confirmRotate()"
+    (cancelled)="cancelRotate()"
+  />
+}

@@ -11,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import co.lacava.gestion.auth.application.LoginAttemptService;
+import co.lacava.gestion.tables.application.PinAttemptService;
 
 /**
  * Base de las pruebas de integración: contexto completo contra PostgreSQL local
@@ -39,10 +40,14 @@ public abstract class IntegrationTest {
         clock.useSystemClock();
     }
 
-    /** El conteo de intentos de login vive en memoria del contexto compartido: se limpia entre pruebas. */
+    @Autowired
+    private PinAttemptService pinAttempts;
+
+    /** Los intentos de login y de PIN de mesa viven en memoria del contexto compartido: se limpian entre pruebas. */
     @BeforeEach
     void clearLoginAttempts() {
         loginAttempts.clear();
+        pinAttempts.clear();
     }
 
     @BeforeEach

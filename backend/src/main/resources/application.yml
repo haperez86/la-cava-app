@@ -39,11 +39,19 @@ server:
 app:
   jwt:
     secret: ${JWT_SECRET:}
+  qr:
+    # HMAC de los códigos QR de las mesas (D35); mínimo 32 bytes
+    secret: ${QR_SECRET:}
   business-zone: America/Bogota
   auth:
     # P1: tras 5 fallos seguidos por usuario, bloqueo de 15 min (en memoria, D9)
     max-failed-attempts: 5
     lockout: PT15M
+  tables:
+    pin:
+      # D36: resolve por número + PIN, tras 5 fallos seguidos por usuario, bloqueo de 15 min (en memoria, D9)
+      max-failed-attempts: 5
+      lockout: PT15M
 
 springdoc:
   api-docs:

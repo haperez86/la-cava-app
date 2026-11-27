@@ -45,11 +45,13 @@ Fila de inventario (`GET /inventory`, paginado): `{productId, name, icon, catego
 |---|---|---|---|
 | GET | `/tables` | A, C, M | Mesas con estado (`FREE`/`OCCUPIED`), etapa (`READY`, `IN_PREPARATION`, `PENDING`, `SERVED`), número de pedidos, total y último mesero |
 | POST | `/tables/resolve` | M, A, C | `{code}` (contenido del QR) o `{number, pin}` → mesa con su cuenta abierta. 404 si el código es inválido o la mesa está inactiva |
-| GET | `/tables/{id}/account` | A, C, M | Pedidos abiertos con ítems y total. El mesero solo vía `resolve` |
+| GET | `/tables/{id}/account` | A, C | Pedidos abiertos con ítems y total. El mesero solo la ve vía `resolve` (403 aquí) |
 | POST | `/tables` | A | `{number}` |
 | PATCH | `/tables/{id}/active` | A | |
 | POST | `/tables/{id}/rotate-token` | A | Invalida el QR anterior |
 | GET | `/tables/qr-sheet` | A | Datos para imprimir los QR: `[{number, code, pin}]` (el frontend dibuja los QR) |
+
+Mesa: `{id, number, active}` (los campos de estado llegan con HU-09). `POST /tables`: número entero > 0 (400 `errors[]`), repetido → 409 "Ya existe una mesa con ese número.". `resolve` con `{code}` o `{number, pin}` (PIN como texto de 4 dígitos) → `{id, number, account:{orders, total}}`; cualquier código, PIN o mesa inválidos o inactivos → 404 "Código de mesa inválido"; sin datos → 400. `qr-sheet` solo trae mesas activas. Hasta la Épica 4 la cuenta llega vacía (D35).
 
 ## Pedidos
 | Método | Ruta | Rol | Descripción |

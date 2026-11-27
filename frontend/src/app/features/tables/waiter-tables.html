@@ -1,0 +1,63 @@
+<div class="page-head">
+  <div>
+    <h2>Mis mesas</h2>
+    <p class="muted">Hola {{ waiterName() }}. Escanea el QR de la mesa para cargarla y asignarle pedidos.</p>
+  </div>
+  <button type="button" class="btn primary qr-btn" data-testid="scan-qr" (click)="openScanner()">
+    <app-icon name="tables" [size]="20" /> Escanear QR de mesa
+  </button>
+</div>
+
+<!-- CA4: las mesas solo se muestran; no son botones ni se abren al tocarlas. -->
+<div class="table-grid" data-testid="waiter-table-list" [attr.aria-busy]="loading()">
+  @for (table of tables(); track table.id) {
+    <article class="table-tile" data-testid="waiter-table">
+      <span class="num"><app-icon name="tables" [size]="16" /> Mesa {{ table.number }}</span>
+    </article>
+  } @empty {
+    @if (!loading()) {
+      <div class="card empty" data-testid="empty">No hay mesas activas.</div>
+    }
+  }
+</div>
+<p class="muted help" data-testid="scan-help">{{ helpText }}</p>
+
+@if (scanning()) {
+  <app-qr-scan-dialog (resolved)="onResolved($event)" (closed)="closeScanner()" />
+}
+
+@if (openTable(); as loaded) {
+  <div class="modal-back" (click)="closeTable()">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="table-account-title"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      data-testid="table-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow" data-testid="table-origin">{{ loadedBy[loaded.origin] }} · {{ waiterName() }}</div>
+          <h3 id="table-account-title">Mesa {{ loaded.table.number }}</h3>
+        </div>
+        <button type="button" class="close" aria-label="Cerrar" data-testid="table-close" (click)="closeTable()">×</button>
+      </div>
+      @if (loaded.table.account.orders.length) {
+        <span class="pill busy">Ocupada</span>
+      } @else {
+        <span class="pill">Disponible</span>
+      }
+      <p class="muted account" data-testid="account-state">{{ accountNote() }}</p>
+      <div class="modal-actions">
+        <button type="button" class="btn" (click)="closeTable()">Cerrar</button>
+        <button type="button" class="btn primary" data-testid="assign-order" disabled aria-describedby="assign-note">
+          ＋ Asignar pedido
+        </button>
+      </div>
+      <p id="assign-note" class="muted note" data-testid="assign-note">{{ pendingNote }}</p>
+    </div>
+  </div>
+}

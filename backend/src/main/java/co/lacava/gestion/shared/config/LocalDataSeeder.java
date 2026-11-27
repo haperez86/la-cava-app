@@ -21,6 +21,7 @@ import co.lacava.gestion.inventory.application.InventoryService;
 import co.lacava.gestion.menu.application.ProductData;
 import co.lacava.gestion.menu.application.ProductService;
 import co.lacava.gestion.menu.application.ProductView;
+import co.lacava.gestion.tables.application.TableService;
 import co.lacava.gestion.users.application.UserService;
 import co.lacava.gestion.users.domain.AppUser;
 import co.lacava.gestion.users.domain.Role;
@@ -28,7 +29,7 @@ import co.lacava.gestion.users.domain.Role;
 /**
  * Datos de ejemplo del perfil {@code local}: usuarios de la demo con contraseña {@code <usuario>123} y productos de la
  * carta con lotes de fechas relativas al {@code Clock} (incluido uno vencido). Idempotente: un producto que ya existe
- * (por nombre) no se vuelve a crear ni recibe lotes.
+ * (por nombre) no se vuelve a crear ni recibe lotes. También crea las mesas 1 a 12 (con token QR y PIN) que falten.
  * Solo siembra si la base de datos está en esta máquina (P2): las claves son predecibles.
  */
 @Component
@@ -38,19 +39,22 @@ class LocalDataSeeder implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(LocalDataSeeder.class);
     private static final Set<String> LOCAL_HOSTS = Set.of("localhost", "127.0.0.1", "::1", "[::1]");
     private static final String POSTGRES_PREFIX = "jdbc:postgresql:";
+    private static final int SAMPLE_TABLES = 12;
 
     private final UserService users;
     private final ProductService products;
     private final InventoryService inventory;
+    private final TableService tables;
     private final ZoneId businessZone;
     private final TransactionTemplate transaction;
     private final String datasourceUrl;
 
-    LocalDataSeeder(UserService users, ProductService products, InventoryService inventory, ZoneId businessZone,
-            TransactionTemplate transaction, @Value("${spring.datasource.url:}") String datasourceUrl) {
+    LocalDataSeeder(UserService users, ProductService products, InventoryService inventory, TableService tables,
+            ZoneId businessZone, TransactionTemplate transaction, @Value("${spring.datasource.url:}") String datasourceUrl) {
         this.users = users;
         this.products = products;
         this.inventory = inventory;
+        this.tables = tables;
         this.businessZone = businessZone;
         this.transaction = transaction;
         this.datasourceUrl = datasourceUrl;
@@ -69,6 +73,16 @@ class LocalDataSeeder implements ApplicationRunner {
         seedUser("andres", "Andrés Rojas", Role.WAITER);
         seedUser("jorge", "Jorge Ruiz", Role.KITCHEN);
         seedProducts();
+        seedTables();
+    }
+
+    /** 12 mesas (docs/02, "Datos de ejemplo"); una mesa que ya existe (por número) no se toca. */
+    private void seedTables() {
+        for (int number = 1; number <= SAMPLE_TABLES; number++) {
+            if (!tables.existsByNumber(number)) {
+                tables.create(number);
+            }
+        }
     }
 
     /** Productos de la demo (demo/index.html y docs/02, "Datos de ejemplo"). Lotes: {cantidad, días desde hoy}. */

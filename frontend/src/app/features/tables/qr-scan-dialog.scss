@@ -1,0 +1,33 @@
+@use '../inventory/modal';
+
+@include modal.modal-shell(460px);
+@include modal.modal-actions;
+
+// Vista previa de la cámara (video de la demo: ancho completo, fondo oscuro, radio 12px).
+.preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 300px;
+  margin-top: 12px;
+  object-fit: cover;
+  background: var(--green);
+  border-radius: 12px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.status,
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 10px;
+}

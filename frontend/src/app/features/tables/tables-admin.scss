@@ -1,0 +1,154 @@
+@use 'styles/breakpoints' as bp;
+@use '../inventory/modal';
+
+@include modal.modal-shell(440px);
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.head-actions {
+  display: grid;
+  gap: 8px;
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+// Mesas (.table-grid): 1 columna ≤ 380px, 2 en móvil, 3 en tablet y 4+ en escritorio.
+.table-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.table-tile {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--surface);
+  min-height: 105px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-wrap: anywhere;
+
+  &.off {
+    background: var(--bg);
+
+    .num {
+      color: var(--muted);
+    }
+  }
+}
+
+.tile-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.num {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.actions {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+
+  .btn {
+    width: 100%;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (min-width: #{bp.$bp-xs-max + 1}) {
+  .table-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .page-head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    h2 {
+      font-size: 29px;
+    }
+  }
+
+  .head-actions {
+    display: flex;
+    flex-shrink: 0;
+
+    .btn {
+      width: auto;
+    }
+  }
+
+  .table-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .table-tile {
+    padding: 14px;
+    min-height: 116px;
+  }
+
+  .num {
+    font-size: 21px;
+  }
+
+  .actions .btn {
+    min-height: 36px;
+  }
+}
+
+@media (min-width: bp.$bp-desktop-min) {
+  // 4 columnas con el sidebar en 1051px y más a medida que crece el ancho (4+).
+  .table-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
