@@ -4,7 +4,7 @@
   display: grid;
   grid-template-columns: var(--side-width) minmax(0, 1fr);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .sidebar {
@@ -74,13 +74,14 @@
 
   .ico {
     width: 20px;
-    text-align: center;
+    display: grid;
+    place-items: center;
   }
 }
 
 .main {
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .topbar {
@@ -139,9 +140,8 @@
 .content {
   padding: 30px 34px;
   max-width: 1500px;
-  margin: auto;
   min-width: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .mobile-nav {

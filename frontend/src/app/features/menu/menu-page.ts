@@ -5,6 +5,7 @@ import { ToastService } from '../../core/notifications/toast.service';
 import { formatIsoDate } from '../../shared/dates/business-date';
 import { Pagination } from '../../shared/pagination/pagination';
 import { CopCurrencyPipe } from '../../shared/pipes/cop-currency.pipe';
+import { Icon } from '../../shared/icons/icon';
 import { Category, Product, ProductStateFilter } from './product.model';
 import { ProductForm } from './product-form';
 import { ProductsService } from './products.service';
@@ -30,7 +31,7 @@ interface EditorState {
 /** "Menú y productos" (LCV-HU-02): listado con búsqueda, categoría y paginación; alta, edición y retiro. */
 @Component({
   selector: 'app-menu-page',
-  imports: [CopCurrencyPipe, Pagination, ProductForm, CdkTrapFocus],
+  imports: [Icon, CopCurrencyPipe, Pagination, ProductForm, CdkTrapFocus],
   templateUrl: './menu-page.html',
   styleUrl: './menu-page.scss',
   host: { '(document:keydown.escape)': 'closeEditor()' },

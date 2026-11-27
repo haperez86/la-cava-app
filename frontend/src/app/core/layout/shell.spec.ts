@@ -91,6 +91,19 @@ describe('Shell', () => {
     expect(labels(root, '.mobile-nav a')).toEqual(expected);
   });
 
+  it('every navigation item (sidebar and mobile bar) renders an inline SVG icon instead of a Unicode glyph', async () => {
+    const harness = await open('ADMIN', '/dashboard');
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    for (const selector of ['.nav a', '.mobile-nav a']) {
+      const links = Array.from(root.querySelectorAll(selector));
+      expect(links.length).toBe(4);
+      for (const a of links) {
+        expect(a.querySelector('.ico svg path')).not.toBeNull();
+        expect(a.querySelector('.ico')?.textContent?.trim()).toBe('');
+      }
+    }
+  });
+
   it('LCV-HU-02 the Menú option leads ADMIN to /menu', async () => {
     const harness = await open('ADMIN', '/menu');
     const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));

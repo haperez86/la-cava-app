@@ -47,7 +47,7 @@
         <p>{{ product.categoryName }}@if (product.description) { · {{ product.description }}}</p>
         @if (product.seasonName) {
           <p class="season" data-testid="product-season">
-            🗓 {{ product.seasonName }}@if (product.seasonUntil) { · hasta {{ formatDate(product.seasonUntil) }}}
+            <app-icon name="calendar" [size]="14" /> {{ product.seasonName }}@if (product.seasonUntil) { · hasta {{ formatDate(product.seasonUntil) }}}
           </p>
         }
         <div class="product-foot">

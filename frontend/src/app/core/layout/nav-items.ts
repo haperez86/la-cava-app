@@ -1,9 +1,10 @@
 import { Role } from '../auth/role';
+import { IconName } from '../../shared/icons/icon';
 
 export interface NavItem {
   readonly path: string;
   readonly label: string;
-  readonly icon: string;
+  readonly icon: IconName;
   readonly title: string;
   /** Roles que ven la opción (especificación §1). */
   readonly roles: readonly Role[];
@@ -12,17 +13,17 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { path: 'dashboard', label: 'Dashboard', icon: '⌂', title: 'Dashboard', roles: ['ADMIN', 'CASHIER'] },
+  { path: 'dashboard', label: 'Dashboard', icon: 'home', title: 'Dashboard', roles: ['ADMIN', 'CASHIER'] },
   {
     path: 'mesas',
     label: 'Mesas',
-    icon: '▦',
+    icon: 'tables',
     title: 'Mesas',
     roles: ['ADMIN', 'CASHIER', 'WAITER'],
     labelByRole: { WAITER: 'Mis mesas' },
   },
-  { path: 'preparacion', label: 'Comandas', icon: '♨', title: 'Comandas', roles: ['ADMIN', 'KITCHEN'] },
-  { path: 'menu', label: 'Menú', icon: '☷', title: 'Menú y productos', roles: ['ADMIN'] },
+  { path: 'preparacion', label: 'Comandas', icon: 'kitchen', title: 'Comandas', roles: ['ADMIN', 'KITCHEN'] },
+  { path: 'menu', label: 'Menú', icon: 'menu', title: 'Menú y productos', roles: ['ADMIN'] },
 ];
 
 export function navItemsFor(role: Role | null): readonly NavItem[] {

@@ -151,7 +151,7 @@
   width: 100%;
   max-height: 92vh;
   overflow: auto;
-  overflow-x: hidden;
+  overflow-x: clip;
   border-radius: 17px 17px 0 0;
   padding: 19px 16px calc(18px + env(safe-area-inset-bottom));
   box-shadow: var(--shadow-modal);

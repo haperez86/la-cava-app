@@ -106,6 +106,8 @@ describe('MenuPage', () => {
     expect(malbec.querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('En la carta');
     expect(malbec.querySelector('[data-testid="product-season"]')).toBeNull();
     expect(ponche.querySelector('[data-testid="product-season"]')?.textContent).toContain('Navidad · hasta 31/12/2026');
+    expect(ponche.querySelector('[data-testid="product-season"] svg')).not.toBeNull();
+    expect(ponche.querySelector('[data-testid="product-season"]')?.textContent).not.toContain('🗓');
     expect(ponche.querySelector('[data-testid="product-state"]')?.textContent?.trim()).toBe('Retirado de la carta');
     expect(root.querySelector('[data-testid="pagination-summary"]')?.textContent).toContain('Mostrando 1–2 de 2');
   });
