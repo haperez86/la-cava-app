@@ -29,6 +29,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/tables/tables-page').then((m) => m.TablesPage),
       },
       {
+        path: 'pedidos',
+        title: 'Pedidos · La Cava',
+        data: { roles: ['ADMIN', 'CASHIER'] },
+        loadComponent: () => import('./features/orders/orders-page').then((m) => m.OrdersPage),
+      },
+      {
         path: 'preparacion',
         title: 'Comandas · La Cava',
         data: { roles: ['ADMIN', 'KITCHEN'] },

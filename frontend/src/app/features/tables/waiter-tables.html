@@ -27,37 +27,82 @@
 }
 
 @if (openTable(); as loaded) {
-  <div class="modal-back" (click)="closeTable()">
-    <div
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="table-account-title"
-      cdkTrapFocus
-      [cdkTrapFocusAutoCapture]="true"
-      data-testid="table-modal"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="modal-head">
-        <div>
-          <div class="eyebrow" data-testid="table-origin">{{ loadedBy[loaded.origin] }} · {{ waiterName() }}</div>
-          <h3 id="table-account-title">Mesa {{ loaded.table.number }}</h3>
+  @if (ordering()) {
+    <app-order-dialog
+      mode="waiter"
+      [table]="loaded.table"
+      [tableCode]="loaded.table.tablePass"
+      [waiterName]="waiterName()"
+      (created)="onOrderCreated($event)"
+      (closed)="closeOrder()"
+      (passRejected)="onPassRejected()"
+    />
+  } @else {
+    <div class="modal-back" (click)="closeTable()">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="table-account-title"
+        cdkTrapFocus
+        [cdkTrapFocusAutoCapture]="true"
+        data-testid="table-modal"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="modal-head">
+          <div>
+            <div class="eyebrow" data-testid="table-origin">{{ loadedBy[loaded.origin] }} · {{ waiterName() }}</div>
+            <h3 id="table-account-title">Mesa {{ loaded.table.number }}</h3>
+          </div>
+          <button type="button" class="close" aria-label="Cerrar" data-testid="table-close" (click)="closeTable()">×</button>
         </div>
-        <button type="button" class="close" aria-label="Cerrar" data-testid="table-close" (click)="closeTable()">×</button>
+        @if (loaded.table.account.orders.length) {
+          <span class="pill busy">Ocupada</span>
+        } @else {
+          <span class="pill">Disponible</span>
+        }
+        <p class="muted account" data-testid="account-state">{{ accountNote() }}</p>
+
+        <!-- LCV-HU-10: pedidos abiertos de la mesa con sus ítems y el total. -->
+        @for (order of loaded.table.account.orders; track order.id) {
+          <section class="order-box" data-testid="account-order">
+            <div class="order-head">
+              <div>
+                <strong>Pedido #{{ order.id }}</strong>
+                <div class="muted">{{ order.waiterName }}</div>
+              </div>
+              <span class="pill {{ statusPill[order.status] }}">{{ statusLabel[order.status] }}</span>
+            </div>
+            @for (item of order.items; track item.id) {
+              <div class="order-row">
+                <div>
+                  <strong>{{ item.quantity }} × {{ item.productName }}</strong>
+                  @if (item.note) {
+                    <small>Obs.: {{ item.note }}</small>
+                  }
+                </div>
+                <span class="money">{{ item.subtotal | cop }}</span>
+              </div>
+            }
+            @if (order.note) {
+              <p class="muted order-note">Observación: {{ order.note }}</p>
+            }
+          </section>
+        }
+        @if (loaded.table.account.orders.length) {
+          <div class="total-line" data-testid="account-total">
+            <span>Total de la mesa</span>
+            <span>{{ loaded.table.account.total | cop }}</span>
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn" (click)="closeTable()">Cerrar</button>
+          <button type="button" class="btn primary" data-testid="assign-order" (click)="assignOrder()">
+            ＋ Asignar pedido
+          </button>
+        </div>
       </div>
-      @if (loaded.table.account.orders.length) {
-        <span class="pill busy">Ocupada</span>
-      } @else {
-        <span class="pill">Disponible</span>
-      }
-      <p class="muted account" data-testid="account-state">{{ accountNote() }}</p>
-      <div class="modal-actions">
-        <button type="button" class="btn" (click)="closeTable()">Cerrar</button>
-        <button type="button" class="btn primary" data-testid="assign-order" disabled aria-describedby="assign-note">
-          ＋ Asignar pedido
-        </button>
-      </div>
-      <p id="assign-note" class="muted note" data-testid="assign-note">{{ pendingNote }}</p>
     </div>
-  </div>
+  }
 }

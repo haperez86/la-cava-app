@@ -39,7 +39,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     ResponseEntity<ProblemDetail> handleBusiness(BusinessException ex) {
-        return respond(Problems.of(ex.getStatus(), ex.getMessage()));
+        ProblemDetail problem = Problems.of(ex.getStatus(), ex.getMessage());
+        ex.getProperties().forEach(problem::setProperty);
+        return respond(problem);
     }
 
     @ExceptionHandler(InvalidFieldsException.class)

@@ -1,0 +1,55 @@
+@use 'styles/breakpoints' as bp;
+
+// Celular primero: encabezado en columna con el botón principal al 100%.
+.page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .page-head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    h2 {
+      font-size: 29px;
+    }
+
+    .btn {
+      width: auto;
+      flex-shrink: 0;
+    }
+  }
+}

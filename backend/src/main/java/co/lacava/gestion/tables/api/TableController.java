@@ -24,6 +24,7 @@ import co.lacava.gestion.tables.api.TableRequests.ActiveRequest;
 import co.lacava.gestion.tables.api.TableRequests.CreateTableRequest;
 import co.lacava.gestion.tables.api.TableRequests.ResolveRequest;
 import co.lacava.gestion.tables.application.QrSheetEntry;
+import co.lacava.gestion.tables.application.ResolvedTable;
 import co.lacava.gestion.tables.application.TableAccount;
 import co.lacava.gestion.tables.application.TableService;
 import co.lacava.gestion.tables.application.TableView;
@@ -80,10 +81,11 @@ class TableController {
 
     @PostMapping("/resolve")
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER', 'WAITER')")
-    @Operation(summary = "Mesa y cuenta a partir del código del QR o de número + PIN; 404 si no es válido")
-    TableAccount resolve(@RequestBody ResolveRequest request, @AuthenticationPrincipal Jwt jwt) {
+    @Operation(summary = "Mesa, cuenta y comprobante de mesa (tablePass, D37) a partir del código del QR o de "
+            + "número + PIN; 404 si no es válido")
+    ResolvedTable resolve(@RequestBody ResolveRequest request, @AuthenticationPrincipal Jwt jwt) {
         if (request.code() != null && !request.code().isBlank()) {
-            return tableService.resolveByCode(request.code());
+            return tableService.resolveByCode(request.code(), CurrentUser.id(jwt));
         }
         if (request.number() != null && request.pin() != null && !request.pin().isBlank()) {
             // D36: número + PIN se limita por usuario autenticado; el código del QR no.

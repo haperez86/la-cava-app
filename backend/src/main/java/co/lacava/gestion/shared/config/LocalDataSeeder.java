@@ -4,9 +4,12 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +24,12 @@ import co.lacava.gestion.inventory.application.InventoryService;
 import co.lacava.gestion.menu.application.ProductData;
 import co.lacava.gestion.menu.application.ProductService;
 import co.lacava.gestion.menu.application.ProductView;
+import co.lacava.gestion.orders.application.NewOrder;
+import co.lacava.gestion.orders.application.OrderService;
+import co.lacava.gestion.shared.error.BusinessException;
+import co.lacava.gestion.shared.error.InvalidFieldsException;
 import co.lacava.gestion.tables.application.TableService;
+import co.lacava.gestion.tables.application.TableView;
 import co.lacava.gestion.users.application.UserService;
 import co.lacava.gestion.users.domain.AppUser;
 import co.lacava.gestion.users.domain.Role;
@@ -29,7 +37,9 @@ import co.lacava.gestion.users.domain.Role;
 /**
  * Datos de ejemplo del perfil {@code local}: usuarios de la demo con contraseña {@code <usuario>123} y productos de la
  * carta con lotes de fechas relativas al {@code Clock} (incluido uno vencido). Idempotente: un producto que ya existe
- * (por nombre) no se vuelve a crear ni recibe lotes. También crea las mesas 1 a 12 (con token QR y PIN) que falten.
+ * (por nombre) no se vuelve a crear ni recibe lotes. También crea las mesas 1 a 12 (con token QR y PIN) que falten y,
+ * si aún no hay ningún pedido, unos pedidos {@code PENDING} en las mesas 2, 5 y 8 creados con {@link OrderService}
+ * (consumen lotes en FEFO como un pedido real).
  * Solo siembra si la base de datos está en esta máquina (P2): las claves son predecibles.
  */
 @Component
@@ -45,16 +55,18 @@ class LocalDataSeeder implements ApplicationRunner {
     private final ProductService products;
     private final InventoryService inventory;
     private final TableService tables;
+    private final OrderService orders;
     private final ZoneId businessZone;
     private final TransactionTemplate transaction;
     private final String datasourceUrl;
 
     LocalDataSeeder(UserService users, ProductService products, InventoryService inventory, TableService tables,
-            ZoneId businessZone, TransactionTemplate transaction, @Value("${spring.datasource.url:}") String datasourceUrl) {
+            OrderService orders, ZoneId businessZone, TransactionTemplate transaction, @Value("${spring.datasource.url:}") String datasourceUrl) {
         this.users = users;
         this.products = products;
         this.inventory = inventory;
         this.tables = tables;
+        this.orders = orders;
         this.businessZone = businessZone;
         this.transaction = transaction;
         this.datasourceUrl = datasourceUrl;
@@ -74,6 +86,46 @@ class LocalDataSeeder implements ApplicationRunner {
         seedUser("jorge", "Jorge Ruiz", Role.KITCHEN);
         seedProducts();
         seedTables();
+        seedOrders();
+    }
+
+    /**
+     * Pedidos {@code PENDING} de ejemplo (docs/02): los registra el administrador asignando a Laura o Andrés, como haría
+     * el cajero. Solo si no hay ningún pedido; un pedido que ya no alcanza (lotes consumidos) se omite con un aviso.
+     */
+    private void seedOrders() {
+        if (orders.hasAny()) {
+            return;
+        }
+        long adminId = users.findByUsername("admin").map(AppUser::getId).orElseThrow();
+        Map<Integer, Long> tableIds = tables.list().stream()
+                .collect(Collectors.toMap(TableView::number, TableView::id, (a, b) -> a));
+        seedOrder(tableIds.get(2), "laura", null, adminId,
+                item("Tabla La Cava", 1, "Sin aceitunas"), item("Copa de vino tinto", 2, null));
+        seedOrder(tableIds.get(5), "andres", "Cumpleaños: el postre con vela", adminId,
+                item("Limonada natural", 2, "Poca azúcar"), item("Postre de la casa", 1, null));
+        seedOrder(tableIds.get(8), "laura", null, adminId,
+                item("Vino botella", 1, null), item("Agua", 2, null));
+    }
+
+    private void seedOrder(Long tableId, String waiter, String note, long adminId, NewOrder.Item... lines) {
+        Long waiterId = users.findByUsername(waiter).map(AppUser::getId).orElse(null);
+        if (tableId == null || waiterId == null || Arrays.asList(lines).contains(null)) {
+            log.warn("No se crea un pedido de ejemplo: falta la mesa, el mesero o un producto.");
+            return;
+        }
+        try {
+            orders.create(new NewOrder(tableId, waiterId, List.of(lines), note, null), adminId, Role.ADMIN);
+        } catch (BusinessException | InvalidFieldsException e) {
+            // Un pedido de ejemplo que no se puede crear nunca debe impedir el arranque local.
+            log.warn("No se crea un pedido de ejemplo: {}", e.getMessage());
+        }
+    }
+
+    private NewOrder.Item item(String productName, int quantity, String note) {
+        return products.findByName(productName)
+                .map(p -> new NewOrder.Item(p.id(), quantity, note))
+                .orElse(null);
     }
 
     /** 12 mesas (docs/02, "Datos de ejemplo"); una mesa que ya existe (por número) no se toca. */

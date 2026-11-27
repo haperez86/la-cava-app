@@ -22,6 +22,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     roles: ['ADMIN', 'CASHIER', 'WAITER'],
     labelByRole: { WAITER: 'Mis mesas' },
   },
+  { path: 'pedidos', label: 'Pedidos', icon: 'orders', title: 'Pedidos', roles: ['ADMIN', 'CASHIER'] },
   { path: 'preparacion', label: 'Comandas', icon: 'kitchen', title: 'Comandas', roles: ['ADMIN', 'KITCHEN'] },
   { path: 'menu', label: 'Menú', icon: 'menu', title: 'Menú y productos', roles: ['ADMIN'] },
   { path: 'inventario', label: 'Inventario', icon: 'inventory', title: 'Inventario', roles: ['ADMIN'] },

@@ -7,7 +7,13 @@ import { QrScanError, QrScanFailure, QrScanSession, QrScanner } from '../../shar
 import { CAMERA_FAILURE, INVALID_TABLE_CODE, PIN_INVALID } from './qr-scan-dialog';
 import { DiningTable, ResolvedTable } from './tables.model';
 import { RESOLVE_TABLE_URL, TABLES_URL } from './tables.service';
-import { EMPTY_ACCOUNT, LOADED_BY, ORDERS_PENDING_NOTE, SCAN_TO_OPEN, WaiterTables } from './waiter-tables';
+import { EMPTY_ACCOUNT, LOADED_BY, SCAN_TO_OPEN, WaiterTables, passExpired } from './waiter-tables';
+import { Product } from '../menu/product.model';
+import { CATEGORIES_URL, PRODUCTS_URL } from '../menu/products.service';
+import { Order } from '../orders/order.model';
+import { RESCAN_TABLE } from '../orders/order-dialog';
+import { ORDERS_URL } from '../orders/orders.service';
+import { formatCop } from '../../shared/pipes/cop-currency.pipe';
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -17,7 +23,48 @@ const TABLES: DiningTable[] = [
   { id: 11, number: 1, active: true },
 ];
 
-const TABLE_4: ResolvedTable = { id: 40, number: 4, account: { orders: [], total: 0 } };
+const PASS = 'LCP.40.1.1790000000.firma';
+const inHours = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString();
+const TABLE_4: ResolvedTable = {
+  id: 40,
+  number: 4,
+  tablePass: PASS,
+  passExpiresAt: inHours(4),
+  account: { orders: [], total: 0 },
+};
+
+const MALBEC: Product = {
+  id: 3,
+  name: 'Copa de Malbec',
+  categoryId: 1,
+  categoryName: 'Vinos',
+  price: 18000,
+  description: null,
+  icon: '🍷',
+  minStock: 0,
+  active: true,
+  seasonName: null,
+  seasonUntil: null,
+  available: 5,
+  state: 'ON_MENU',
+  orderable: true,
+  blockReason: null,
+};
+
+function order(id: number, quantity: number, note: string | null = null): Order {
+  return {
+    id,
+    tableId: 40,
+    tableNumber: 4,
+    waiterId: 1,
+    waiterName: 'Mateo Ruiz',
+    status: 'PENDING',
+    note: null,
+    createdAt: '2026-11-27T20:00:00Z',
+    items: [{ id: id * 10, productId: 3, productName: 'Copa de Malbec', unitPrice: 18000, quantity, note, subtotal: 18000 * quantity }],
+    total: 18000 * quantity,
+  };
+}
 
 const INVALID_CODE_PROBLEM = { status: 404, statusText: 'Not Found' };
 
@@ -149,8 +196,7 @@ describe('WaiterTables', () => {
     expect(q('table-modal')?.querySelector('h3')?.textContent).toBe('Mesa 4');
     expect(q('table-origin')?.textContent).toContain(LOADED_BY.qr);
     expect(q('account-state')?.textContent).toBe(EMPTY_ACCOUNT);
-    expect((q('assign-order') as HTMLButtonElement).disabled).toBe(true);
-    expect(q('assign-note')?.textContent).toBe(ORDERS_PENDING_NOTE);
+    expect((q('assign-order') as HTMLButtonElement).disabled).toBe(false);
     expect(vibrate).toHaveBeenCalledTimes(1);
 
     await click('table-close');
@@ -296,5 +342,107 @@ describe('WaiterTables', () => {
     expect(root.querySelector('app-qr-scan-dialog')).toBeNull();
     expect(q('table-modal')).toBeNull();
     expect(vibrate).not.toHaveBeenCalled();
+  });
+
+  // ---------- LCV-HU-10 ----------
+
+  async function openTable4(table: ResolvedTable = TABLE_4): Promise<void> {
+    await render();
+    await openScanner();
+    scanner.onCode!('LACAVA:MESA:4:tok');
+    http.expectOne(RESOLVE_TABLE_URL).flush(table);
+    await refresh();
+  }
+
+  async function openOrderDialog(): Promise<void> {
+    await click('assign-order');
+    http.expectOne((r) => r.url === PRODUCTS_URL).flush({ content: [MALBEC], page: 0, size: 100, totalElements: 1, totalPages: 1 });
+    http.expectOne(CATEGORIES_URL).flush([{ id: 1, name: 'Vinos' }]);
+    await refresh();
+  }
+
+  async function addMalbecAndSend(): Promise<void> {
+    root.querySelector<HTMLButtonElement>('[data-product-id="3"] [data-testid="plus"]')!.click();
+    await refresh();
+    await click('send-order');
+  }
+
+  it('LCV-HU-10 CA4 "Asignar pedido" opens the order modal for the loaded table and sends its tablePass', async () => {
+    await openTable4();
+    await openOrderDialog();
+
+    expect(q('table-modal')).toBeNull();
+    expect(q('order-eyebrow')?.textContent?.trim()).toBe('Mesa 4 · Mateo Ruiz');
+    await addMalbecAndSend();
+
+    const req = http.expectOne(ORDERS_URL);
+    expect(req.request.body).toEqual({ tableId: 40, tableCode: PASS, items: [{ productId: 3, quantity: 1 }] });
+    req.flush(order(27, 1));
+    await refresh();
+  });
+
+  it('LCV-HU-10 CA5 after 201 the order modal closes and the table account shows the open orders and total', async () => {
+    const previous = order(20, 2, 'sin hielo');
+    await openTable4({ ...TABLE_4, account: { orders: [previous], total: previous.total } });
+    expect(root.querySelectorAll('[data-testid="account-order"]')).toHaveLength(1);
+    await openOrderDialog();
+    await addMalbecAndSend();
+
+    http.expectOne(ORDERS_URL).flush(order(27, 1));
+    await refresh();
+
+    expect(q('order-dialog')).toBeNull();
+    expect(q('table-modal')).not.toBeNull();
+    const orders = Array.from(root.querySelectorAll('[data-testid="account-order"]'));
+    expect(orders).toHaveLength(2);
+    expect(orders[0].textContent).toContain('Pedido #20');
+    expect(orders[0].textContent).toContain('2 × Copa de Malbec');
+    expect(orders[0].textContent).toContain('Obs.: sin hielo');
+    expect(orders[1].textContent).toContain('Pedido #27');
+    expect(orders[1].textContent).toContain('Pendiente');
+    expect(q('account-total')?.textContent).toContain(formatCop(3 * 18000));
+    expect(q('account-state')?.textContent).toBe('2 pedido(s) en la cuenta');
+  });
+
+  it('LCV-HU-10 CA4 an expired table pass asks to scan again and does not open the order modal', async () => {
+    await openTable4({ ...TABLE_4, passExpiresAt: inHours(-1) });
+
+    await click('assign-order');
+
+    expect(toastError).toHaveBeenCalledWith(RESCAN_TABLE);
+    expect(q('order-dialog')).toBeNull();
+    expect(q('table-modal')).toBeNull();
+    http.expectNone((r) => r.url === PRODUCTS_URL);
+  });
+
+  it('LCV-HU-10 CA4 a 403 from the backend closes the table so the waiter scans it again', async () => {
+    await openTable4();
+    await openOrderDialog();
+    await addMalbecAndSend();
+
+    http.expectOne(ORDERS_URL).flush({ detail: RESCAN_TABLE }, { status: 403, statusText: 'Forbidden' });
+    await refresh();
+
+    expect(toastError).toHaveBeenCalledWith(RESCAN_TABLE);
+    expect(q('order-dialog')).toBeNull();
+    expect(q('table-modal')).toBeNull();
+  });
+
+  it('LCV-HU-10 closing the order modal returns to the table', async () => {
+    await openTable4();
+    await openOrderDialog();
+
+    await click('order-close');
+
+    expect(q('order-dialog')).toBeNull();
+    expect(q('table-modal')).not.toBeNull();
+  });
+
+  it('LCV-HU-10 passExpired treats a missing or past date as expired', () => {
+    const now = Date.parse('2026-11-27T20:00:00Z');
+    expect(passExpired('2026-11-27T20:00:01Z', now)).toBe(false);
+    expect(passExpired('2026-11-27T20:00:00Z', now)).toBe(true);
+    expect(passExpired('', now)).toBe(true);
+    expect(passExpired(undefined, now)).toBe(true);
   });
 });

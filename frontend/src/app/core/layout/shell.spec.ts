@@ -31,6 +31,7 @@ describe('Shell', () => {
             children: [
               { path: 'dashboard', component: Home },
               { path: 'mesas', component: Blank },
+              { path: 'pedidos', component: Blank },
               { path: 'preparacion', component: Blank },
               { path: 'menu', component: Blank },
               { path: 'inventario', component: Blank },
@@ -91,8 +92,8 @@ describe('Shell', () => {
   });
 
   it.each<[Role, string, string[]]>([
-    ['ADMIN', '/dashboard', ['Dashboard', 'Mesas', 'Comandas', 'Menú', 'Inventario']],
-    ['CASHIER', '/dashboard', ['Dashboard', 'Mesas']],
+    ['ADMIN', '/dashboard', ['Dashboard', 'Mesas', 'Pedidos', 'Comandas', 'Menú', 'Inventario']],
+    ['CASHIER', '/dashboard', ['Dashboard', 'Mesas', 'Pedidos']],
     ['WAITER', '/mesas', ['Mis mesas']],
     ['KITCHEN', '/preparacion', ['Comandas']],
   ])('CA3 %s sees only its own options', async (role, url, expected) => {
@@ -107,7 +108,7 @@ describe('Shell', () => {
     const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
     for (const selector of ['.nav a', '.mobile-nav a']) {
       const links = Array.from(root.querySelectorAll(selector));
-      expect(links.length).toBe(5);
+      expect(links.length).toBe(6);
       for (const a of links) {
         expect(a.querySelector('.ico svg path')).not.toBeNull();
         expect(a.querySelector('.ico')?.textContent?.trim()).toBe('');
@@ -143,6 +144,32 @@ describe('Shell', () => {
     const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
     expect(labels(root, '.nav a')).not.toContain('Inventario');
     expect(labels(root, '.mobile-nav a')).not.toContain('Inventario');
+  });
+
+  it.each<Role>(['ADMIN', 'CASHIER'])(
+    'LCV-HU-10 the Pedidos option leads %s to /pedidos with its own SVG icon',
+    async (role) => {
+      const harness = await open(role, '/pedidos');
+      const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+      for (const selector of ['.nav a', '.mobile-nav a']) {
+        const link = Array.from(root.querySelectorAll<HTMLAnchorElement>(selector)).find((a) =>
+          a.textContent?.includes('Pedidos'),
+        );
+        expect(link?.getAttribute('href')).toBe('/pedidos');
+        expect(link?.querySelector('.ico svg path')).not.toBeNull();
+      }
+      expect(root.querySelector('.crumb')?.textContent?.trim()).toBe('Pedidos');
+    },
+  );
+
+  it.each<[Role, string]>([
+    ['WAITER', '/mesas'],
+    ['KITCHEN', '/preparacion'],
+  ])('LCV-HU-10 %s does not see the Pedidos option', async (role, url) => {
+    const harness = await open(role, url);
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    expect(labels(root, '.nav a')).not.toContain('Pedidos');
+    expect(labels(root, '.mobile-nav a')).not.toContain('Pedidos');
   });
 
   it('the top bar title uses the same per-role label as the menu (WAITER sees "Mis mesas")', async () => {

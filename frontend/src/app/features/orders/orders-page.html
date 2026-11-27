@@ -1,0 +1,14 @@
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Servicio en mesa</div>
+    <h2>Pedidos</h2>
+    <p class="muted">Registra consumos en la mesa. Una cuenta puede contener varios pedidos.</p>
+  </div>
+  <button type="button" class="btn primary" data-testid="new-order" (click)="openCreate()">＋ Nuevo pedido</button>
+</div>
+
+<div class="card empty" data-testid="orders-empty">{{ emptyText }}</div>
+
+@if (creating()) {
+  <app-order-dialog (created)="onCreated($event)" (closed)="closeCreate()" />
+}

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-export type IconName = 'home' | 'tables' | 'kitchen' | 'menu' | 'calendar' | 'inventory';
+export type IconName = 'home' | 'tables' | 'kitchen' | 'menu' | 'calendar' | 'inventory' | 'orders';
 
 /** Trazos (viewBox 24x24) de cada ícono; SVG inline para no depender de glifos Unicode ni de librerías. */
 export const ICON_PATHS: Readonly<Record<IconName, readonly string[]>> = {
@@ -11,6 +11,8 @@ export const ICON_PATHS: Readonly<Record<IconName, readonly string[]>> = {
   calendar: ['M4 5h16v16H4z', 'M4 10h16', 'M8 3v4', 'M16 3v4'],
   // Caja de mercancía (Inventario).
   inventory: ['M3 7l9-4 9 4-9 4-9-4z', 'M3 7v10l9 4 9-4V7', 'M12 11v10'],
+  // Comanda con renglones (Pedidos).
+  orders: ['M6 3h12v18l-3-2-3 2-3-2-3 2z', 'M9 8h6', 'M9 12h6', 'M9 16h4'],
 };
 
 /** Ícono SVG decorativo; hereda el color con `currentColor` y el tamaño con `size`. */

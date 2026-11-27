@@ -1,0 +1,212 @@
+<div class="modal-back" (click)="close()">
+  <div
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="order-title"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+    data-testid="order-dialog"
+    (click)="$event.stopPropagation()"
+  >
+    <form class="order-form" (submit)="onSubmit(); $event.preventDefault()" novalidate data-testid="order-form">
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow" data-testid="order-eyebrow">{{ eyebrow() }}</div>
+          <h3 id="order-title">Nuevo pedido</h3>
+        </div>
+        <button type="button" class="close" aria-label="Cerrar" data-testid="order-close" [disabled]="submitting()" (click)="close()">×</button>
+      </div>
+
+      @if (picksTable() || picksWaiter()) {
+        <div class="form2">
+          @if (picksTable()) {
+            <div class="field">
+              <label for="order-table">Mesa *</label>
+              <select id="order-table" [formField]="orderForm.tableId" [attr.aria-invalid]="!!errorOf(orderForm.tableId)">
+                <option value="">{{ loading() ? 'Cargando mesas…' : 'Elige la mesa' }}</option>
+                @for (table of tables(); track table.id) {
+                  <option [value]="table.id">Mesa {{ table.number }}</option>
+                }
+              </select>
+              @if (errorOf(orderForm.tableId); as error) {
+                <p class="field-error" data-testid="error-tableId">{{ error }}</p>
+              }
+            </div>
+          }
+          @if (picksWaiter()) {
+            <div class="field">
+              <label for="order-waiter">Mesero que atiende *</label>
+              <select
+                id="order-waiter"
+                [formField]="orderForm.waiterId"
+                [attr.aria-invalid]="!!errorOf(orderForm.waiterId)"
+              >
+                <option value="">{{ loading() ? 'Cargando meseros…' : 'Elige el mesero' }}</option>
+                @for (waiter of waiters(); track waiter.id) {
+                  <option [value]="waiter.id">{{ waiter.fullName }}</option>
+                }
+              </select>
+              @if (errorOf(orderForm.waiterId); as error) {
+                <p class="field-error" data-testid="error-waiterId">{{ error }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <div class="field search">
+        <label for="order-search">Buscar producto</label>
+        <input
+          id="order-search"
+          type="search"
+          placeholder="Nombre, descripción o categoría…"
+          autocomplete="off"
+          data-testid="order-search"
+          [value]="search()"
+          (input)="setSearch($any($event.target).value)"
+        />
+      </div>
+
+      <div class="tabs" role="group" aria-label="Categorías" data-testid="category-tabs">
+        <button
+          type="button"
+          class="tab"
+          data-testid="category-tab"
+          [class.active]="categoryId() === null"
+          [attr.aria-pressed]="categoryId() === null"
+          (click)="setCategory(null)"
+        >
+          Todas
+        </button>
+        @for (category of categories(); track category.id) {
+          <button
+            type="button"
+            class="tab"
+            data-testid="category-tab"
+            [class.active]="categoryId() === category.id"
+            [attr.aria-pressed]="categoryId() === category.id"
+            (click)="setCategory(category.id)"
+          >
+            {{ category.name }}
+          </button>
+        }
+      </div>
+
+      <ul class="pick-list" data-testid="product-list" [attr.aria-busy]="loading()">
+        @for (product of visibleProducts(); track product.id) {
+          @let qty = qtyOf(product.id);
+          <li
+            class="pick-row"
+            data-testid="product-row"
+            [attr.data-product-id]="product.id"
+            [class.off]="!product.orderable"
+            [class.conflict]="conflicts().has(product.id)"
+            [attr.aria-disabled]="!product.orderable"
+          >
+            <div class="pick-main">
+              <span class="pick-icon" aria-hidden="true">{{ product.icon || '•' }}</span>
+              <div class="pick-info">
+                <strong data-testid="product-name">{{ product.name }}</strong>
+                <small>
+                  {{ product.price | cop }} ·
+                  @if (product.orderable) {
+                    <span data-testid="product-available">{{ product.available }} disponible(s)</span>
+                  } @else {
+                    <b class="txt-red" data-testid="block-reason">{{ product.blockReason ?? 'No disponible' }}</b>
+                  }
+                </small>
+              </div>
+              <div class="stepper">
+                <button
+                  type="button"
+                  data-testid="minus"
+                  [attr.aria-label]="'Quitar una unidad de ' + product.name"
+                  [disabled]="qty === 0"
+                  (click)="decrement(product)"
+                >
+                  −
+                </button>
+                <b data-testid="qty">{{ qty }}</b>
+                <button
+                  type="button"
+                  data-testid="plus"
+                  [attr.aria-label]="'Agregar una unidad de ' + product.name"
+                  [disabled]="!canAdd(product)"
+                  (click)="increment(product)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            @if (conflicts().get(product.id); as message) {
+              <p class="field-error" role="alert" data-testid="conflict">{{ message }}</p>
+            }
+            @if (qty > 0) {
+              <button
+                type="button"
+                class="link"
+                data-testid="note-toggle"
+                [attr.aria-expanded]="openNotes().has(product.id)"
+                (click)="toggleNote(product.id)"
+              >
+                Nota
+              </button>
+              @if (openNotes().has(product.id)) {
+                @if (noteField(product.id); as note) {
+                  <input
+                    class="note-in"
+                    type="text"
+                    placeholder="Observación (ej. sin hielo)"
+                    autocomplete="off"
+                    data-testid="item-note"
+                    [attr.aria-label]="'Observación de ' + product.name"
+                    [formField]="note"
+                    [attr.aria-invalid]="!!errorOf(note)"
+                  />
+                  @if (errorOf(note); as error) {
+                    <p class="field-error" data-testid="error-item-note">{{ error }}</p>
+                  }
+                }
+              }
+            }
+          </li>
+        } @empty {
+          @if (!loading()) {
+            <li class="empty" data-testid="no-products">{{ noProducts }}</li>
+          }
+        }
+      </ul>
+
+      <div class="field">
+        <label for="order-note">Observación general (opcional)</label>
+        <input
+          id="order-note"
+          type="text"
+          placeholder="Ej. atender primero las bebidas"
+          autocomplete="off"
+          data-testid="order-note"
+          [formField]="orderForm.note"
+          [attr.aria-invalid]="!!errorOf(orderForm.note)"
+        />
+        @if (errorOf(orderForm.note); as error) {
+          <p class="field-error" data-testid="error-note">{{ error }}</p>
+        }
+      </div>
+
+      <!-- CA1: barra fija al fondo del modal; siempre visible sin desplazarse. -->
+      <div class="sticky-foot" data-testid="order-bar">
+        <div class="sticky-sum" aria-live="polite">
+          <span data-testid="order-units">{{ unitsText() }}</span>
+          <strong data-testid="order-total">{{ total() | cop }}</strong>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" [disabled]="submitting()" (click)="close()">Cancelar</button>
+          <button type="submit" class="btn primary" data-testid="send-order" [disabled]="!units() || submitting() || exceedsStock()">
+            {{ submitting() ? 'Enviando…' : 'Enviar a preparación' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

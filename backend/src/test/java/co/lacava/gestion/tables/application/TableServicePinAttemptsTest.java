@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import co.lacava.gestion.shared.error.BusinessException;
 import co.lacava.gestion.shared.security.QrProperties;
@@ -42,11 +43,14 @@ class TableServicePinAttemptsTest {
     private final DiningTableRepository tables = mock(DiningTableRepository.class);
 
     TableServicePinAttemptsTest() {
-        when(tables.findByNumber(3)).thenReturn(Optional.of(new DiningTable(3, "token", PIN, NOW)));
+        DiningTable table = new DiningTable(3, "token", PIN, NOW);
+        ReflectionTestUtils.setField(table, "id", 3L);
+        when(tables.findByNumber(3)).thenReturn(Optional.of(table));
     }
 
     private TableService service(TableTokenService tokens) {
-        return new TableService(tables, tokens, clock, new PinAttemptService(clock, 5, Duration.ofMinutes(15)));
+        return new TableService(tables, tokens, clock, new PinAttemptService(clock, 5, Duration.ofMinutes(15)),
+                new TablePassService(new QrProperties(SECRET), clock), tableId -> TableAccount.Account.empty());
     }
 
     @Test

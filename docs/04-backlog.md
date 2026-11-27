@@ -87,12 +87,13 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 
 ## Épica 4 · Pedidos
 
-### LCV-HU-10 · Crear pedido ⬜
+### LCV-HU-10 · Crear pedido ✅
 - **CA1** El modal de pedido tiene búsqueda y pestañas de categoría que **sí filtran**, una lista compacta con −/+ y una **barra inferior fija** con unidades, total y "Enviar a preparación" (no hay que desplazarse para enviar).
 - **CA2** Los productos no disponibles se ven deshabilitados con su motivo; no puedo superar la existencia vigente.
 - **CA3** Observaciones por ítem y general.
 - **CA4** El mesero crea pedidos solo con el `tableCode` del QR y queda asignado; el Cajero y el Administrador eligen mesa y mesero.
 - **CA5** Al guardar se consumen los lotes (FEFO, con `order_item_lot`) y el pedido queda `PENDING`; si un producto no alcanza (p. ej. otra mesa lo pidió antes), 422 y no se guarda nada.
+- **Desviaciones:** `tableCode` = comprobante de mesa firmado de 4 h (D37); Cajero/Admin con mesa inactiva → 422 y el mesero → 403; pedido ajeno para el mesero → 404; tope de 999 unidades por ítem; `stock_movement.order_id` sin FK; se adelantó `GET /users/waiters`; pantalla `/pedidos` con "Nuevo pedido" (el listado llega en HU-11); la cuenta del mesero se actualiza en el cliente tras crear el pedido; tras un 422 el modal ajusta la cantidad o deshabilita el producto. Incluye la corrección de la grilla de mesas en pantallas anchas (máximo 6 columnas). Pendientes menores: el modal carga una sola página de 100 productos; `TableAccount.orders` como `List<?>` deja el esquema OpenAPI impreciso. HU-09 se desbloquea con esta HU.
 
 ### LCV-HU-11 · Listado de pedidos y cancelación ⬜
 - **CA1** Listado con filtros por estado (con contadores) y búsqueda por número, mesa o mesero.

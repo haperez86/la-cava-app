@@ -1,8 +1,10 @@
 @use 'styles/breakpoints' as bp;
 @use '../inventory/modal';
+@use 'table-grid';
 
 @include modal.modal-shell(460px);
 @include modal.modal-actions;
+@include table-grid.table-grid;
 
 // Celular primero (perfil mesero, 390px): encabezado en columna y botón de escaneo al 100%.
 .page-head {
@@ -35,13 +37,6 @@
   letter-spacing: 2px;
   font-size: 10px;
   font-weight: 700;
-}
-
-// Mesas (.table-grid): 1 columna ≤ 380px, 2 en móvil, 3 en tablet y 4+ en escritorio.
-.table-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
 }
 
 .table-tile {
@@ -81,16 +76,62 @@
   margin: 10px 0 0;
 }
 
-.note {
-  margin: 8px 0 0;
-  font-size: 12px;
-  text-align: right;
+// Cuenta de la mesa (.order-box de la demo).
+.order-box {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 12px 0;
+  min-width: 0;
 }
 
-@media (min-width: #{bp.$bp-xs-max + 1}) {
-  .table-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.order-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  &:last-child {
+    border: 0;
   }
+
+  strong {
+    display: block;
+    font-size: 13px;
+  }
+
+  small {
+    color: var(--muted);
+  }
+}
+
+.money {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.order-note {
+  margin: 8px 0 0;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 0 0;
+  font-size: 17px;
+  font-weight: 750;
 }
 
 @media (min-width: #{bp.$bp-mobile-max + 1}) {
@@ -109,18 +150,7 @@
     flex-shrink: 0;
   }
 
-  .table-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-  }
-
   .num {
     font-size: 21px;
-  }
-}
-
-@media (min-width: bp.$bp-desktop-min) {
-  .table-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }

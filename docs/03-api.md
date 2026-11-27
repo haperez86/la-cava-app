@@ -51,7 +51,7 @@ Fila de inventario (`GET /inventory`, paginado): `{productId, name, icon, catego
 | POST | `/tables/{id}/rotate-token` | A | Invalida el QR anterior |
 | GET | `/tables/qr-sheet` | A | Datos para imprimir los QR: `[{number, code, pin}]` (el frontend dibuja los QR) |
 
-Mesa: `{id, number, active}` (los campos de estado llegan con HU-09). `POST /tables`: número entero > 0 (400 `errors[]`), repetido → 409 "Ya existe una mesa con ese número.". `resolve` con `{code}` o `{number, pin}` (PIN como texto de 4 dígitos) → `{id, number, account:{orders, total}}`; cualquier código, PIN o mesa inválidos o inactivos → 404 "Código de mesa inválido"; sin datos → 400. `qr-sheet` solo trae mesas activas. Hasta la Épica 4 la cuenta llega vacía (D35).
+Mesa: `{id, number, active}` (los campos de estado llegan con HU-09). `POST /tables`: número entero > 0 (400 `errors[]`), repetido → 409 "Ya existe una mesa con ese número.". `resolve` con `{code}` o `{number, pin}` (PIN como texto de 4 dígitos) → `{id, number, account:{orders, total}}`; cualquier código, PIN o mesa inválidos o inactivos → 404 "Código de mesa inválido"; sin datos → 400. `qr-sheet` solo trae mesas activas. `resolve` devuelve además `tablePass` y `passExpiresAt` (comprobante de mesa de 4 h, D37); `account.orders` son los pedidos abiertos de la mesa con el formato de `OrderResponse`.
 
 ## Pedidos
 | Método | Ruta | Rol | Descripción |
@@ -66,6 +66,8 @@ Mesa: `{id, number, active}` (los campos de estado llegan con HU-09). `POST /tab
 | POST | `/orders/{id}/deliver` | M (propio), A | `READY → DELIVERED`; marca leídos sus avisos |
 | POST | `/orders/{id}/cancel` | A, C | `{reason}`; solo `PENDING`; devuelve el stock a sus lotes |
 | GET | `/kitchen/board` | P, A | Pedidos `PENDING`, `IN_PREPARATION` y `READY` con ítems |
+
+Pedido (`OrderResponse`): `{id, tableId, tableNumber, waiterId, waiterName, status, note, createdAt, items:[{id, productId, productName, unitPrice, quantity, note, subtotal}], total}`. En `POST /orders` el mesero envía `tableCode` = `tablePass` de `resolve`; si falta, es de otra mesa o de otro mesero, venció, se regeneró el QR o la mesa está inactiva → 403 "Escanea de nuevo el QR de la mesa.". Cajero/Admin: `waiterId` de un mesero activo (400 si no); mesa inexistente → 404, inactiva → 422. Notas: ítem ≤ 80, general ≤ 140; cantidad entera de 1 a 999 por ítem. Producto inexistente → 404. Existencia insuficiente o producto no disponible → 422 con `productId`, `productName`, `available` (y `reason` si no está disponible); no se guarda nada. `GET /orders/{id}`: un pedido ajeno para el mesero → 404 (D38).
 
 ## Notificaciones (tiempo real)
 | Método | Ruta | Rol | Descripción |
