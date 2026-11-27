@@ -23,6 +23,8 @@
 | D19 | Puertos locales 8081 (backend) y 4201 (frontend); verificación del agente en 8091/4291. En el VPS el backend también usa 8081. | 8080/4200 son de Proto Inventario, y así coincide con el plan del VPS. |
 | D20 | Sistema visual definido en el skill `.claude/skills/lacava-design`, con los colores exactos de `demo/index.html`. | Que todo el frontend use una sola paleta y no se inventen colores. |
 | D21 | Skills `angular-developer` y `angular-new-app` (angular/skills, commit fijado en `skills-lock.json`) y el MCP `angular-cli`, copiados de Proto. | Mismo soporte de Angular que en Proto. |
+| D22 | El repositorio git se inició localmente con `main` (commit inicial con specs y demo). Se ignoran todas las carpetas que empiezan con punto (`.*/`) salvo `.mvn/`; `.claude/` y `.atl/` no se versionan. | Pedido del dueño. `.mvn/` es necesaria para que `./mvnw` funcione en otro clon. Consecuencia: agentes y skills (D20, D21) viven solo en la máquina local. |
+| D23 | Proxy de desarrollo `/api` → 8081 con `timeout: 0`, `proxyTimeout: 0` y `Accept-Encoding: identity` para no cortar ni comprimir `text/event-stream`. | Requisito de SSE de HU-00; se valida con un stream real en la épica 5. |
 
 ## Propuestas
 _(El agente registra aquí los cambios que sugiera, con su motivo. No se aplican hasta que se aprueben.)_

@@ -1,0 +1,47 @@
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">C</div>
+      <h1>LA CAVA</h1>
+      <p>COPAS Y TABLAS</p>
+    </div>
+    <nav class="nav" aria-label="Menú principal">
+      @for (item of items; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page">
+          <span class="ico" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <b class="crumb">{{ title() }}</b>
+      @switch (health.status()) {
+        @case ('up') {
+          <span class="pill" data-testid="api-status">API conectada</span>
+        }
+        @case ('down') {
+          <span class="pill danger" data-testid="api-status">API sin conexión</span>
+        }
+        @default {
+          <span class="pill busy" data-testid="api-status">Verificando API…</span>
+        }
+      }
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Menú principal (móvil)">
+    @for (item of items; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <span class="ico" aria-hidden="true">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+</div>

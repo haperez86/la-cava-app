@@ -1,7 +1,12 @@
 # 03 · Contrato de la API — La Cava
 
-Base `/api/v1`. JSON. `Authorization: Bearer <jwt>` salvo login. Errores `ProblemDetail` con `detail` en español y `errors[]` en validaciones. Listados paginados `?page&size&sort`.
+Base `/api/v1`. JSON. `Authorization: Bearer <jwt>` salvo login y health. Errores `ProblemDetail` con `detail` en español y `errors[]` en validaciones. Listados paginados `?page&size&sort`.
 Roles: **A** Administrador · **C** Cajero · **M** Mesero · **P** Preparación.
+
+## Sistema
+| Método | Ruta | Rol | Descripción |
+|---|---|---|---|
+| GET | `/health` | público | `{status, db}`; 200 con `UP` si la base responde, 503 con `db: DOWN` si no |
 
 ## Auth
 | Método | Ruta | Rol | Descripción |

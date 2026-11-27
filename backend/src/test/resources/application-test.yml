@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: ${DB_TEST_URL:jdbc:postgresql://localhost:5432/la_cava_test}
+  flyway:
+    # Solo en pruebas: TestFlywayConfig limpia el esquema al arrancar
+    clean-disabled: false
+
+springdoc:
+  api-docs:
+    enabled: true

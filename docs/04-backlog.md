@@ -7,12 +7,13 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 
 ## Épica 0 · Fundaciones
 
-### LCV-HU-00 · Esqueleto del proyecto ⬜
+### LCV-HU-00 · Esqueleto del proyecto ✅
 - Backend Spring Boot 4.1 / Java 21 con Flyway, JPA, Security, Validation y springdoc; `Clock` inyectable; perfiles `local` y `test`; `GET /api/v1/health`.
 - Manejo global de errores con `ProblemDetail`.
 - Frontend Angular 22 con layout de la demo (barra lateral en escritorio y navegación inferior en móvil), tokens de diseño, toasts y proxy `/api` (con buffering desactivado para SSE).
 - **CA1** `./mvnw verify` y `npm test` pasan con PostgreSQL local.
 - **CA2** El frontend muestra el layout y consume `/health`.
+- **Desviaciones:** migración `V1__baseline.sql` sin tablas; JWT (oauth2-resource-server) diferido a HU-01; ícono de menú como glifo de texto y pantalla placeholder `/inicio`; toast `ready` y tokens `--gold-ink`, `--brand-sub`, `--brand-line`, `--side-width` añadidos. Pendientes menores del revisor para HU-01: prueba del 503 de health, estilos de `toast-container` con breakpoint/token, failsafe sobrante en `pom.xml`.
 
 ### LCV-HU-01 · Inicio de sesión y menú por rol ⬜
 - **CA1** Con credenciales válidas recibo el JWT y entro a la pantalla inicial de mi rol: A y C → Dashboard; M → Mis mesas; P → Comandas.
