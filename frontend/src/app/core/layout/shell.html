@@ -1,9 +1,7 @@
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark" aria-hidden="true">C</div>
-      <h1>LA CAVA</h1>
-      <p>COPAS Y TABLAS</p>
+      <app-brand-logo [size]="160" />
     </div>
     <nav class="nav" aria-label="Menú principal">
       @for (item of items(); track item.path) {

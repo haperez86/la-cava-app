@@ -21,35 +21,10 @@
 }
 
 .brand {
-  padding: 8px 10px 20px;
+  display: flex;
+  justify-content: center;
+  padding: 4px 10px 20px;
   border-bottom: 1px solid var(--brand-line);
-
-  h1 {
-    font: 600 21px var(--font-title);
-    letter-spacing: 3px;
-    margin: 0;
-    color: var(--brand-title);
-  }
-
-  p {
-    margin: 4px 0 0;
-    color: var(--brand-sub);
-    font-size: 10px;
-    letter-spacing: 4px;
-  }
-}
-
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--gold);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--gold);
-  font-family: var(--font-title);
-  font-size: 21px;
-  margin-bottom: 12px;
 }
 
 .nav {
@@ -139,7 +114,6 @@
 
 .content {
   padding: 30px 34px;
-  max-width: 1500px;
   min-width: 0;
   overflow-x: clip;
 }

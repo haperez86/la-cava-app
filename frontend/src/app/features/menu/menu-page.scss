@@ -244,7 +244,22 @@
 }
 
 @media (min-width: bp.$bp-desktop-min) {
+  // Menú 3–4 columnas, máximo 4: el mínimo de cada tarjeta nunca baja de un cuarto del ancho
+  // (menos los 3 huecos), así auto-fill no pasa de 4 y las tarjetas crecen en pantallas anchas.
   .menu-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --menu-gap: 16px;
+
+    gap: var(--menu-gap);
+    grid-template-columns: repeat(auto-fill, minmax(max(280px, calc((100% - 3 * var(--menu-gap)) / 4)), 1fr));
+  }
+
+  // Filtros sobre la misma rejilla de 4 pistas que las tarjetas: buscador = 2, cada select = 1.
+  .toolbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+
+    .field:first-child {
+      grid-column: span 2;
+    }
   }
 }

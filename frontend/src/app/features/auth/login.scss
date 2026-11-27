@@ -1,3 +1,5 @@
+@use 'styles/breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -20,17 +22,14 @@
 }
 
 .brand {
-  color: var(--green);
-  font: 600 21px var(--font-title);
-  letter-spacing: 3px;
+  display: flex;
+  justify-content: center;
   margin-bottom: 18px;
+}
 
-  small {
-    display: block;
-    color: var(--muted);
-    font: 400 10px var(--font-body);
-    letter-spacing: 4px;
-    margin-top: 4px;
+@media (max-width: bp.$bp-xs-max) {
+  .brand app-brand-logo {
+    width: 112px;
   }
 }
 

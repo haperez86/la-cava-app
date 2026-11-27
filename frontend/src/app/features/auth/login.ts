@@ -5,13 +5,14 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { homePathFor } from '../../core/auth/role';
 import { problemMessage } from '../../core/http/problem';
+import { BrandLogo } from '../../shared/brand/brand-logo';
 
 const INVALID_CREDENTIALS = 'Usuario o contraseña incorrectos';
 
 /** Pantalla de inicio de sesión (LCV-HU-01). */
 @Component({
   selector: 'app-login',
-  imports: [FormField],
+  imports: [FormField, BrandLogo],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })

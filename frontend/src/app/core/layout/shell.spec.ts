@@ -66,9 +66,19 @@ describe('Shell', () => {
   it('LCV-HU-00 CA2 renders the brand and the API status after a successful /health call', async () => {
     const harness = await open('ADMIN', '/dashboard');
     const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
-    expect(root.querySelector('.brand h1')?.textContent).toContain('LA CAVA');
+    expect(root.querySelector('.brand app-brand-logo')).not.toBeNull();
     expect(root.querySelector('[data-testid="api-status"]')?.textContent).toContain('API conectada');
     expect(root.querySelector('[data-testid="home-health"]')?.textContent).toContain('operativas');
+  });
+
+  it('the sidebar shows the La Cava logo as an accessible inline SVG instead of the "C" mark', async () => {
+    const harness = await open('ADMIN', '/dashboard');
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    const svg = root.querySelector('.sidebar app-brand-logo svg[role="img"]');
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute('aria-label')).toBe('La Cava, copas y tablas');
+    expect(svg?.querySelector('circle')).not.toBeNull();
+    expect(root.querySelector('.brand-mark')).toBeNull();
   });
 
   it('LCV-HU-00 CA2 shows "API sin conexión" when /health fails', async () => {
