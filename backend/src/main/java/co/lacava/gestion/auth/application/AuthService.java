@@ -35,18 +35,19 @@ public class AuthService {
      * Valida las credenciales. Usuario inexistente, contraseña errada, usuario inactivo o usuario bloqueado por
      * intentos fallidos (P1) responden igual: 401 "Usuario o contraseña incorrectos" (docs/01). Siempre se compara
      * la contraseña (contra el hash real o el de relleno) para no delatar el caso por el tiempo de respuesta.
+     * El intento se reserva antes de comparar (D27), así una ráfaga concurrente no supera el máximo de intentos.
      */
     @Transactional(readOnly = true)
     public LoginResult login(String username, String password) {
         String normalized = UserService.normalizeUsername(username);
-        boolean locked = loginAttempts.isLocked(normalized);
+        LoginAttemptService.Permit permit = loginAttempts.tryAcquire(normalized);
         AppUser user = users.findByUsername(normalized).orElse(null);
         boolean matches = passwordEncoder.matches(password, user == null ? dummyHash : user.getPasswordHash());
-        if (locked) {
+        if (!permit.allowed()) {
             throw BusinessException.unauthorized(INVALID_CREDENTIALS);
         }
         if (user == null || !matches || !user.isActive()) {
-            loginAttempts.recordFailure(normalized);
+            loginAttempts.recordFailure(permit);
             throw BusinessException.unauthorized(INVALID_CREDENTIALS);
         }
         loginAttempts.recordSuccess(normalized);

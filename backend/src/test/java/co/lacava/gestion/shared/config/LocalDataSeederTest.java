@@ -27,6 +27,11 @@ class LocalDataSeederTest {
             "jdbc:postgresql://LOCALHOST/la_cava|true",
             "jdbc:postgresql://127.0.0.1:5432/la_cava|true",
             "jdbc:postgresql://[::1]:5432/la_cava|true",
+            "jdbc:postgresql:la_cava|true",
+            "jdbc:postgresql:///la_cava|true",
+            "jdbc:postgresql:///la_cava?sslmode=disable|true",
+            "jdbc:postgresql:la_cava?PGHOST=db.example.com|false",
+            "jdbc:postgresql://localhost/la_cava?pghost=db.example.com|false",
             "jdbc:postgresql://db.example.com:5432/la_cava|false",
             "jdbc:postgresql://10.0.0.5:5432/la_cava|false",
             "jdbc:postgresql://localhost.example.com/la_cava|false",
@@ -34,7 +39,7 @@ class LocalDataSeederTest {
             "jdbc:postgresql://exa mple/la_cava|false",
             "postgresql://localhost/la_cava|false",
             "no es una url|false" })
-    @DisplayName("Solo localhost, 127.0.0.1 y ::1 cuentan como base local")
+    @DisplayName("Solo localhost, 127.0.0.1, ::1 o una URL PostgreSQL sin host cuentan como base local")
     void detectsLocalDatabase(String url, boolean expected) {
         assertThat(LocalDataSeeder.isLocalDatabase(url)).isEqualTo(expected);
     }

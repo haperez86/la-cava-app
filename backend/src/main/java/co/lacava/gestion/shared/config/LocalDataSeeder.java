@@ -25,6 +25,7 @@ class LocalDataSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(LocalDataSeeder.class);
     private static final Set<String> LOCAL_HOSTS = Set.of("localhost", "127.0.0.1", "::1", "[::1]");
+    private static final String POSTGRES_PREFIX = "jdbc:postgresql:";
 
     private final UserService users;
     private final String datasourceUrl;
@@ -54,10 +55,23 @@ class LocalDataSeeder implements ApplicationRunner {
         return host != null && LOCAL_HOSTS.contains(host.toLowerCase(Locale.ROOT));
     }
 
-    /** Host de una URL {@code jdbc:...}, o {@code null} si no se puede extraer (URL malformada o varios hosts). */
+    /**
+     * Host de una URL {@code jdbc:...}, o {@code null} si no se puede extraer (URL malformada, varios hosts o host
+     * fijado por la propiedad {@code PGHOST}). Las URL PostgreSQL sin host ({@code jdbc:postgresql:la_cava},
+     * {@code jdbc:postgresql:///la_cava}) las resuelve el driver a {@code localhost}.
+     */
     static String hostOf(String jdbcUrl) {
         if (jdbcUrl == null || !jdbcUrl.startsWith("jdbc:")) {
             return null;
+        }
+        if (jdbcUrl.toLowerCase(Locale.ROOT).contains("pghost=")) {
+            return null;
+        }
+        if (jdbcUrl.startsWith(POSTGRES_PREFIX)) {
+            String rest = jdbcUrl.substring(POSTGRES_PREFIX.length());
+            if (!rest.startsWith("//") || rest.startsWith("///")) {
+                return "localhost";
+            }
         }
         try {
             return URI.create(jdbcUrl.substring("jdbc:".length())).getHost();
