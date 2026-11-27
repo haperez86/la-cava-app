@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import co.lacava.gestion.shared.error.BusinessException;
+import co.lacava.gestion.shared.security.AttemptLimiter;
 import co.lacava.gestion.tables.domain.DiningTable;
 import co.lacava.gestion.tables.infrastructure.DiningTableRepository;
 
@@ -23,11 +24,14 @@ public class TableService {
     private final DiningTableRepository tables;
     private final TableTokenService tokens;
     private final Clock clock;
+    private final PinAttemptService pinAttempts;
 
-    public TableService(DiningTableRepository tables, TableTokenService tokens, Clock clock) {
+    public TableService(DiningTableRepository tables, TableTokenService tokens, Clock clock,
+            PinAttemptService pinAttempts) {
         this.tables = tables;
         this.tokens = tokens;
         this.clock = clock;
+        this.pinAttempts = pinAttempts;
     }
 
     @Transactional(readOnly = true)
@@ -84,13 +88,24 @@ public class TableService {
         return account(table);
     }
 
-    /** Respaldo manual: número de mesa y PIN (comparación en tiempo constante), o 404 genérico. */
+    /**
+     * Respaldo manual: número de mesa y PIN (comparación en tiempo constante), o 404 genérico. Limitado por usuario
+     * (D36): el intento se reserva antes de comparar; durante el bloqueo responde el mismo 404 aunque el PIN sea
+     * correcto. Siempre se busca y compara, para que el bloqueo no se distinga por el tiempo de respuesta.
+     */
     @Transactional(readOnly = true)
-    public TableAccount resolveByPin(int number, String pin) {
-        DiningTable table = activeByNumber(number)
-                .filter(t -> tokens.matches(t.getPin(), pin))
-                .orElseThrow(TableService::invalidCode);
-        return account(table);
+    public TableAccount resolveByPin(int number, String pin, long userId, String username) {
+        AttemptLimiter.Permit permit = pinAttempts.tryAcquire(userId);
+        Optional<DiningTable> table = activeByNumber(number).filter(t -> tokens.matches(t.getPin(), pin));
+        if (!permit.allowed()) {
+            throw invalidCode();
+        }
+        if (table.isEmpty()) {
+            pinAttempts.recordFailure(permit, userId, username, number);
+            throw invalidCode();
+        }
+        pinAttempts.recordSuccess(userId);
+        return account(table.get());
     }
 
     @Transactional(readOnly = true)

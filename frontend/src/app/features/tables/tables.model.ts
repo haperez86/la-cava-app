@@ -11,3 +11,19 @@ export interface QrSheetEntry {
   readonly code: string;
   readonly pin: string;
 }
+
+/** Cuerpo de POST /api/v1/tables/resolve: contenido del QR o número con PIN (texto de 4 dígitos, D12). */
+export type ResolveTableRequest = { readonly code: string } | { readonly number: number; readonly pin: string };
+
+/** Cuenta abierta de la mesa; hasta la Épica 4 llega vacía (D35). */
+export interface TableAccount {
+  readonly orders: readonly unknown[];
+  readonly total: number;
+}
+
+/** Respuesta de POST /api/v1/tables/resolve (LCV-HU-08). */
+export interface ResolvedTable {
+  readonly id: number;
+  readonly number: number;
+  readonly account: TableAccount;
+}

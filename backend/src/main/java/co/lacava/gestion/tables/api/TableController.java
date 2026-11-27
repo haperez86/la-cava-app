@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.lacava.gestion.shared.error.FieldError;
 import co.lacava.gestion.shared.error.InvalidFieldsException;
+import co.lacava.gestion.shared.security.CurrentUser;
 import co.lacava.gestion.tables.api.TableRequests.ActiveRequest;
 import co.lacava.gestion.tables.api.TableRequests.CreateTableRequest;
 import co.lacava.gestion.tables.api.TableRequests.ResolveRequest;
@@ -78,12 +81,14 @@ class TableController {
     @PostMapping("/resolve")
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER', 'WAITER')")
     @Operation(summary = "Mesa y cuenta a partir del código del QR o de número + PIN; 404 si no es válido")
-    TableAccount resolve(@RequestBody ResolveRequest request) {
+    TableAccount resolve(@RequestBody ResolveRequest request, @AuthenticationPrincipal Jwt jwt) {
         if (request.code() != null && !request.code().isBlank()) {
             return tableService.resolveByCode(request.code());
         }
         if (request.number() != null && request.pin() != null && !request.pin().isBlank()) {
-            return tableService.resolveByPin(request.number(), request.pin());
+            // D36: número + PIN se limita por usuario autenticado; el código del QR no.
+            return tableService.resolveByPin(request.number(), request.pin(), CurrentUser.id(jwt),
+                    jwt.getClaimAsString("username"));
         }
         throw new InvalidFieldsException(List.of(new FieldError("code", TableRequests.RESOLVE_REQUIRED)));
     }

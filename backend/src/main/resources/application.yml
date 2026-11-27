@@ -47,6 +47,11 @@ app:
     # P1: tras 5 fallos seguidos por usuario, bloqueo de 15 min (en memoria, D9)
     max-failed-attempts: 5
     lockout: PT15M
+  tables:
+    pin:
+      # D36: resolve por número + PIN, tras 5 fallos seguidos por usuario, bloqueo de 15 min (en memoria, D9)
+      max-failed-attempts: 5
+      lockout: PT15M
 
 springdoc:
   api-docs:

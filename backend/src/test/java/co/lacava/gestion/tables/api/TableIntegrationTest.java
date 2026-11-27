@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -320,7 +321,108 @@ class TableIntegrationTest extends IntegrationTest {
         as(Role.ADMIN, get(TABLES + "/999/account"), null).andExpect(status().isNotFound());
     }
 
+    // ---------- D36: límite de intentos de número + PIN (LCV-HU-08) ----------
+
+    @Test
+    @DisplayName("CA3 D36 tras 5 PIN errados del mismo mesero, el 6.º con PIN correcto da el mismo 404 \"Código de mesa inválido\"")
+    void d36LocksAfterFiveWrongPins() throws Exception {
+        createTable(4);
+        String pin = pinOfTable(4);
+        failPins(tokens.get(Role.WAITER), 4, 5);
+
+        resolve(tokens.get(Role.WAITER), Map.of("number", 4, "pin", pin))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value(INVALID_CODE));
+        resolve(tokens.get(Role.WAITER), Map.of("number", 99, "pin", "1234"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value(INVALID_CODE));
+    }
+
+    @Test
+    @DisplayName("D36 el bloqueo es por usuario: otro mesero abre la mesa con su PIN")
+    void d36OtherWaiterNotAffected() throws Exception {
+        long id = createTable(4);
+        users.create("pedro", "Pedro Díaz", "pedro123", Role.WAITER);
+        // El JWT se emite con el reloj de la prueba y se valida con el del sistema: se emite como los demás.
+        clock.useSystemClock();
+        String pedro = tokenOf("pedro");
+        clock.fixAt(NOW);
+        failPins(tokens.get(Role.WAITER), 4, 5);
+
+        resolve(pedro, Map.of("number", 4, "pin", pinOfTable(4)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id));
+    }
+
+    @Test
+    @DisplayName("CA1 D36 el código del QR sigue funcionando para el mesero bloqueado y no cuenta para el límite")
+    void d36QrCodeNotLimited() throws Exception {
+        long id = createTable(4);
+        failPins(tokens.get(Role.WAITER), 4, 5);
+
+        resolve(tokens.get(Role.WAITER), Map.of("code", codeOf(4)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id));
+
+        // Muchos códigos inválidos no bloquean el camino del QR.
+        for (int i = 0; i < 10; i++) {
+            resolve(tokens.get(Role.CASHIER), Map.of("code", "LACAVA:MESA:4:" + "x".repeat(43)))
+                    .andExpect(status().isNotFound());
+        }
+        resolve(tokens.get(Role.CASHIER), Map.of("number", 4, "pin", pinOfTable(4)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("D36 a los 15 min el bloqueo se levanta y el PIN correcto vuelve a abrir la mesa")
+    void d36LockExpiresAfterFifteenMinutes() throws Exception {
+        long id = createTable(4);
+        String pin = pinOfTable(4);
+        failPins(tokens.get(Role.WAITER), 4, 5);
+
+        clock.fixAt(NOW.plus(Duration.ofMinutes(15)).minusSeconds(1));
+        resolve(tokens.get(Role.WAITER), Map.of("number", 4, "pin", pin)).andExpect(status().isNotFound());
+
+        clock.fixAt(NOW.plus(Duration.ofMinutes(15)));
+        resolve(tokens.get(Role.WAITER), Map.of("number", 4, "pin", pin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id));
+    }
+
+    @Test
+    @DisplayName("D36 un PIN correcto reinicia el contador: 4 fallos, acierto y 4 fallos más no bloquean")
+    void d36SuccessResetsCounter() throws Exception {
+        long id = createTable(4);
+        String pin = pinOfTable(4);
+        failPins(tokens.get(Role.WAITER), 4, 4);
+        resolve(tokens.get(Role.WAITER), Map.of("number", 4, "pin", pin)).andExpect(status().isOk());
+
+        failPins(tokens.get(Role.WAITER), 4, 4);
+
+        resolve(tokens.get(Role.WAITER), Map.of("number", 4, "pin", pin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id));
+    }
+
     // ---------- utilidades ----------
+
+    private void failPins(String token, int number, int times) throws Exception {
+        String wrong = wrongPin(number);
+        for (int i = 0; i < times; i++) {
+            resolve(token, Map.of("number", number, "pin", wrong))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.detail").value(INVALID_CODE));
+        }
+    }
+
+    private String wrongPin(int number) {
+        return pinOfTable(number).equals("9999") ? "0000" : "9999";
+    }
+
+    private ResultActions resolve(String token, Object body) throws Exception {
+        return mockMvc.perform(post(RESOLVE).header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body)));
+    }
 
     private long createTable(int number) throws Exception {
         String body = as(Role.ADMIN, post(TABLES), Map.of("number", number))
