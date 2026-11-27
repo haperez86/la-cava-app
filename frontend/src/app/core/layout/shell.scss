@@ -97,6 +97,39 @@
   z-index: 4;
 }
 
+.user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  margin-left: auto;
+  margin-right: 12px;
+  min-width: 0;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--avatar-bg);
+  color: var(--green);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  flex: none;
+}
+
+.user-info {
+  display: grid;
+  line-height: 1.2;
+  min-width: 0;
+
+  small {
+    color: var(--muted);
+    font-size: 11px;
+  }
+}
+
 .crumb {
   color: var(--muted);
   font-size: 13px;
@@ -132,6 +165,14 @@
   }
 
   .crumb {
+    display: none;
+  }
+
+  .user {
+    margin-right: 8px;
+  }
+
+  .user-info {
     display: none;
   }
 

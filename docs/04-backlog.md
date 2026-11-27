@@ -15,11 +15,12 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA2** El frontend muestra el layout y consume `/health`.
 - **Desviaciones:** migración `V1__baseline.sql` sin tablas; JWT (oauth2-resource-server) diferido a HU-01; ícono de menú como glifo de texto y pantalla placeholder `/inicio`; toast `ready` y tokens `--gold-ink`, `--brand-sub`, `--brand-line`, `--side-width` añadidos. Pendientes menores del revisor para HU-01: prueba del 503 de health, estilos de `toast-container` con breakpoint/token, failsafe sobrante en `pom.xml`.
 
-### LCV-HU-01 · Inicio de sesión y menú por rol ⬜
+### LCV-HU-01 · Inicio de sesión y menú por rol ✅
 - **CA1** Con credenciales válidas recibo el JWT y entro a la pantalla inicial de mi rol: A y C → Dashboard; M → Mis mesas; P → Comandas.
 - **CA2** Credenciales inválidas o usuario inactivo → "Usuario o contraseña incorrectos".
 - **CA3** Cada rol ve solo sus opciones (especificación §1) y las rutas ajenas lo redirigen a su pantalla inicial.
 - **CA4** Endpoints fuera de su rol → 403.
+- **Desviaciones:** migración nueva `V2__create_app_user.sql`; la respuesta de login y `/auth/me` no incluye `username` (según docs/03); el 403 de CA4 se prueba con un controller solo de pruebas porque aún no hay endpoints por rol; pantallas `/dashboard`, `/mesas` y `/preparacion` son placeholders. Pendientes menores: refrescar el rol con `/auth/me` al arrancar (HU-21) y mover `core/auth/testing.ts` a un helper solo de pruebas.
 
 ---
 

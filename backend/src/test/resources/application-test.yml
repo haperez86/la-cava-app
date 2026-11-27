@@ -8,3 +8,8 @@ spring:
 springdoc:
   api-docs:
     enabled: true
+
+app:
+  jwt:
+    # Solo pruebas: secreto fijo de 32+ caracteres
+    secret: test-only-secret-for-la-cava-jwt-0123456789

@@ -25,6 +25,9 @@
 | D21 | Skills `angular-developer` y `angular-new-app` (angular/skills, commit fijado en `skills-lock.json`) y el MCP `angular-cli`, copiados de Proto. | Mismo soporte de Angular que en Proto. |
 | D22 | El repositorio git se inició localmente con `main` (commit inicial con specs y demo). Se ignoran todas las carpetas que empiezan con punto (`.*/`) salvo `.mvn/`; `.claude/` y `.atl/` no se versionan. | Pedido del dueño. `.mvn/` es necesaria para que `./mvnw` funcione en otro clon. Consecuencia: agentes y skills (D20, D21) viven solo en la máquina local. |
 | D23 | Proxy de desarrollo `/api` → 8081 con `timeout: 0`, `proxyTimeout: 0` y `Accept-Encoding: identity` para no cortar ni comprimir `text/event-stream`. | Requisito de SSE de HU-00; se valida con un stream real en la épica 5. |
+| D24 | JWT con `spring-boot-starter-security-oauth2-resource-server` (Nimbus, HS256, emisor `la-cava`) en lugar de jjwt; el rol se lee de la BD en cada petición y un usuario inactivo queda fuera aunque su token siga vigente. | Mismo enfoque que Proto y sin librería extra. |
+| D25 | Rutas por rol: `/dashboard` (A, C), `/mesas` (A, C, M; "Mis mesas" para M), `/preparacion` (A, P; "Comandas"). Las rutas ajenas o desconocidas llevan a la pantalla inicial del rol. | CA1 y CA3 de HU-01; el menú crece con cada HU. |
+| D26 | Sesión (token y usuario) en `localStorage` con la clave `lacava.session`; un 401 cierra la sesión y un 403 solo muestra un toast. Sin selector de rol como en la demo. | Simplicidad; el backend es quien aplica los permisos. |
 
 ## Propuestas
 _(El agente registra aquí los cambios que sugiera, con su motivo. No se aplican hasta que se aprueben.)_
