@@ -43,9 +43,10 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 
 ## Épica 2 · Inventario por lotes
 
-### LCV-HU-04 · Entradas por lote ⬜
+### LCV-HU-04 · Entradas por lote ✅
 - **CA1** Registro un lote con cantidad > 0, vencimiento ≥ hoy y temporada opcional (por defecto la del producto); se crea el movimiento `LOT_IN`.
 - **CA2** La existencia vigente excluye los lotes vencidos.
+- **Desviaciones:** `POST /inventory/lots` responde 400 `errors[]` (antes 422) para cantidad y vencimiento; temporada vacía o nula = la del producto, así que no se puede registrar un lote sin temporada para un producto que la tiene; pantalla `/inventario` con "Registrar entrada" y estado vacío (la tabla llega en HU-06); estilos de modal y encabezado copiados de `/menu`. Pendientes menores: selector de productos limitado a 100 y sin filtrar inactivos; rechazar cantidades decimales en el backend; prueba de vencimiento = hoy en el cliente; unificar mensajes de validación cliente/servidor y las constantes de fecha de `ProductService`/`InventoryService`; mover estilos de modal y encabezado a globales.
 
 ### LCV-HU-05 · Consumo FEFO, salidas y baja de vencidos ⬜
 - **CA1** El consumo descuenta primero del lote que vence antes y puede repartirse entre varios lotes.

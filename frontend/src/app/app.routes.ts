@@ -40,6 +40,12 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] },
         loadComponent: () => import('./features/menu/menu-page').then((m) => m.MenuPage),
       },
+      {
+        path: 'inventario',
+        title: 'Inventario · La Cava',
+        data: { roles: ['ADMIN'] },
+        loadComponent: () => import('./features/inventory/inventory-page').then((m) => m.InventoryPage),
+      },
     ],
   },
   { path: '**', redirectTo: homeRedirect },

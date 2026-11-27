@@ -24,6 +24,8 @@ public interface StockLotRepository extends JpaRepository<StockLot, Long> {
 
     boolean existsByProductId(Long productId);
 
+    List<StockLot> findByProductIdOrderByExpiresOnAscIdAsc(Long productId);
+
     interface ProductAvailability {
 
         Long getProductId();

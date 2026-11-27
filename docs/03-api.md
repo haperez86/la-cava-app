@@ -36,6 +36,8 @@ Respuesta de producto: `{id, name, categoryId, categoryName, price, description,
 | POST | `/inventory/expired/write-off` | A | Da de baja todo lo vencido → `{lots, units}` |
 | GET | `/inventory/movements` | A | Filtros `productId`, `from`, `to`; paginado |
 
+Lote (`LotResponse`): `{id, productId, productName, quantityReceived, quantityAvailable, expiresOn, seasonName, receivedAt, status}`; `status` = `CONSUMED` (cantidad 0) → `EXPIRED` (vencido con cantidad) → `EXPIRING` (vence en ≤ 3 días) → `ACTIVE`. `POST /inventory/lots` responde 201 con el lote; `seasonName` vacío o nulo toma la temporada del producto; validación → 400 `errors[]` (`productId`, `quantity`, `expiresOn`, `seasonName`); producto inexistente → 404 (D32).
+
 ## Mesas
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
