@@ -10,10 +10,11 @@ frontend/.angular/
 .env
 *.env.local
 backend/.env
+# Carpetas de configuración (todas las que empiezan con punto)
+.*/
+# Excepción: el Maven Wrapper la necesita para que ./mvnw funcione en otro clon
+!.mvn/
 # IDE / SO
-.idea/
-.vscode/*
-!.vscode/extensions.json
 *.iml
 .DS_Store
 Thumbs.db
