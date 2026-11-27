@@ -10,6 +10,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import co.lacava.gestion.auth.application.LoginAttemptService;
+
 /**
  * Base de las pruebas de integración: contexto completo contra PostgreSQL local
  * ({@code la_cava_test}, D3) y tablas vacías antes de cada prueba .
@@ -24,6 +26,15 @@ public abstract class IntegrationTest {
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private LoginAttemptService loginAttempts;
+
+    /** El conteo de intentos de login vive en memoria del contexto compartido: se limpia entre pruebas. */
+    @BeforeEach
+    void clearLoginAttempts() {
+        loginAttempts.clear();
+    }
 
     @BeforeEach
     void truncateTables() {

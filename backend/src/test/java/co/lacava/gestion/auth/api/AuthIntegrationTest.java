@@ -113,6 +113,44 @@ class AuthIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    @DisplayName("P1 tras 5 claves erradas, la correcta también responde 401 con el mismo mensaje")
+    void p1LockedAfterFiveFailures() throws Exception {
+        users.create("laura", "Laura Gómez", "laura123", Role.WAITER);
+        for (int i = 0; i < 5; i++) {
+            login("laura", "otra-clave").andExpect(status().isUnauthorized());
+        }
+
+        login("LAURA", "laura123").andExpect(status().isUnauthorized()).andExpect(jsonPath("$.detail").value(INVALID));
+    }
+
+    @Test
+    @DisplayName("P1 el bloqueo de un usuario no afecta a otro; 4 fallos y un éxito reinician el contador")
+    void p1LockIsPerUser() throws Exception {
+        users.create("laura", "Laura Gómez", "laura123", Role.WAITER);
+        users.create("jorge", "Jorge Ruiz", "jorge123", Role.KITCHEN);
+        for (int i = 0; i < 5; i++) {
+            login("laura", "otra-clave").andExpect(status().isUnauthorized());
+        }
+        for (int i = 0; i < 4; i++) {
+            login("jorge", "otra-clave").andExpect(status().isUnauthorized());
+        }
+
+        login("jorge", "jorge123").andExpect(status().isOk());
+        login("jorge", "otra-clave").andExpect(status().isUnauthorized());
+        login("jorge", "jorge123").andExpect(status().isOk());
+        login("laura", "laura123").andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("P1 un usuario inexistente también se bloquea con el mismo mensaje")
+    void p1UnknownUserAlsoCounts() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            login("nadie", "x").andExpect(status().isUnauthorized()).andExpect(jsonPath("$.detail").value(INVALID));
+        }
+        login("nadie", "x").andExpect(status().isUnauthorized()).andExpect(jsonPath("$.detail").value(INVALID));
+    }
+
+    @Test
     @DisplayName("CA2 el token de un usuario desactivado deja de servir")
     void ca2TokenOfDeactivatedUserRejected() throws Exception {
         users.create("laura", "Laura Gómez", "laura123", Role.WAITER);

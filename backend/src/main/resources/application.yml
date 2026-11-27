@@ -36,6 +36,10 @@ app:
   jwt:
     secret: ${JWT_SECRET:}
   business-zone: America/Bogota
+  auth:
+    # P1: tras 5 fallos seguidos por usuario, bloqueo de 15 min (en memoria, D9)
+    max-failed-attempts: 5
+    lockout: PT15M
 
 springdoc:
   api-docs:
