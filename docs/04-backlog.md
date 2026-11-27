@@ -46,7 +46,7 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 ### LCV-HU-04 · Entradas por lote ✅
 - **CA1** Registro un lote con cantidad > 0, vencimiento ≥ hoy y temporada opcional (por defecto la del producto); se crea el movimiento `LOT_IN`.
 - **CA2** La existencia vigente excluye los lotes vencidos.
-- **Desviaciones:** `POST /inventory/lots` responde 400 `errors[]` (antes 422) para cantidad y vencimiento; temporada vacía o nula = la del producto, así que no se puede registrar un lote sin temporada para un producto que la tiene; pantalla `/inventario` con "Registrar entrada" y estado vacío (la tabla llega en HU-06); estilos de modal y encabezado copiados de `/menu`. Pendientes menores: selector de productos limitado a 100 y sin filtrar inactivos; prueba de vencimiento = hoy en el cliente; unificar mensajes de validación cliente/servidor y las constantes de fecha de `ProductService`/`InventoryService`; mover estilos de modal y encabezado a globales.
+- **Desviaciones:** `POST /inventory/lots` responde 400 `errors[]` (antes 422) para cantidad y vencimiento; temporada vacía o nula = la del producto, así que no se puede registrar un lote sin temporada para un producto que la tiene; pantalla `/inventario` con "Registrar entrada" y estado vacío (la tabla llega en HU-06); estilos de modal y encabezado copiados de `/menu`. Pendientes menores: selector de productos limitado a 100 (el filtro de inactivos se resolvió en HU-06); prueba de vencimiento = hoy en el cliente; unificar mensajes de validación cliente/servidor y las constantes de fecha de `ProductService`/`InventoryService`; mover estilos de modal y encabezado a globales (en inventario quedaron unificados en `_modal.scss` en HU-05).
 
 ### LCV-HU-05 · Consumo FEFO, salidas y baja de vencidos ✅
 - **CA1** El consumo descuenta primero del lote que vence antes y puede repartirse entre varios lotes.
@@ -54,11 +54,12 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA3** "Dar de baja vencidos" deja en 0 los lotes vencidos y registra un movimiento por lote.
 - **Desviaciones:** observación de salida ≤ 140 caracteres (columna de V3); validación de salidas en el servicio para devolver todos los errores juntos; rechazo global de decimales en enteros y de tipos incorrectos en el cuerpo (400 por campo); el botón "Dar de baja vencidos" va en el encabezado (la tarjeta de contadores llega en HU-06) con estilo primario; estilos de modal unificados en `features/inventory/_modal.scss`. Resuelve el pendiente de decimales de HU-04. Pendientes menores: estilo `.btn.danger` para acciones destructivas.
 
-### LCV-HU-06 · Vista de inventario y alertas ⬜
+### LCV-HU-06 · Vista de inventario y alertas ✅
 - **CA1** Contadores: agotados, stock bajo, por vencer (≤ 3 días) y unidades vencidas.
 - **CA2** La tabla muestra temporada, vigente, mínimo, próximo vencimiento ("vence hoy", "vence mañana", "en N días"), unidades vencidas y estado.
 - **CA3** Filtros por texto, categoría, estado y temporada.
 - **CA4** El detalle de lotes y los movimientos recientes son visibles.
+- **Desviaciones:** solo productos activos; estado de fila y conjuntos de filtro según D34 ("Por vencer" puede contar productos que muestran otro estado); el controller devuelve records de aplicación (no entidades); los selectores de producto filtran inactivos en el cliente; pills locales `.season` y `.neutral`; el detalle no tiene el botón "Registrar entrada" de la demo; el botón "Dar de baja vencidos" está en el encabezado y en la tarjeta de unidades vencidas. Incluye el pendiente de HU-04 de mostrar solo productos activos en los selectores. Pendientes menores: selectores limitados a 100 productos; DTOs propios en `api/` si se quiere el patrón `XResponse.from`.
 
 ---
 

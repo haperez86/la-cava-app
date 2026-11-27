@@ -1,0 +1,79 @@
+<div class="modal-back" (click)="closed.emit()">
+  <div
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="detail-title"
+    data-testid="lot-detail"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow">Lotes y vencimientos</div>
+        <h3 id="detail-title">{{ row().icon || defaultIcon }} {{ row().name }}</h3>
+      </div>
+      <button type="button" class="close" aria-label="Cerrar" (click)="closed.emit()">×</button>
+    </div>
+    <p class="muted intro">
+      Disponible para la venta: <strong data-testid="detail-available">{{ available() }}</strong>. Las ventas descuentan primero el lote que vence antes.
+    </p>
+
+    <h4>Lotes</h4>
+    @if (loadingLots()) {
+      <p class="muted">Cargando lotes…</p>
+    } @else if (lotsError()) {
+      <p class="form-error" role="alert">{{ lotsError() }}</p>
+    } @else {
+      <ul class="lots" data-testid="detail-lots">
+        @for (lot of sortedLots(); track lot.id) {
+          <li class="lot" data-testid="detail-lot">
+            <div class="lot-main">
+              <strong>Lote #{{ lot.id }}</strong>
+              <span class="pill {{ lotPills[lot.status].tone }}" data-testid="lot-status">{{ lotPills[lot.status].label }}</span>
+            </div>
+            <dl class="lot-facts">
+              <div><dt>Vence</dt><dd data-testid="lot-expires">{{ formatDate(lot.expiresOn) }}</dd></div>
+              <div><dt>Recibido</dt><dd>{{ formatInstantDate(lot.receivedAt) }}</dd></div>
+              <div>
+                <dt>Disponible</dt>
+                <dd data-testid="lot-qty">{{ lot.quantityAvailable }} / {{ lot.quantityReceived }}</dd>
+              </div>
+              <div><dt>Temporada</dt><dd>{{ lot.seasonName || '—' }}</dd></div>
+            </dl>
+          </li>
+        } @empty {
+          <li class="empty">Sin lotes registrados.</li>
+        }
+      </ul>
+    }
+
+    <h4>Movimientos recientes</h4>
+    @if (loadingMovements()) {
+      <p class="muted">Cargando movimientos…</p>
+    } @else if (movementsError()) {
+      <p class="form-error" role="alert">{{ movementsError() }}</p>
+    } @else {
+      <ul class="moves" data-testid="detail-movements">
+        @for (move of movements(); track move.id) {
+          <li class="move" data-testid="detail-movement">
+            <div class="move-text">
+              <strong data-testid="movement-type">{{ movementLabels[move.type] }}</strong>
+              <small>
+                {{ formatDateTime(move.createdAt) }}@if (move.userName) { · {{ move.userName }}}@if (move.note) { · {{ move.note }}}
+              </small>
+            </div>
+            <span class="qty" [class.out]="move.quantity < 0" data-testid="movement-qty">{{ signed(move.quantity) }}</span>
+          </li>
+        } @empty {
+          <li class="empty">Aún no hay movimientos de este producto.</li>
+        }
+      </ul>
+    }
+
+    <div class="modal-actions">
+      <button type="button" class="btn" (click)="closed.emit()">Cerrar</button>
+    </div>
+  </div>
+</div>

@@ -10,8 +10,9 @@ import { LotOutForm, NOTE_REQUIRED, quantityOverAvailable } from './lot-out-form
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const PRODUCTS: StockProductOption[] = [
-  { id: 3, name: 'Copa de Malbec', seasonName: null, available: 12 },
-  { id: 9, name: 'Vino caliente', seasonName: 'Navidad', available: 4 },
+  { id: 3, name: 'Copa de Malbec', seasonName: null, available: 12, active: true },
+  { id: 5, name: 'Sangría', seasonName: null, available: 6, active: false },
+  { id: 9, name: 'Vino caliente', seasonName: 'Navidad', available: 4, active: true },
 ];
 
 const RESULT: OutputResult = {
@@ -82,6 +83,11 @@ describe('LotOutForm', () => {
   function errorText(field: string): string {
     return root.querySelector(`[data-testid="error-${field}"]`)?.textContent?.trim() ?? '';
   }
+
+  it('HU-04 the product select lists only active products, sorted by name', () => {
+    const options = Array.from(root.querySelectorAll<HTMLOptionElement>('#lo-product option')).map((o) => o.textContent?.trim());
+    expect(options).toEqual(['Elige un producto', 'Copa de Malbec', 'Vino caliente']);
+  });
 
   it('lists the 4 output types with their Spanish labels', () => {
     const labels = Array.from(root.querySelectorAll<HTMLOptionElement>('#lo-type option')).map((o) => o.textContent?.trim());

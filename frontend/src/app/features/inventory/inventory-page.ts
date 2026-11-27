@@ -1,15 +1,34 @@
 import { CdkTrapFocus } from '@angular/cdk/a11y';
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { problemMessage } from '../../core/http/problem';
 import { ToastService } from '../../core/notifications/toast.service';
+import { formatIsoDate } from '../../shared/dates/business-date';
+import { DEFAULT_PAGE_SIZE, Pagination } from '../../shared/pagination/pagination';
 import { ConfirmDialog } from './confirm-dialog';
-import { Lot, OutputResult, WriteOffResult } from './inventory.model';
+import {
+  CategoryOption,
+  expiryLabel,
+  INVENTORY_STATE_FILTERS,
+  InventoryRow,
+  InventoryStateFilter,
+  InventorySummary,
+  Lot,
+  OutputResult,
+  STATE_PILLS,
+  WriteOffResult,
+} from './inventory.model';
 import { InventoryService } from './inventory.service';
+import { EXPIRY_WARN_DAYS, InventoryStats } from './inventory-stats';
+import { LotDetail } from './lot-detail';
 import { LotInForm } from './lot-in-form';
 import { LotOutForm } from './lot-out-form';
 
 export const WRITE_OFF_CONFIRM = 'Se dejarán en 0 todos los lotes vencidos. ¿Continuar?';
 export const NO_EXPIRED_LOTS = 'No hay lotes vencidos.';
+export const INVENTORY_PAGE_SIZE = DEFAULT_PAGE_SIZE;
+/** Espera de la búsqueda por texto antes de pedir la tabla (CA3). */
+export const SEARCH_DEBOUNCE_MS = 250;
+const DEFAULT_ICON = '🍽';
 
 /** Mensaje de éxito de una entrada (LCV-HU-04 CA1). */
 export function lotRegisteredMessage(lot: Lot): string {
@@ -30,15 +49,17 @@ export function writeOffMessage(result: WriteOffResult): string {
     : `Se dieron de baja ${result.lots} lote(s), ${result.units} unidad(es).`;
 }
 
+const EMPTY_SUMMARY: InventorySummary = { outOfStock: 0, lowStock: 0, expiring: 0, expiredUnits: 0, seasons: [] };
+
 type OpenDialog = 'none' | 'entry' | 'output' | 'writeOff';
 
 /**
- * "Inventario" (D32). HU-04: "Registrar entrada"; HU-05: "Registrar salida" y "Dar de baja vencidos".
- * La tabla, contadores y filtros llegan en HU-06 y se refrescan con `reload()`.
+ * "Inventario" (D32, D34). HU-04: "Registrar entrada"; HU-05: "Registrar salida" y "Dar de baja vencidos";
+ * HU-06: contadores, filtros, tabla paginada y detalle de lotes y movimientos, que se refrescan con `reload()`.
  */
 @Component({
   selector: 'app-inventory-page',
-  imports: [LotInForm, LotOutForm, ConfirmDialog, CdkTrapFocus],
+  imports: [InventoryStats, LotInForm, LotOutForm, ConfirmDialog, LotDetail, Pagination, CdkTrapFocus],
   templateUrl: './inventory-page.html',
   styleUrl: './inventory-page.scss',
   host: { '(document:keydown.escape)': 'closeForm()' },
@@ -50,15 +71,97 @@ export class InventoryPage {
   protected readonly writeOffConfirm = WRITE_OFF_CONFIRM;
   protected readonly open = signal<OpenDialog>('none');
   protected readonly writingOff = signal(false);
-  /**
-   * Se incrementa tras cada cambio de existencias. HU-06 hará que la tabla y los contadores
-   * dependan de esta señal (p. ej. como `params` de un resource) para volver a cargarse.
-   */
+  /** Se incrementa tras cada cambio de existencias; cada incremento recarga contadores y tabla. */
   readonly reloadTick = signal(0);
 
-  /** Pide a la tabla y los contadores (HU-06) que se vuelvan a cargar. */
+  protected readonly pageSize = INVENTORY_PAGE_SIZE;
+  protected readonly defaultIcon = DEFAULT_ICON;
+  protected readonly warnDays = EXPIRY_WARN_DAYS;
+  protected readonly stateFilters = INVENTORY_STATE_FILTERS;
+  protected readonly statePills = STATE_PILLS;
+  protected readonly expiryLabel = expiryLabel;
+  protected readonly formatDate = formatIsoDate;
+
+  protected readonly q = signal('');
+  protected readonly categoryId = signal<number | null>(null);
+  protected readonly state = signal<InventoryStateFilter | null>(null);
+  protected readonly season = signal<string | null>(null);
+  protected readonly page = signal(0);
+  protected readonly rows = signal<readonly InventoryRow[]>([]);
+  protected readonly totalElements = signal(0);
+  protected readonly loading = signal(false);
+  protected readonly summary = signal<InventorySummary>(EMPTY_SUMMARY);
+  protected readonly categories = signal<readonly CategoryOption[]>([]);
+  /** Producto con el detalle de lotes y movimientos abierto (CA4). */
+  protected readonly detail = signal<InventoryRow | null>(null);
+
+  /** Detalle abierto, para refrescarlo junto con la tabla. */
+  private readonly detailView = viewChild(LotDetail);
+
+  #requestId = 0;
+  #searchTimer: ReturnType<typeof setTimeout> | undefined;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#searchTimer));
+    void this.load();
+    void this.loadSummary();
+    void this.loadCategories();
+  }
+
+  /** Recarga contadores, tabla y el detalle abierto tras una entrada, salida o baja. */
   reload(): void {
     this.reloadTick.update((n) => n + 1);
+    void this.load();
+    void this.loadSummary();
+    this.detailView()?.refresh();
+  }
+
+  /** CA1: un contador aplica su filtro de estado y vuelve a la primera página. */
+  protected applyStat(filter: InventoryStateFilter): void {
+    this.state.set(filter);
+    this.page.set(0);
+    void this.load();
+  }
+
+  /** CA3: búsqueda con espera de {@link SEARCH_DEBOUNCE_MS} ms para no pedir en cada tecla. */
+  protected onSearch(value: string): void {
+    this.q.set(value);
+    clearTimeout(this.#searchTimer);
+    this.#searchTimer = setTimeout(() => {
+      this.page.set(0);
+      void this.load();
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
+  protected onCategory(value: string): void {
+    this.categoryId.set(value ? Number(value) : null);
+    this.page.set(0);
+    void this.load();
+  }
+
+  protected onState(value: string): void {
+    this.state.set((value || null) as InventoryStateFilter | null);
+    this.page.set(0);
+    void this.load();
+  }
+
+  protected onSeason(value: string): void {
+    this.season.set(value || null);
+    this.page.set(0);
+    void this.load();
+  }
+
+  protected onPage(page: number): void {
+    this.page.set(page);
+    void this.load();
+  }
+
+  protected openDetail(row: InventoryRow): void {
+    this.detail.set(row);
+  }
+
+  protected closeDetail(): void {
+    this.detail.set(null);
   }
 
   protected openEntry(): void {
@@ -73,10 +176,15 @@ export class InventoryPage {
     this.open.set('writeOff');
   }
 
-  /** Cierra el formulario abierto (la confirmación maneja su propio Escape). */
+  /**
+   * Escape: cierra el formulario abierto o, si no hay ninguno, el detalle.
+   * La confirmación maneja su propio Escape.
+   */
   protected closeForm(): void {
     if (this.open() === 'entry' || this.open() === 'output') {
       this.open.set('none');
+    } else if (this.open() === 'none') {
+      this.detail.set(null);
     }
   }
 
@@ -112,6 +220,67 @@ export class InventoryPage {
       this.#toast.error(problemMessage(e));
     } finally {
       this.writingOff.set(false);
+    }
+  }
+
+  protected async load(): Promise<void> {
+    const requestId = ++this.#requestId;
+    this.loading.set(true);
+    try {
+      const result = await this.#inventory.list({
+        q: this.q(),
+        categoryId: this.categoryId(),
+        state: this.state(),
+        season: this.season(),
+        page: this.page(),
+        size: INVENTORY_PAGE_SIZE,
+      });
+      if (requestId !== this.#requestId) {
+        return;
+      }
+      // La página quedó fuera de rango (p. ej. una baja encogió la lista): ir a la última válida.
+      const lastPage = Math.max(0, Math.ceil(result.totalElements / INVENTORY_PAGE_SIZE) - 1);
+      if (result.content.length === 0 && result.totalElements > 0 && this.page() > lastPage) {
+        this.page.set(lastPage);
+        void this.load();
+        return;
+      }
+      this.rows.set(result.content);
+      this.totalElements.set(result.totalElements);
+      this.#syncDetail(result.content);
+    } catch (e) {
+      if (requestId === this.#requestId) {
+        this.#toast.error(problemMessage(e));
+      }
+    } finally {
+      if (requestId === this.#requestId) {
+        this.loading.set(false);
+      }
+    }
+  }
+
+  /** Si el producto del detalle abierto vino en la página recargada, el detalle usa su fila nueva. */
+  #syncDetail(rows: readonly InventoryRow[]): void {
+    const open = this.detail();
+    const fresh = open && rows.find((r) => r.productId === open.productId);
+    if (fresh) {
+      this.detail.set(fresh);
+    }
+  }
+
+  protected async loadSummary(): Promise<void> {
+    try {
+      this.summary.set(await this.#inventory.summary());
+    } catch {
+      // La tabla ya informa el error de carga; los contadores conservan el último valor conocido.
+    }
+  }
+
+  protected async loadCategories(): Promise<void> {
+    try {
+      this.categories.set(await this.#inventory.categories());
+    } catch {
+      // Sin categorías el filtro queda en "Todas las categorías" y la pantalla sigue siendo usable.
     }
   }
 }

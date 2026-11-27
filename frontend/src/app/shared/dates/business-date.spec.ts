@@ -1,4 +1,4 @@
-import { businessToday, formatIsoDate } from './business-date';
+import { businessToday, formatBusinessDate, formatBusinessDateTime, formatIsoDate } from './business-date';
 
 describe('businessToday', () => {
   it('uses the America/Bogota calendar day, not UTC', () => {
@@ -13,5 +13,15 @@ describe('formatIsoDate', () => {
     expect(formatIsoDate('2026-12-31')).toBe('31/12/2026');
     expect(formatIsoDate(null)).toBe('');
     expect(formatIsoDate('31/12/2026')).toBe('');
+  });
+});
+
+describe('formatBusinessDateTime / formatBusinessDate', () => {
+  it('shows instants as Bogotá date and 24 h time, and ignores invalid input', () => {
+    // 2026-03-01 03:05 UTC = 2026-02-28 22:05 en Bogotá.
+    expect(formatBusinessDateTime('2026-03-01T03:05:00Z')).toBe('28/02/2026 22:05');
+    expect(formatBusinessDate('2026-03-01T03:05:00Z')).toBe('28/02/2026');
+    expect(formatBusinessDateTime(null)).toBe('');
+    expect(formatBusinessDate('no-date')).toBe('');
   });
 });

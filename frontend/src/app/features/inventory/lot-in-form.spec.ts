@@ -15,8 +15,9 @@ function dayFromToday(days: number): string {
 }
 
 const PRODUCTS: ProductOption[] = [
-  { id: 3, name: 'Copa de Malbec', seasonName: null },
-  { id: 9, name: 'Vino caliente', seasonName: 'Navidad' },
+  { id: 3, name: 'Copa de Malbec', seasonName: null, active: true },
+  { id: 5, name: 'Sangría', seasonName: null, active: false },
+  { id: 9, name: 'Vino caliente', seasonName: 'Navidad', active: true },
 ];
 
 const CREATED: Lot = {
@@ -82,7 +83,7 @@ describe('LotInForm', () => {
 
   const seasonInput = () => root.querySelector<HTMLInputElement>('#li-season')!;
 
-  it('lists the products in the select', () => {
+  it('HU-04 the product select lists only active products, sorted by name', () => {
     const options = Array.from(root.querySelectorAll<HTMLOptionElement>('#li-product option')).map((o) => o.textContent?.trim());
     expect(options).toEqual(['Elige un producto', 'Copa de Malbec', 'Vino caliente']);
   });

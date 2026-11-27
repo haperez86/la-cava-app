@@ -13,7 +13,130 @@
   </div>
 </div>
 
-<div class="card empty" data-testid="inventory-empty">Registra entradas de mercancía por lote.</div>
+<app-inventory-stats
+  [summary]="summary()"
+  [activeFilter]="state()"
+  [writingOff]="writingOff()"
+  (filter)="applyStat($event)"
+  (writeOff)="askWriteOff()"
+/>
+
+<div class="toolbar">
+  <div class="field">
+    <label class="sr-only" for="inv-search">Buscar producto</label>
+    <input
+      id="inv-search"
+      type="search"
+      placeholder="Buscar producto…"
+      autocomplete="off"
+      [value]="q()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+  <div class="field">
+    <label class="sr-only" for="inv-category">Categoría</label>
+    <select id="inv-category" (change)="onCategory($any($event.target).value)">
+      <option value="">Todas las categorías</option>
+      @for (category of categories(); track category.id) {
+        <option [value]="category.id" [selected]="category.id === categoryId()">{{ category.name }}</option>
+      }
+    </select>
+  </div>
+  <div class="field">
+    <label class="sr-only" for="inv-state">Estado</label>
+    <select id="inv-state" (change)="onState($any($event.target).value)">
+      @for (option of stateFilters; track option.label) {
+        <option [value]="option.value ?? ''" [selected]="option.value === state()">{{ option.label }}</option>
+      }
+    </select>
+  </div>
+  <div class="field">
+    <label class="sr-only" for="inv-season">Temporada</label>
+    <select id="inv-season" (change)="onSeason($any($event.target).value)">
+      <option value="">Todas las temporadas</option>
+      @for (name of summary().seasons; track name) {
+        <option [value]="name" [selected]="name === season()">{{ name }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+<div class="table-wrap" [attr.aria-busy]="loading()">
+  <table data-testid="inventory-table">
+    <thead>
+      <tr>
+        <th scope="col">Producto</th>
+        <th scope="col">Temporada</th>
+        <th scope="col">Vigente</th>
+        <th scope="col">Mínimo</th>
+        <th scope="col">Próximo vencimiento</th>
+        <th scope="col">Vencidas</th>
+        <th scope="col">Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.productId) {
+        <tr class="row" data-testid="inventory-row" (click)="openDetail(row)">
+          <td class="product-cell">
+            <button type="button" class="product-link" [attr.aria-label]="'Ver lotes de ' + row.name">
+              <span class="product-icon" aria-hidden="true">{{ row.icon || defaultIcon }}</span>
+              <span class="product-text">
+                <strong data-testid="row-name">{{ row.name }}</strong>
+                <small>{{ row.categoryName }}</small>
+              </span>
+            </button>
+          </td>
+          <td data-label="Temporada">
+            @if (row.seasonName) {
+              <span>{{ row.seasonName }}</span>
+              @if (row.seasonUntil) {
+                <small class="sub">hasta {{ formatDate(row.seasonUntil) }}</small>
+              }
+            } @else {
+              —
+            }
+          </td>
+          <td data-label="Vigente"><strong data-testid="row-available">{{ row.available }}</strong></td>
+          <td data-label="Mínimo">{{ row.minStock }}</td>
+          <td data-label="Próximo vencimiento">
+            @if (row.nextExpiresOn) {
+              <span>{{ formatDate(row.nextExpiresOn) }}</span>
+            }
+            <small
+              data-testid="row-expiry"
+              [class.txt-amber]="row.daysToExpiry !== null && row.daysToExpiry <= warnDays"
+              [class.sub]="row.daysToExpiry === null || row.daysToExpiry > warnDays"
+              >{{ expiryLabel(row.daysToExpiry) }}</small
+            >
+          </td>
+          <td data-label="Vencidas">
+            <span [class.txt-red]="row.expiredUnits > 0" data-testid="row-expired">{{ row.expiredUnits }}</span>
+          </td>
+          <td data-label="Estado">
+            <span class="pills">
+              <span class="pill {{ statePills[row.state].tone }}" data-testid="row-state">{{ statePills[row.state].label }}</span>
+              @if (row.hasExpired) {
+                <span class="pill danger" data-testid="row-has-expired">Con vencidos</span>
+              }
+            </span>
+          </td>
+        </tr>
+      } @empty {
+        @if (!loading()) {
+          <tr class="empty-row">
+            <td colspan="7" class="empty" data-testid="inventory-empty">No hay productos con ese filtro.</td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
+
+<app-pagination [page]="page()" [size]="pageSize" [totalElements]="totalElements()" (pageChange)="onPage($event)" />
+
+@if (detail(); as row) {
+  <app-lot-detail [row]="row" (closed)="closeDetail()" />
+}
 
 @switch (open()) {
   @case ('entry') {

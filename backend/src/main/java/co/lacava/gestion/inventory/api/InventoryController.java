@@ -1,9 +1,13 @@
 package co.lacava.gestion.inventory.api;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.validation.Valid;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,10 +17,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.lacava.gestion.inventory.application.InventoryRow;
 import co.lacava.gestion.inventory.application.InventoryService;
+import co.lacava.gestion.inventory.application.InventorySummary;
+import co.lacava.gestion.inventory.application.InventoryViewService;
+import co.lacava.gestion.inventory.application.MovementView;
+import co.lacava.gestion.shared.api.PageResponse;
 import co.lacava.gestion.shared.security.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,9 +37,40 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 class InventoryController {
 
     private final InventoryService inventory;
+    private final InventoryViewService view;
 
-    InventoryController(InventoryService inventory) {
+    InventoryController(InventoryService inventory, InventoryViewService view) {
         this.inventory = inventory;
+        this.view = view;
+    }
+
+    @GetMapping("/inventory")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Productos activos con vigente, mínimo, próximo vencimiento, unidades vencidas y estado; "
+            + "filtros q, categoryId, season y state (AVAILABLE, LOW, OUT, EXPIRING, HAS_EXPIRED, OUT_OF_SEASON); "
+            + "sort por name, available o minStock")
+    PageResponse<InventoryRow> list(@RequestParam(required = false) String q,
+            @RequestParam(required = false) Long categoryId, @RequestParam(required = false) String state,
+            @RequestParam(required = false) String season, @PageableDefault(size = 20) Pageable pageable) {
+        return PageResponse.of(view.search(q, categoryId, state, season, pageable), row -> row);
+    }
+
+    @GetMapping("/inventory/summary")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Contadores: agotados, stock bajo, por vencer y unidades vencidas; temporadas para el filtro")
+    InventorySummary summary() {
+        return view.summary();
+    }
+
+    @GetMapping("/inventory/movements")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Movimientos del más reciente al más antiguo; filtros productId y fechas from/to "
+            + "(YYYY-MM-DD, inclusivas, hora de Bogotá)")
+    PageResponse<MovementView> movements(@RequestParam(required = false) Long productId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return PageResponse.of(view.movements(productId, from, to, pageable), movement -> movement);
     }
 
     @PostMapping("/inventory/lots")

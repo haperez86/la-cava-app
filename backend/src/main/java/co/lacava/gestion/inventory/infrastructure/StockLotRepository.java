@@ -45,9 +45,44 @@ public interface StockLotRepository extends JpaRepository<StockLot, Long> {
             """)
     List<StockLot> lockExpired(@Param("today") LocalDate today);
 
+    /**
+     * Agregados por producto para la vista de inventario (D34), en una consulta: existencia vigente, vencimiento del
+     * próximo lote vigente con cantidad y unidades vencidas ({@code expiresOn < today}).
+     */
+    @Query("""
+            select l.productId as productId,
+                   sum(case when l.expiresOn >= :today then l.quantityAvailable else 0 end) as available,
+                   min(case when l.expiresOn >= :today then l.expiresOn end) as nextExpiresOn,
+                   sum(case when l.expiresOn < :today then l.quantityAvailable else 0 end) as expiredUnits
+            from StockLot l
+            where l.productId in :productIds and l.quantityAvailable > 0
+            group by l.productId
+            """)
+    List<ProductStock> stockByProduct(@Param("productIds") Collection<Long> productIds,
+            @Param("today") LocalDate today);
+
+    /** Unidades vencidas ({@code expiresOn < today}) que aún tienen los lotes de productos activos. */
+    @Query("""
+            select coalesce(sum(l.quantityAvailable), 0)
+            from StockLot l join Product p on p.id = l.productId
+            where p.active = true and l.expiresOn < :today and l.quantityAvailable > 0
+            """)
+    long sumExpiredOfActiveProducts(@Param("today") LocalDate today);
+
     boolean existsByProductId(Long productId);
 
     List<StockLot> findByProductIdOrderByExpiresOnAscIdAsc(Long productId);
+
+    interface ProductStock {
+
+        Long getProductId();
+
+        Long getAvailable();
+
+        LocalDate getNextExpiresOn();
+
+        Long getExpiredUnits();
+    }
 
     interface ProductAvailability {
 
