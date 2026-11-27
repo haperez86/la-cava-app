@@ -8,28 +8,34 @@
 </div>
 
 <div class="toolbar">
-  <label class="sr-only" for="menu-search">Buscar producto</label>
-  <input
-    id="menu-search"
-    type="search"
-    placeholder="Buscar producto…"
-    autocomplete="off"
-    [value]="q()"
-    (input)="onSearch($any($event.target).value)"
-  />
-  <label class="sr-only" for="menu-category">Categoría</label>
-  <select id="menu-category" (change)="onCategory($any($event.target).value)">
-    <option value="">Todas las categorías</option>
-    @for (category of categories(); track category.id) {
-      <option [value]="category.id" [selected]="category.id === categoryId()">{{ category.name }}</option>
-    }
-  </select>
-  <label class="sr-only" for="menu-state">Estado</label>
-  <select id="menu-state" data-testid="state-filter" (change)="onState($any($event.target).value)">
-    @for (option of stateFilters; track option.label) {
-      <option [value]="option.value ?? ''" [selected]="option.value === state()">{{ option.label }}</option>
-    }
-  </select>
+  <div class="field">
+    <label class="sr-only" for="menu-search">Buscar producto</label>
+    <input
+      id="menu-search"
+      type="search"
+      placeholder="Buscar producto…"
+      autocomplete="off"
+      [value]="q()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+  <div class="field">
+    <label class="sr-only" for="menu-category">Categoría</label>
+    <select id="menu-category" (change)="onCategory($any($event.target).value)">
+      <option value="">Todas las categorías</option>
+      @for (category of categories(); track category.id) {
+        <option [value]="category.id" [selected]="category.id === categoryId()">{{ category.name }}</option>
+      }
+    </select>
+  </div>
+  <div class="field">
+    <label class="sr-only" for="menu-state">Estado</label>
+    <select id="menu-state" data-testid="state-filter" (change)="onState($any($event.target).value)">
+      @for (option of stateFilters; track option.label) {
+        <option [value]="option.value ?? ''" [selected]="option.value === state()">{{ option.label }}</option>
+      }
+    </select>
+  </div>
 </div>
 
 <div class="menu-grid" data-testid="product-list" [attr.aria-busy]="loading()">

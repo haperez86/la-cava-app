@@ -1,0 +1,79 @@
+@use 'breakpoints' as bp;
+
+// Campos de formulario: única definición global (skill lacava-design).
+// Los componentes no redefinen .field, .field-error ni .form-error.
+.field {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  margin: 12px 0;
+  min-width: 0;
+
+  label {
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--label);
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    border-radius: 8px;
+    padding: 10px 11px;
+    color: var(--ink);
+    // 16px en ≤700px para que iOS no haga zoom al enfocar.
+    font-size: 16px;
+
+    &:focus,
+    &:focus-visible {
+      border-color: var(--gold);
+      outline: 2px solid var(--gold);
+      outline-offset: 0;
+    }
+
+    &[aria-invalid='true'] {
+      border-color: var(--danger);
+    }
+  }
+
+  textarea {
+    min-height: 88px;
+    resize: vertical;
+  }
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 12px;
+  margin: 0;
+}
+
+.form-error {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-radius: var(--radius-btn);
+  padding: 10px 12px;
+  font-size: 14px;
+  margin: 0 0 14px;
+}
+
+@media (max-width: bp.$bp-mobile-max) {
+  .field {
+    margin: 15px 0;
+  }
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .field {
+    input,
+    select,
+    textarea {
+      font-size: 15px;
+    }
+  }
+}
