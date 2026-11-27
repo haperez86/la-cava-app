@@ -5,11 +5,13 @@ import { filter, map } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { ROLE_LABELS } from '../auth/role';
 import { HealthService } from '../http/health.service';
+import { BrandLogo } from '../../shared/brand/brand-logo';
+import { Icon } from '../../shared/icons/icon';
 import { NavItem, navItemsFor, navLabel } from './nav-items';
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, BrandLogo],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
 })

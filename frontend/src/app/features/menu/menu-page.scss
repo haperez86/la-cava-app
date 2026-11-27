@@ -1,0 +1,265 @@
+@use 'styles/breakpoints' as bp;
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-bottom: 16px;
+
+  .field {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.product {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  &.off {
+    opacity: 0.72;
+
+    .product-art {
+      filter: grayscale(0.8);
+    }
+  }
+}
+
+.product-art {
+  height: 86px;
+  background: linear-gradient(135deg, var(--green2), var(--art-end));
+  display: grid;
+  place-items: center;
+  font-size: 38px;
+}
+
+.product-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-wrap: anywhere;
+
+  h4 {
+    margin: 0 0 4px;
+    font-size: 13px;
+  }
+
+  p {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .season {
+    color: var(--season);
+    font-weight: 600;
+  }
+}
+
+.product-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.money {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.product-body .stock {
+  margin: 8px 0 0;
+}
+
+.actions {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+
+  .btn {
+    width: 100%;
+    min-height: 40px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.modal-back {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal {
+  background: var(--surface);
+  width: 100%;
+  max-height: 92vh;
+  overflow: auto;
+  overflow-x: clip;
+  border-radius: 17px 17px 0 0;
+  padding: 19px 16px calc(18px + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-modal);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+
+  h3 {
+    font-size: 21px;
+    margin: 0;
+  }
+}
+
+.close {
+  border: 0;
+  background: var(--close-bg);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+@media (max-width: bp.$bp-xs-max) {
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .page-head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    h2 {
+      font-size: 29px;
+    }
+
+    .btn {
+      width: auto;
+      flex-shrink: 0;
+    }
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+
+    .field {
+      grid-column: auto;
+    }
+  }
+
+  .menu-grid {
+    gap: 16px;
+  }
+
+  .product-art {
+    height: 112px;
+    font-size: 42px;
+  }
+
+  .product-body {
+    padding: 13px;
+
+    h4 {
+      font-size: 14px;
+    }
+  }
+
+  .actions {
+    grid-template-columns: auto 1fr;
+  }
+
+  .modal-back {
+    align-items: center;
+    padding: 18px;
+  }
+
+  .modal {
+    width: min(620px, 100%);
+    max-height: 90vh;
+    border-radius: 16px;
+    padding: 22px;
+  }
+}
+
+@media (min-width: bp.$bp-desktop-min) {
+  // Menú 3–4 columnas, máximo 4: el mínimo de cada tarjeta nunca baja de un cuarto del ancho
+  // (menos los 3 huecos), así auto-fill no pasa de 4 y las tarjetas crecen en pantallas anchas.
+  .menu-grid {
+    --menu-gap: 16px;
+
+    gap: var(--menu-gap);
+    grid-template-columns: repeat(auto-fill, minmax(max(280px, calc((100% - 3 * var(--menu-gap)) / 4)), 1fr));
+  }
+
+  // Filtros sobre la misma rejilla de 4 pistas que las tarjetas: buscador = 2, cada select = 1.
+  .toolbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+
+    .field:first-child {
+      grid-column: span 2;
+    }
+  }
+}

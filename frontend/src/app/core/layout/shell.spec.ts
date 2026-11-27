@@ -32,6 +32,8 @@ describe('Shell', () => {
               { path: 'dashboard', component: Home },
               { path: 'mesas', component: Blank },
               { path: 'preparacion', component: Blank },
+              { path: 'menu', component: Blank },
+              { path: 'inventario', component: Blank },
             ],
           },
           { path: 'login', component: Blank },
@@ -65,9 +67,19 @@ describe('Shell', () => {
   it('LCV-HU-00 CA2 renders the brand and the API status after a successful /health call', async () => {
     const harness = await open('ADMIN', '/dashboard');
     const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
-    expect(root.querySelector('.brand h1')?.textContent).toContain('LA CAVA');
+    expect(root.querySelector('.brand app-brand-logo')).not.toBeNull();
     expect(root.querySelector('[data-testid="api-status"]')?.textContent).toContain('API conectada');
     expect(root.querySelector('[data-testid="home-health"]')?.textContent).toContain('operativas');
+  });
+
+  it('the sidebar shows the La Cava logo as an accessible inline SVG instead of the "C" mark', async () => {
+    const harness = await open('ADMIN', '/dashboard');
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    const svg = root.querySelector('.sidebar app-brand-logo svg[role="img"]');
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute('aria-label')).toBe('La Cava, copas y tablas');
+    expect(svg?.querySelector('circle')).not.toBeNull();
+    expect(root.querySelector('.brand-mark')).toBeNull();
   });
 
   it('LCV-HU-00 CA2 shows "API sin conexión" when /health fails', async () => {
@@ -79,7 +91,7 @@ describe('Shell', () => {
   });
 
   it.each<[Role, string, string[]]>([
-    ['ADMIN', '/dashboard', ['Dashboard', 'Mesas', 'Comandas']],
+    ['ADMIN', '/dashboard', ['Dashboard', 'Mesas', 'Comandas', 'Menú', 'Inventario']],
     ['CASHIER', '/dashboard', ['Dashboard', 'Mesas']],
     ['WAITER', '/mesas', ['Mis mesas']],
     ['KITCHEN', '/preparacion', ['Comandas']],
@@ -88,6 +100,49 @@ describe('Shell', () => {
     const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
     expect(labels(root, '.nav a')).toEqual(expected);
     expect(labels(root, '.mobile-nav a')).toEqual(expected);
+  });
+
+  it('every navigation item (sidebar and mobile bar) renders an inline SVG icon instead of a Unicode glyph', async () => {
+    const harness = await open('ADMIN', '/dashboard');
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    for (const selector of ['.nav a', '.mobile-nav a']) {
+      const links = Array.from(root.querySelectorAll(selector));
+      expect(links.length).toBe(5);
+      for (const a of links) {
+        expect(a.querySelector('.ico svg path')).not.toBeNull();
+        expect(a.querySelector('.ico')?.textContent?.trim()).toBe('');
+      }
+    }
+  });
+
+  it('LCV-HU-02 the Menú option leads ADMIN to /menu', async () => {
+    const harness = await open('ADMIN', '/menu');
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    const link = Array.from(root.querySelectorAll<HTMLAnchorElement>('.nav a')).find((a) => a.textContent?.includes('Menú'));
+    expect(link?.getAttribute('href')).toBe('/menu');
+    expect(root.querySelector('.crumb')?.textContent?.trim()).toBe('Menú');
+  });
+
+  it('LCV-HU-04 the Inventario option leads ADMIN to /inventario with its own SVG icon', async () => {
+    const harness = await open('ADMIN', '/inventario');
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    const link = Array.from(root.querySelectorAll<HTMLAnchorElement>('.nav a')).find((a) =>
+      a.textContent?.includes('Inventario'),
+    );
+    expect(link?.getAttribute('href')).toBe('/inventario');
+    expect(link?.querySelector('.ico svg path')).not.toBeNull();
+    expect(root.querySelector('.crumb')?.textContent?.trim()).toBe('Inventario');
+  });
+
+  it.each<[Role, string]>([
+    ['CASHIER', '/dashboard'],
+    ['WAITER', '/mesas'],
+    ['KITCHEN', '/preparacion'],
+  ])('LCV-HU-04 %s does not see the Inventario option', async (role, url) => {
+    const harness = await open(role, url);
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    expect(labels(root, '.nav a')).not.toContain('Inventario');
+    expect(labels(root, '.mobile-nav a')).not.toContain('Inventario');
   });
 
   it('the top bar title uses the same per-role label as the menu (WAITER sees "Mis mesas")', async () => {

@@ -2,13 +2,20 @@ package co.lacava.gestion.shared.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +23,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import co.lacava.gestion.inventory.application.InventoryService;
+import co.lacava.gestion.menu.application.ProductData;
+import co.lacava.gestion.menu.application.ProductService;
+import co.lacava.gestion.menu.application.ProductState;
+import co.lacava.gestion.menu.application.ProductView;
 import co.lacava.gestion.users.application.UserService;
+import co.lacava.gestion.users.domain.AppUser;
 
 /** P2: los datos de ejemplo solo se siembran contra una base en localhost. */
 class LocalDataSeederTest {
@@ -51,24 +67,64 @@ class LocalDataSeederTest {
         assertThat(LocalDataSeeder.isLocalDatabase("")).isFalse();
     }
 
+    private final UserService users = mock(UserService.class);
+    private final ProductService products = mock(ProductService.class);
+    private final InventoryService inventory = mock(InventoryService.class);
+    private final PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
+
     @Test
-    @DisplayName("Con una base remota no siembra usuarios")
+    @DisplayName("Con una base remota no siembra usuarios ni productos")
     void doesNotSeedRemoteDatabase() {
-        UserService users = mock(UserService.class);
+        seeder("jdbc:postgresql://db.example.com:5432/la_cava").run(null);
 
-        new LocalDataSeeder(users, "jdbc:postgresql://db.example.com:5432/la_cava").run(null);
-
-        verifyNoInteractions(users);
+        verifyNoInteractions(users, products, inventory);
     }
 
     @Test
-    @DisplayName("Con una base en localhost siembra los usuarios de la demo")
+    @DisplayName("Con una base en localhost siembra los usuarios y los 11 productos de la demo con sus lotes")
     void seedsLocalDatabase() {
-        UserService users = mock(UserService.class);
+        AppUser admin = mock(AppUser.class);
+        when(admin.getId()).thenReturn(1L);
         when(users.findByUsername(anyString())).thenReturn(Optional.empty());
+        when(users.findByUsername("admin")).thenReturn(Optional.empty(), Optional.of(admin));
+        when(products.findByName(anyString())).thenReturn(Optional.empty());
+        when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
+        when(products.create(any(), any(), anyLong())).thenAnswer(inv -> view(((ProductData) inv.getArgument(0)).name()));
 
-        new LocalDataSeeder(users, "jdbc:postgresql://localhost:5432/la_cava").run(null);
+        seeder("jdbc:postgresql://localhost:5432/la_cava").run(null);
 
+        // Cada producto con sus lotes se siembra en su propia transacción.
+        verify(txManager, times(11)).getTransaction(any());
         verify(users, times(5)).create(anyString(), anyString(), anyString(), any());
+        verify(products, times(11)).create(any(), any(), anyLong());
+        // 10 productos con un lote, "Postre de la casa" con dos (uno vencido) y "Tabla vegetariana" sin lotes.
+        verify(inventory, times(11)).loadSampleLot(anyLong(), anyInt(), any(), any(), any(), anyLong());
+        verify(inventory).loadSampleLot(anyLong(), anyInt(), eq(LocalDate.of(2026, 11, 26)), any(), any(), anyLong());
+    }
+
+    @Test
+    @DisplayName("Es idempotente: un producto que ya existe no se crea de nuevo ni recibe lotes")
+    void doesNotDuplicateProducts() {
+        AppUser admin = mock(AppUser.class);
+        when(admin.getId()).thenReturn(1L);
+        when(users.findByUsername(anyString())).thenReturn(Optional.of(admin));
+        when(products.findByName(anyString())).thenReturn(Optional.of(view("existente")));
+        when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
+
+        seeder("jdbc:postgresql://localhost:5432/la_cava").run(null);
+
+        verify(users, never()).create(anyString(), anyString(), anyString(), any());
+        verify(products, never()).create(any(), any(), anyLong());
+        verify(inventory, never()).loadSampleLot(anyLong(), anyInt(), any(), any(), any(), anyLong());
+    }
+
+    private LocalDataSeeder seeder(String url) {
+        return new LocalDataSeeder(users, products, inventory, ZoneId.of("America/Bogota"),
+                new TransactionTemplate(txManager), url);
+    }
+
+    private static ProductView view(String name) {
+        return new ProductView(7L, name, 1L, "Tablas", BigDecimal.TEN, null, null, 0, true, null, null, 0,
+                ProductState.OUT_OF_STOCK, false, "Agotado");
     }
 }

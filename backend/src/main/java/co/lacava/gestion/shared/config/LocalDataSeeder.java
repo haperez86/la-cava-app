@@ -1,6 +1,10 @@
 package co.lacava.gestion.shared.config;
 
+import java.math.BigDecimal;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -11,12 +15,20 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import co.lacava.gestion.inventory.application.InventoryService;
+import co.lacava.gestion.menu.application.ProductData;
+import co.lacava.gestion.menu.application.ProductService;
+import co.lacava.gestion.menu.application.ProductView;
 import co.lacava.gestion.users.application.UserService;
+import co.lacava.gestion.users.domain.AppUser;
 import co.lacava.gestion.users.domain.Role;
 
 /**
- * Datos de ejemplo del perfil {@code local}: usuarios de la demo con contraseña {@code <usuario>123}. Idempotente.
+ * Datos de ejemplo del perfil {@code local}: usuarios de la demo con contraseña {@code <usuario>123} y productos de la
+ * carta con lotes de fechas relativas al {@code Clock} (incluido uno vencido). Idempotente: un producto que ya existe
+ * (por nombre) no se vuelve a crear ni recibe lotes.
  * Solo siembra si la base de datos está en esta máquina (P2): las claves son predecibles.
  */
 @Component
@@ -28,10 +40,19 @@ class LocalDataSeeder implements ApplicationRunner {
     private static final String POSTGRES_PREFIX = "jdbc:postgresql:";
 
     private final UserService users;
+    private final ProductService products;
+    private final InventoryService inventory;
+    private final ZoneId businessZone;
+    private final TransactionTemplate transaction;
     private final String datasourceUrl;
 
-    LocalDataSeeder(UserService users, @Value("${spring.datasource.url:}") String datasourceUrl) {
+    LocalDataSeeder(UserService users, ProductService products, InventoryService inventory, ZoneId businessZone,
+            TransactionTemplate transaction, @Value("${spring.datasource.url:}") String datasourceUrl) {
         this.users = users;
+        this.products = products;
+        this.inventory = inventory;
+        this.businessZone = businessZone;
+        this.transaction = transaction;
         this.datasourceUrl = datasourceUrl;
     }
 
@@ -47,6 +68,53 @@ class LocalDataSeeder implements ApplicationRunner {
         seedUser("laura", "Laura Gómez", Role.WAITER);
         seedUser("andres", "Andrés Rojas", Role.WAITER);
         seedUser("jorge", "Jorge Ruiz", Role.KITCHEN);
+        seedProducts();
+    }
+
+    /** Productos de la demo (demo/index.html y docs/02, "Datos de ejemplo"). Lotes: {cantidad, días desde hoy}. */
+    private void seedProducts() {
+        long adminId = users.findByUsername("admin").map(AppUser::getId).orElseThrow();
+        LocalDate today = inventory.today();
+        seedProduct("Tabla La Cava", "Tablas", 58000, "🧀", "Selección de quesos y charcutería", 4, null, null,
+                List.of(new int[] { 9, 3 }), adminId);
+        seedProduct("Tabla para dos", "Tablas", 42000, "🥖", "Para compartir", 4, null, null,
+                List.of(new int[] { 7, 4 }), adminId);
+        seedProduct("Copa de vino tinto", "Vinos", 18000, "🍷", "Copa de la casa", 10, null, null,
+                List.of(new int[] { 36, 240 }), adminId);
+        seedProduct("Vino botella", "Vinos", 95000, "🍾", "Selección de la casa", 3, null, null,
+                List.of(new int[] { 8, 400 }), adminId);
+        seedProduct("Cóctel de frutos rojos", "Cócteles", 26000, "🍹", "Preparación de la casa", 5, null, null,
+                List.of(new int[] { 14, 2 }), adminId);
+        seedProduct("Limonada natural", "Bebidas", 12000, "🍋", "Natural y refrescante", 5, null, null,
+                List.of(new int[] { 12, 1 }), adminId);
+        seedProduct("Agua", "Bebidas", 6000, "💧", "Agua personal", 10, null, null,
+                List.of(new int[] { 30, 180 }), adminId);
+        seedProduct("Postre de la casa", "Postres", 16000, "🍰", "Porción individual", 4, null, null,
+                List.of(new int[] { 2, -1 }, new int[] { 3, 1 }), adminId);
+        seedProduct("Tabla vegetariana", "Tablas", 45000, "🥗", "Quesos, frutas y frutos secos", 3, null, null,
+                List.of(), adminId);
+        seedProduct("Vino caliente navideño", "Vinos", 22000, "🎄", "Especial de temporada", 5, "Navidad",
+                LocalDate.of(today.getYear(), 12, 31), List.of(new int[] { 15, 20 }), adminId);
+        seedProduct("Sangría de verano", "Cócteles", 24000, "🍊", "Especial de temporada", 5, "Verano",
+                today.minusDays(10), List.of(new int[] { 6, 30 }), adminId);
+    }
+
+    private void seedProduct(String name, String category, int price, String icon, String description, int minStock,
+            String seasonName, LocalDate seasonUntil, List<int[]> lots, long adminId) {
+        if (products.findByName(name).isPresent()) {
+            return;
+        }
+        // Producto y lotes en una sola transacción: si un lote falla, no queda un producto a medias que la
+        // idempotencia (por nombre) daría por sembrado.
+        transaction.executeWithoutResult(status -> {
+            ProductView product = products.create(new ProductData(name, category, BigDecimal.valueOf(price),
+                    description, icon, minStock, seasonName, seasonUntil), null, adminId);
+            LocalDate today = inventory.today();
+            for (int[] lot : lots) {
+                inventory.loadSampleLot(product.id(), lot[0], today.plusDays(lot[1]), null,
+                        today.minusDays(2).atStartOfDay(businessZone).toInstant(), adminId);
+            }
+        });
     }
 
     /** {@code true} solo si la URL JDBC apunta a {@code localhost}, {@code 127.0.0.1} o {@code ::1}. */

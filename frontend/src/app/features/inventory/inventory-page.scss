@@ -1,0 +1,277 @@
+@use 'styles/breakpoints' as bp;
+@use 'modal';
+
+@include modal.modal-shell;
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+// Móvil: botones apilados a todo el ancho.
+.head-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+// --- Filtros: 2 col en móvil con el buscador en toda la fila; 1 col ≤ 380px ---
+.toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-bottom: 16px;
+
+  .field {
+    margin: 0;
+  }
+
+  .field:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+// --- Tabla: tarjetas apiladas en móvil, tabla desde tablet (scroll solo dentro de su contenedor) ---
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  // Móvil: los encabezados se leen en cada celda (data-label).
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+tbody {
+  display: grid;
+  gap: 10px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  min-width: 0;
+
+  td {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    font-size: 13px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  td[data-label]::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .product-cell {
+    grid-column: 1 / -1;
+  }
+
+  td[data-label='Estado'] {
+    grid-column: 1 / -1;
+  }
+}
+
+.product-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+}
+
+.product-icon {
+  font-size: 24px;
+  flex: none;
+}
+
+.product-text {
+  display: grid;
+  min-width: 0;
+
+  strong {
+    font-size: 14px;
+  }
+
+  small {
+    color: var(--muted);
+    font-size: 11px;
+  }
+}
+
+.sub {
+  color: var(--muted);
+}
+
+td small {
+  font-size: 11px;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+// Variante local de pill para "Fuera de temporada".
+.pill.season {
+  background: var(--season-bg);
+  color: var(--season);
+}
+
+// Solo en el diseño de tarjetas (≤ 700px) la fila vacía se vuelve bloque; desde tablet es una fila normal.
+@media (max-width: bp.$bp-mobile-max) {
+  .empty-row,
+  .empty {
+    display: block;
+  }
+}
+
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: bp.$bp-xs-max) {
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .page-head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    h2 {
+      font-size: 29px;
+    }
+  }
+
+  .head-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex-shrink: 0;
+
+    .btn {
+      width: auto;
+    }
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+
+    .field:first-child {
+      grid-column: auto;
+    }
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  table {
+    min-width: 680px;
+  }
+
+  thead {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  tbody {
+    display: table-row-group;
+  }
+
+  .row {
+    display: table-row;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+
+    td {
+      display: table-cell;
+      vertical-align: top;
+    }
+
+    td[data-label]::before {
+      content: none;
+    }
+
+    td > small,
+    td > span + small {
+      display: block;
+    }
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 13px 15px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+  }
+
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    background: var(--bg);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}

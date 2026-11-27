@@ -23,7 +23,8 @@ class ErrorProbeController {
 
     record ProbeRequest(
             @NotBlank(message = "El nombre es obligatorio.") String name,
-            @Positive(message = "La cantidad debe ser mayor que 0.") int quantity) {
+            @Positive(message = "La cantidad debe ser mayor que 0.") int quantity,
+            java.time.LocalDate date) {
     }
 
     @PostMapping("/validation")

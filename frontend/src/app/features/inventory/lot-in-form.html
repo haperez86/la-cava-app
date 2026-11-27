@@ -1,0 +1,70 @@
+<form class="lot-in-form" (submit)="onSubmit(); $event.preventDefault()" novalidate>
+  <div class="field">
+    <label for="li-product">Producto *</label>
+    <select
+      id="li-product"
+      [formField]="lotForm.productId"
+      [attr.aria-invalid]="!!errorOf(lotForm.productId)"
+      (change)="onProductChange($any($event.target).value)"
+    >
+      <option value="">{{ loadingProducts() ? 'Cargando productos…' : 'Elige un producto' }}</option>
+      @for (product of products(); track product.id) {
+        <option [value]="product.id">{{ product.name }}</option>
+      }
+    </select>
+    @if (errorOf(lotForm.productId); as error) {
+      <p class="field-error" data-testid="error-productId">{{ error }}</p>
+    }
+  </div>
+
+  <div class="form2">
+    <div class="field">
+      <label for="li-qty">Cantidad *</label>
+      <input
+        id="li-qty"
+        type="number"
+        step="1"
+        inputmode="numeric"
+        [formField]="lotForm.quantity"
+        [attr.aria-invalid]="!!errorOf(lotForm.quantity)"
+      />
+      @if (errorOf(lotForm.quantity); as error) {
+        <p class="field-error" data-testid="error-quantity">{{ error }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="li-exp">Vence el *</label>
+      <input id="li-exp" type="date" [formField]="lotForm.expiresOn" [attr.aria-invalid]="!!errorOf(lotForm.expiresOn)" />
+      @if (errorOf(lotForm.expiresOn); as error) {
+        <p class="field-error" data-testid="error-expiresOn">{{ error }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="li-season">Temporada (opcional)</label>
+    <input
+      id="li-season"
+      placeholder="Ej. Navidad"
+      aria-describedby="li-season-help"
+      [formField]="lotForm.seasonName"
+      [attr.aria-invalid]="!!errorOf(lotForm.seasonName)"
+    />
+    <p id="li-season-help" class="hint">Por defecto, la del producto.</p>
+    @if (errorOf(lotForm.seasonName); as error) {
+      <p class="field-error" data-testid="error-seasonName">{{ error }}</p>
+    }
+  </div>
+
+  <p class="notice">
+    Cada entrada queda como un lote con su fecha de vencimiento. Al llegar la fecha, ese lote deja de contarse como
+    disponible.
+  </p>
+
+  <div class="modal-actions">
+    <button type="button" class="btn" (click)="cancelled.emit()">Cancelar</button>
+    <button type="submit" class="btn primary" data-testid="save-lot" [disabled]="submitting()">
+      {{ submitting() ? 'Guardando…' : 'Guardar entrada' }}
+    </button>
+  </div>
+</form>

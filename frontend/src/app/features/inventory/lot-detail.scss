@@ -1,0 +1,126 @@
+@use 'styles/breakpoints' as bp;
+@use 'modal';
+
+@include modal.modal-shell(720px);
+@include modal.modal-actions;
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.modal-head h3 {
+  overflow-wrap: anywhere;
+}
+
+.intro {
+  margin: 10px 0 4px;
+}
+
+h4 {
+  font: 600 16px var(--font-title);
+  margin: 18px 0 8px;
+}
+
+.lots,
+.moves {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+// Móvil: cada lote es una tarjeta con sus datos en 2 columnas.
+.lot {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.lot-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.lot-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 10px 0 0;
+
+  dt {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  dd {
+    margin: 2px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+
+.move {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.move-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  strong {
+    display: block;
+    font-size: 13px;
+  }
+
+  small {
+    color: var(--muted);
+    font-size: 12px;
+  }
+}
+
+.qty {
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ok);
+
+  &.out {
+    color: var(--red);
+  }
+}
+
+.empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+// Variante local de pill neutra (lote consumido).
+.pill.neutral {
+  background: var(--close-bg);
+  color: var(--muted);
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .lot-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

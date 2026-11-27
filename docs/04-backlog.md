@@ -26,35 +26,40 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 
 ## Épica 1 · Menú
 
-### LCV-HU-02 · Productos y categorías ⬜
+### LCV-HU-02 · Productos y categorías ✅
 - **CA1** Creo y edito productos; un nombre duplicado → error; las categorías nuevas se crean al vuelo.
 - **CA2** Temporada: si indico nombre de temporada, la fecha "disponible hasta" es obligatoria.
 - **CA3** Activo o desactivo productos (retirar o volver a la carta).
 - **CA4** Al crear puedo indicar un lote inicial (cantidad y vencimiento); si hay cantidad, el vencimiento es obligatorio y ≥ hoy.
+- **Desviaciones:** migración V3 crea también `stock_lot` y `stock_movement` (D29); validación de temporada y lote en el servicio con el mismo 400 `errors[]`; una carrera de nombres duplicados responde el 409 genérico; pantalla `/menu` con tarjetas y formulario modal (hoja inferior en móvil). Sus pendientes menores se resolvieron en HU-03.
 
-### LCV-HU-03 · Disponibilidad y filtros del menú ⬜
+### LCV-HU-03 · Disponibilidad y filtros del menú ✅
 - **CA1** `orderable` es verdadero solo si el producto está activo, en temporada y con existencia vigente > 0; si no, `blockReason` dice *Retirado de la carta*, *Fuera de temporada* o *Agotado*.
 - **CA2** Filtros por texto, categoría y estado (En la carta, Agotados, De temporada, Fuera de temporada, Inactivos).
 - **CA3** Con un `Clock` fijo: un producto cuya temporada terminó ayer aparece como *Fuera de temporada*.
+- **Desviaciones:** prioridad de estados y alcance de *De temporada* según D31 (solapa con *En la carta*); `state` sin distinguir mayúsculas y vacío = sin filtro; *De temporada* y *Fuera de temporada* solo incluyen activos; todos los bloqueados usan la pill roja de la demo; la pantalla recarga la lista tras retirar o volver a la carta. Incluye los pendientes de HU-02 (seeder con `ZoneId` y una transacción por producto, `sort` anidado → 400, 409 genérico → toast, cantidad de lote entera). Pendientes menores: código estable en el ProblemDetail del 409 de nombre (hoy el frontend compara el texto); quitar el `items.update` optimista de `menu-page.ts`.
 
 ---
 
 ## Épica 2 · Inventario por lotes
 
-### LCV-HU-04 · Entradas por lote ⬜
+### LCV-HU-04 · Entradas por lote ✅
 - **CA1** Registro un lote con cantidad > 0, vencimiento ≥ hoy y temporada opcional (por defecto la del producto); se crea el movimiento `LOT_IN`.
 - **CA2** La existencia vigente excluye los lotes vencidos.
+- **Desviaciones:** `POST /inventory/lots` responde 400 `errors[]` (antes 422) para cantidad y vencimiento; temporada vacía o nula = la del producto, así que no se puede registrar un lote sin temporada para un producto que la tiene; pantalla `/inventario` con "Registrar entrada" y estado vacío (la tabla llega en HU-06); estilos de modal y encabezado copiados de `/menu`. Pendientes menores: selector de productos limitado a 100 (el filtro de inactivos se resolvió en HU-06); prueba de vencimiento = hoy en el cliente; unificar mensajes de validación cliente/servidor y las constantes de fecha de `ProductService`/`InventoryService`; mover estilos de modal y encabezado a globales (en inventario quedaron unificados en `_modal.scss` en HU-05).
 
-### LCV-HU-05 · Consumo FEFO, salidas y baja de vencidos ⬜
+### LCV-HU-05 · Consumo FEFO, salidas y baja de vencidos ✅
 - **CA1** El consumo descuenta primero del lote que vence antes y puede repartirse entre varios lotes.
 - **CA2** Una salida manual (merma, dañado, consumo interno, ajuste) exige observación y cantidad ≤ vigente.
 - **CA3** "Dar de baja vencidos" deja en 0 los lotes vencidos y registra un movimiento por lote.
+- **Desviaciones:** observación de salida ≤ 140 caracteres (columna de V3); validación de salidas en el servicio para devolver todos los errores juntos; rechazo global de decimales en enteros y de tipos incorrectos en el cuerpo (400 por campo); el botón "Dar de baja vencidos" va en el encabezado (la tarjeta de contadores llega en HU-06) con estilo primario; estilos de modal unificados en `features/inventory/_modal.scss`. Resuelve el pendiente de decimales de HU-04. Pendientes menores: estilo `.btn.danger` para acciones destructivas.
 
-### LCV-HU-06 · Vista de inventario y alertas ⬜
+### LCV-HU-06 · Vista de inventario y alertas ✅
 - **CA1** Contadores: agotados, stock bajo, por vencer (≤ 3 días) y unidades vencidas.
 - **CA2** La tabla muestra temporada, vigente, mínimo, próximo vencimiento ("vence hoy", "vence mañana", "en N días"), unidades vencidas y estado.
 - **CA3** Filtros por texto, categoría, estado y temporada.
 - **CA4** El detalle de lotes y los movimientos recientes son visibles.
+- **Desviaciones:** solo productos activos; estado de fila y conjuntos de filtro según D34 ("Por vencer" puede contar productos que muestran otro estado); el controller devuelve records de aplicación (no entidades); los selectores de producto filtran inactivos en el cliente; pills locales `.season` y `.neutral`; el detalle no tiene el botón "Registrar entrada" de la demo; el botón "Dar de baja vencidos" está en el encabezado y en la tarjeta de unidades vencidas. Incluye el pendiente de HU-04 de mostrar solo productos activos en los selectores. Pendientes menores: selectores limitados a 100 productos; DTOs propios en `api/` si se quiere el patrón `XResponse.from`.
 
 ---
 

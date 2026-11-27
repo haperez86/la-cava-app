@@ -1,14 +1,12 @@
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark" aria-hidden="true">C</div>
-      <h1>LA CAVA</h1>
-      <p>COPAS Y TABLAS</p>
+      <app-brand-logo [size]="160" />
     </div>
     <nav class="nav" aria-label="Menú principal">
       @for (item of items(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page">
-          <span class="ico" aria-hidden="true">{{ item.icon }}</span>
+          <span class="ico"><app-icon [name]="item.icon" [size]="18" /></span>
           <span>{{ item.label }}</span>
         </a>
       }
@@ -47,7 +45,7 @@
   <nav class="mobile-nav" aria-label="Menú principal (móvil)">
     @for (item of items(); track item.path) {
       <a [routerLink]="item.path" routerLinkActive="active" ariaCurrentWhenActive="page">
-        <span class="ico" aria-hidden="true">{{ item.icon }}</span>
+        <span class="ico"><app-icon [name]="item.icon" [size]="18" /></span>
         <span>{{ item.label }}</span>
       </a>
     }

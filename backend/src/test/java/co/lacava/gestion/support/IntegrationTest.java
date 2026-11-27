@@ -30,6 +30,15 @@ public abstract class IntegrationTest {
     @Autowired
     private LoginAttemptService loginAttempts;
 
+    @Autowired
+    protected MutableTestClock clock;
+
+    /** Cada prueba arranca con el reloj del sistema; la que necesite una fecha fija llama a {@code clock.fixAt}. */
+    @BeforeEach
+    void resetClock() {
+        clock.useSystemClock();
+    }
+
     /** El conteo de intentos de login vive en memoria del contexto compartido: se limpia entre pruebas. */
     @BeforeEach
     void clearLoginAttempts() {

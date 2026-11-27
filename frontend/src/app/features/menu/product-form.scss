@@ -1,0 +1,34 @@
+@use 'styles/breakpoints' as bp;
+
+h4 {
+  margin: 16px 0 2px;
+  font-size: 14px;
+}
+
+.form2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 12px;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+
+  .btn {
+    flex: 1;
+  }
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .form2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modal-actions .btn {
+    flex: 0 0 auto;
+  }
+}

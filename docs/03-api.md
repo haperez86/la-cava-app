@@ -21,18 +21,24 @@ Roles: **A** Administrador · **C** Cajero · **M** Mesero · **P** Preparación
 | POST | `/products` | A | `{name, categoryName, price, description, icon, minStock, seasonName?, seasonUntil?, initialLot?:{quantity, expiresOn}}` |
 | PUT | `/products/{id}` | A | |
 | PATCH | `/products/{id}/active` | A | `{active}` |
-| GET | `/categories` | todos | |
+| GET | `/categories` | todos | `[{id, name}]` ordenado por nombre |
+
+Respuesta de producto: `{id, name, categoryId, categoryName, price, description, icon, minStock, active, seasonName, seasonUntil, available}`; `GET /products` devuelve `{content, page, size, totalElements, totalPages}` (`page` desde 0; `sort` admite `name`, `price`, `minStock`, `createdAt`). Desde HU-03 cada producto trae además `state` (`ON_MENU`, `OUT_OF_STOCK`, `OUT_OF_SEASON`, `INACTIVE`), `orderable` y `blockReason` ("Retirado de la carta", "Fuera de temporada", "Agotado" o `null`); el filtro `state` admite también `SEASONAL` y un valor inválido → 400 (D31). Nombre duplicado → 409 "Ya existe un producto con ese nombre.".
 
 ## Inventario
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
 | GET | `/inventory` | A | Productos con vigente, mínimo, próximo vencimiento, unidades vencidas y estado. Filtros `q`, `categoryId`, `state` (`AVAILABLE`, `LOW`, `OUT`, `EXPIRING`, `HAS_EXPIRED`, `OUT_OF_SEASON`), `season` |
-| GET | `/inventory/summary` | A | Contadores: agotados, stock bajo, por vencer, unidades vencidas |
+| GET | `/inventory/summary` | A | Contadores: agotados, stock bajo, por vencer, unidades vencidas, y temporadas para el filtro |
 | GET | `/products/{id}/lots` | A | Lotes con estado (vigente, vence pronto, vencido, consumido) |
 | POST | `/inventory/lots` | A | `{productId, quantity, expiresOn, seasonName?}` → crea el lote y el movimiento `LOT_IN` |
 | POST | `/inventory/outputs` | A | `{productId, quantity, type, note}` → consumo FEFO |
 | POST | `/inventory/expired/write-off` | A | Da de baja todo lo vencido → `{lots, units}` |
 | GET | `/inventory/movements` | A | Filtros `productId`, `from`, `to`; paginado |
+
+Lote (`LotResponse`): `{id, productId, productName, quantityReceived, quantityAvailable, expiresOn, seasonName, receivedAt, status}`; `status` = `CONSUMED` (cantidad 0) → `EXPIRED` (vencido con cantidad) → `EXPIRING` (vence en ≤ 3 días) → `ACTIVE`. `POST /inventory/lots` responde 201 con el lote; `seasonName` vacío o nulo toma la temporada del producto; validación → 400 `errors[]` (`productId`, `quantity`, `expiresOn`, `seasonName`); producto inexistente → 404 (D32).
+Salida (`POST /inventory/outputs`): `{productId, quantity, type, note}` con `type` = `WASTE_OUT`, `DAMAGED_OUT`, `INTERNAL_USE_OUT` o `ADJUSTMENT_OUT` y `note` obligatoria (≤ 140) → `{productId, productName, type, quantity, consumed:[{lotId, expiresOn, quantity}], available}`; cantidad mayor que la vigente → 400 en `quantity` ("Solo hay N disponibles."). Baja de vencidos → `{lots, units}`. Cualquier cantidad decimal en un campo entero → 400 en ese campo (D33).
+Fila de inventario (`GET /inventory`, paginado): `{productId, name, icon, categoryId, categoryName, seasonName, seasonUntil, available, minStock, nextExpiresOn, daysToExpiry, expiredUnits, state, hasExpired}`; solo productos activos; `sort` admite `name`, `available`, `minStock`. Resumen (`GET /inventory/summary`): `{outOfStock, lowStock, expiring, expiredUnits, seasons}`. Movimiento (`GET /inventory/movements`, paginado, más reciente primero): `{id, createdAt, productId, productName, lotId, type, quantity, note, orderId, userName}`; `from`/`to` son fechas de Bogotá inclusivas y `from` > `to` → 400 en `from` (D34).
 
 ## Mesas
 | Método | Ruta | Rol | Descripción |

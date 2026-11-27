@@ -1,0 +1,81 @@
+@use 'styles/breakpoints' as bp;
+
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.summary {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+
+  &:hover {
+    background: var(--bg);
+  }
+
+  &.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--white);
+    font-weight: 700;
+  }
+}
+
+.ellipsis {
+  padding: 0 2px;
+  color: var(--muted);
+}
+
+.mobile {
+  display: none;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+@media (max-width: bp.$bp-mobile-max) {
+  .summary {
+    flex: 1 1 100%;
+  }
+
+  .pages {
+    display: none;
+  }
+
+  .mobile {
+    display: inline;
+  }
+
+  .controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

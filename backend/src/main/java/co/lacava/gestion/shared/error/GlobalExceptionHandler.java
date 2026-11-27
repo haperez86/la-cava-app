@@ -25,6 +25,9 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.exc.MismatchedInputException;
+
 /**
  * Traduce todas las excepciones a {@code ProblemDetail} (RFC 9457) con mensajes en español.
  * También lo usan el entry point y el access-denied handler de seguridad para 401 y 403.
@@ -37,6 +40,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     ResponseEntity<ProblemDetail> handleBusiness(BusinessException ex) {
         return respond(Problems.of(ex.getStatus(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidFieldsException.class)
+    ResponseEntity<ProblemDetail> handleInvalidFields(InvalidFieldsException ex) {
+        ProblemDetail problem = Problems.of(HttpStatus.BAD_REQUEST, Problems.VALIDATION);
+        problem.setProperty("errors", ex.getErrors());
+        return respond(problem);
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -100,10 +110,39 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return validationProblem(errors);
     }
 
+    /**
+     * JSON mal formado → 400 genérico. Un valor de tipo equivocado en un campo (p. ej. {@code 2.5} en un entero, que
+     * Jackson ya no redondea: {@code accept-float-as-int: false}) → 400 con el error en ese campo.
+     */
     @Override
     protected @Nullable ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        if (ex.getCause() instanceof MismatchedInputException mismatch) {
+            String field = fieldPath(mismatch);
+            if (!field.isEmpty()) {
+                return validationProblem(List.of(new FieldError(field, mismatchMessage(mismatch))));
+            }
+        }
         return ResponseEntity.badRequest().body(Problems.of(HttpStatus.BAD_REQUEST, Problems.UNREADABLE));
+    }
+
+    private static String fieldPath(MismatchedInputException ex) {
+        StringBuilder path = new StringBuilder();
+        for (JacksonException.Reference ref : ex.getPath()) {
+            if (ref.getPropertyName() != null) {
+                path.append(path.isEmpty() ? "" : ".").append(ref.getPropertyName());
+            } else if (ref.getIndex() >= 0) {
+                path.append('[').append(ref.getIndex()).append(']');
+            }
+        }
+        return path.toString();
+    }
+
+    private static String mismatchMessage(MismatchedInputException ex) {
+        Class<?> target = ex.getTargetType();
+        boolean integral = target == Integer.class || target == int.class || target == Long.class
+                || target == long.class || target == Short.class || target == short.class;
+        return integral ? "Debe ser un número entero." : "Valor no válido.";
     }
 
     /** Los errores que resuelve Spring MVC (404 de ruta, 405, 415…) también salen en español. */

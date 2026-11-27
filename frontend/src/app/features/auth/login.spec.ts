@@ -84,6 +84,18 @@ describe('Login', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('shows the La Cava logo as an accessible inline SVG above the "Iniciar sesión" heading', async () => {
+    const fixture = TestBed.createComponent(Login);
+    await fixture.whenStable();
+    const root = fixture.nativeElement as HTMLElement;
+
+    const svg = root.querySelector('.login-card .brand app-brand-logo svg[role="img"]');
+    expect(svg).not.toBeNull();
+    expect(svg?.getAttribute('aria-label')).toBe('La Cava, copas y tablas');
+    expect(root.querySelector('.brand small')).toBeNull();
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Iniciar sesión');
+  });
+
   it('does not call the API with empty fields and shows the field errors', async () => {
     const fixture = TestBed.createComponent(Login);
     await fixture.whenStable();
