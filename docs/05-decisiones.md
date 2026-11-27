@@ -28,13 +28,13 @@
 | D24 | JWT con `spring-boot-starter-security-oauth2-resource-server` (Nimbus, HS256, emisor `la-cava`) en lugar de jjwt; el rol se lee de la BD en cada petición y un usuario inactivo queda fuera aunque su token siga vigente. | Mismo enfoque que Proto y sin librería extra. |
 | D25 | Rutas por rol: `/dashboard` (A, C), `/mesas` (A, C, M; "Mis mesas" para M), `/preparacion` (A, P; "Comandas"). Las rutas ajenas o desconocidas llevan a la pantalla inicial del rol. | CA1 y CA3 de HU-01; el menú crece con cada HU. |
 | D26 | Sesión (token y usuario) en `localStorage` con la clave `lacava.session`; un 401 cierra la sesión y un 403 solo muestra un toast. Sin selector de rol como en la demo. | Simplicidad; el backend es quien aplica los permisos. |
+| D27 | Login con límite de intentos: tras 5 fallos seguidos por usuario (exista o no), bloqueo de 15 min en memoria (una instancia, D9); mientras dure, el mismo 401 "Usuario o contraseña incorrectos". Un login exitoso reinicia el contador. | Propuesta P1 aprobada por el dueño tras la revisión de seguridad de HU-01. |
+| D28 | `LocalDataSeeder` solo siembra si, además del perfil `local`, la URL de la base apunta a `localhost`, `127.0.0.1` o `::1`; si no, registra un aviso y no crea datos. | Propuesta P2 aprobada: las claves `<usuario>123` de docs/02 no deben llegar a una base compartida. |
 
 ## Propuestas
 _(El agente registra aquí los cambios que sugiera, con su motivo. No se aplican hasta que se aprueben.)_
 
 | # | Propuesta | Motivo |
 |---|---|---|
-| P1 | Limitar los intentos de login: tras 5 fallos seguidos por usuario, bloquear 15 min (en memoria, una instancia, D9) y responder con el mismo 401. | Revisión de seguridad de HU-01 (Gentle AI, riesgo): `POST /auth/login` admite intentos ilimitados. No está en la especificación, por eso no se implementó. |
-| P2 | Que `LocalDataSeeder` no arranque si `DB_URL` no apunta a `localhost`, además de exigir el perfil `local`. | Revisión de HU-01: las claves `<usuario>123` (docs/02) son predecibles; si el perfil `local` se activa contra una base compartida, cualquiera entra como admin. |
 | P3 | Revisar D26 antes de producción: token en cookie `httpOnly` o vigencia menor que 10 h (D6). | Revisión de HU-01: un XSS futuro podría leer el token de `localStorage`. Mitigado hoy porque el backend comprueba en cada petición que el usuario siga activo. |
 
