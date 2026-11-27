@@ -30,6 +30,8 @@
 | D26 | Sesión (token y usuario) en `localStorage` con la clave `lacava.session`; un 401 cierra la sesión y un 403 solo muestra un toast. Sin selector de rol como en la demo. | Simplicidad; el backend es quien aplica los permisos. |
 | D27 | Login con límite de intentos: tras 5 fallos seguidos por usuario (exista o no), bloqueo de 15 min en memoria (una instancia, D9); mientras dure, el mismo 401 "Usuario o contraseña incorrectos". Un login exitoso reinicia el contador. | Propuesta P1 aprobada por el dueño tras la revisión de seguridad de HU-01. |
 | D28 | `LocalDataSeeder` solo siembra si, además del perfil `local`, la URL de la base apunta a `localhost`, `127.0.0.1` o `::1`; si no, registra un aviso y no crea datos. | Propuesta P2 aprobada: las claves `<usuario>123` de docs/02 no deben llegar a una base compartida. |
+| D29 | `stock_lot` y `stock_movement` se crean en HU-02 (migración V3) junto con un `InventoryService` mínimo (`receiveLot`, existencia vigente y `loadSampleLot`, que omite la validación de fecha y solo puede usarlo `LocalDataSeeder`), porque el lote inicial del producto (HU-02 CA4) los necesita. La Épica 2 los amplía. | Respetar que solo `InventoryService` crea lotes y registra su movimiento. |
+| D30 | Contrato de HU-02: `GET /products` paginado con la forma de `PageResponse` de Proto y cada producto con `available` (existencia vigente); `state`, `orderable` y `blockReason` llegan en HU-03. Pantalla `/menu` "Menú y productos" solo para A, como en la demo. `minStock` vacío se guarda como 0; el formulario propone 5, como la demo. | Partir la épica en el orden del backlog. |
 
 ## Propuestas
 _(El agente registra aquí los cambios que sugiera, con su motivo. No se aplican hasta que se aprueben.)_
@@ -37,4 +39,4 @@ _(El agente registra aquí los cambios que sugiera, con su motivo. No se aplican
 | # | Propuesta | Motivo |
 |---|---|---|
 | P3 | Revisar D26 antes de producción: token en cookie `httpOnly` o vigencia menor que 10 h (D6). | Revisión de HU-01: un XSS futuro podría leer el token de `localStorage`. Mitigado hoy porque el backend comprueba en cada petición que el usuario siga activo. |
-
+| P4 | Además de `@PreAuthorize`, declarar en `SecurityConfig` las reglas por rol de las rutas de escritura (p. ej. `POST/PUT/PATCH /api/v1/products/**` → A), para que el 403 salga antes de validar el cuerpo. | Revisión de HU-02: hoy un rol sin permiso con un cuerpo inválido recibe 400 antes que 403 (Spring valida `@RequestBody` antes de `@PreAuthorize`). No filtra datos; es defensa en profundidad. |

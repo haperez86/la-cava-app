@@ -1,0 +1,48 @@
+<div class="summary" data-testid="pagination-summary">{{ summary() }}</div>
+
+@if (totalPages() > 1) {
+  <nav class="controls" aria-label="Paginación">
+    <button
+      type="button"
+      class="btn small"
+      data-testid="pagination-prev"
+      [disabled]="atStart()"
+      (click)="go(current() - 1)"
+    >
+      ‹ Anterior
+    </button>
+
+    <span class="mobile" data-testid="pagination-mobile">
+      Página {{ current() + 1 }} de {{ totalPages() }}
+    </span>
+
+    <span class="pages">
+      @for (item of pages(); track $index) {
+        @if (item === 'ellipsis') {
+          <span class="ellipsis" aria-hidden="true">…</span>
+        } @else {
+          <button
+            type="button"
+            class="page"
+            [class.active]="item === current()"
+            [attr.aria-current]="item === current() ? 'page' : null"
+            [attr.aria-label]="'Página ' + (item + 1)"
+            (click)="go(item)"
+          >
+            {{ item + 1 }}
+          </button>
+        }
+      }
+    </span>
+
+    <button
+      type="button"
+      class="btn small"
+      data-testid="pagination-next"
+      [disabled]="atEnd()"
+      (click)="go(current() + 1)"
+    >
+      Siguiente ›
+    </button>
+  </nav>
+}

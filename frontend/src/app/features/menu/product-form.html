@@ -1,0 +1,109 @@
+<form class="product-form" (submit)="onSubmit(); $event.preventDefault()" novalidate>
+  <div class="form2">
+    <div class="field">
+      <label for="pf-name">Nombre *</label>
+      <input id="pf-name" [formField]="productForm.name" [attr.aria-invalid]="!!errorOf(productForm.name)" />
+      @if (errorOf(productForm.name); as error) {
+        <p class="field-error" data-testid="error-name">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="pf-category">Categoría *</label>
+      <input
+        id="pf-category"
+        list="pf-category-list"
+        placeholder="Ej. Vinos"
+       
+        [formField]="productForm.categoryName"
+        [attr.aria-invalid]="!!errorOf(productForm.categoryName)"
+      />
+      <datalist id="pf-category-list">
+        @for (category of categories(); track category.id) {
+          <option [value]="category.name"></option>
+        }
+      </datalist>
+      @if (errorOf(productForm.categoryName); as error) {
+        <p class="field-error" data-testid="error-categoryName">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="pf-price">Precio (COP) *</label>
+      <input id="pf-price" type="number" step="1" inputmode="numeric" [formField]="productForm.price" />
+      @if (errorOf(productForm.price); as error) {
+        <p class="field-error" data-testid="error-price">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="pf-min">Stock mínimo *</label>
+      <input id="pf-min" type="number" step="1" inputmode="numeric" [formField]="productForm.minStock" />
+      @if (errorOf(productForm.minStock); as error) {
+        <p class="field-error" data-testid="error-minStock">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="pf-icon">Ícono o emoji</label>
+      <input id="pf-icon" placeholder="🍷" [formField]="productForm.icon" />
+      @if (errorOf(productForm.icon); as error) {
+        <p class="field-error" data-testid="error-icon">{{ error }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="pf-desc">Descripción</label>
+      <input id="pf-desc" [formField]="productForm.description" />
+      @if (errorOf(productForm.description); as error) {
+        <p class="field-error" data-testid="error-description">{{ error }}</p>
+      }
+    </div>
+  </div>
+
+  <h4>Temporada (opcional)</h4>
+  <p class="muted">Si es un producto de temporada, deja de ofrecerse automáticamente después de la fecha final.</p>
+  <div class="form2">
+    <div class="field">
+      <label for="pf-season">Temporada</label>
+      <input id="pf-season" placeholder="Ej. Navidad" [formField]="productForm.seasonName" />
+      @if (errorOf(productForm.seasonName); as error) {
+        <p class="field-error" data-testid="error-seasonName">{{ error }}</p>
+      }
+    </div>
+    <div class="field">
+      <label for="pf-until">Disponible hasta</label>
+      <input id="pf-until" type="date" [formField]="productForm.seasonUntil" />
+      @if (errorOf(productForm.seasonUntil); as error) {
+        <p class="field-error" data-testid="error-seasonUntil">{{ error }}</p>
+      }
+    </div>
+  </div>
+
+  @if (!editing()) {
+    <h4>Lote inicial (opcional)</h4>
+    <div class="form2" data-testid="initial-lot">
+      <div class="field">
+        <label for="pf-qty">Cantidad</label>
+        <input id="pf-qty" type="number" step="1" inputmode="numeric" [formField]="productForm.lotQuantity" />
+        @if (errorOf(productForm.lotQuantity); as error) {
+          <p class="field-error" data-testid="error-lotQuantity">{{ error }}</p>
+        }
+      </div>
+      <div class="field">
+        <label for="pf-exp">Fecha de vencimiento</label>
+        <input id="pf-exp" type="date" [formField]="productForm.lotExpiresOn" />
+        @if (errorOf(productForm.lotExpiresOn); as error) {
+          <p class="field-error" data-testid="error-lotExpiresOn">{{ error }}</p>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="modal-actions">
+    <button type="button" class="btn" (click)="cancelled.emit()">Cancelar</button>
+    <button type="submit" class="btn primary" data-testid="save-product" [disabled]="submitting()">
+      {{ submitting() ? 'Guardando…' : 'Guardar producto' }}
+    </button>
+  </div>
+</form>

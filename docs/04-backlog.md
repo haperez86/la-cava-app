@@ -26,11 +26,12 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 
 ## Épica 1 · Menú
 
-### LCV-HU-02 · Productos y categorías ⬜
+### LCV-HU-02 · Productos y categorías ✅
 - **CA1** Creo y edito productos; un nombre duplicado → error; las categorías nuevas se crean al vuelo.
 - **CA2** Temporada: si indico nombre de temporada, la fecha "disponible hasta" es obligatoria.
 - **CA3** Activo o desactivo productos (retirar o volver a la carta).
 - **CA4** Al crear puedo indicar un lote inicial (cantidad y vencimiento); si hay cantidad, el vencimiento es obligatorio y ≥ hoy.
+- **Desviaciones:** migración V3 crea también `stock_lot` y `stock_movement` (D29); validación de temporada y lote en el servicio con el mismo 400 `errors[]`; una carrera de nombres duplicados responde el 409 genérico; pantalla `/menu` con tarjetas y formulario modal (hoja inferior en móvil). Pendientes menores: inyectar `ZoneId` en el seeder y crear producto y lotes de ejemplo en una transacción; 409 que no sea de nombre → toast; cantidad de lote entera en el formulario; prueba de `sort` anidado → 400.
 
 ### LCV-HU-03 · Disponibilidad y filtros del menú ⬜
 - **CA1** `orderable` es verdadero solo si el producto está activo, en temporada y con existencia vigente > 0; si no, `blockReason` dice *Retirado de la carta*, *Fuera de temporada* o *Agotado*.

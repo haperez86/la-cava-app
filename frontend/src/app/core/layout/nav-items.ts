@@ -22,6 +22,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelByRole: { WAITER: 'Mis mesas' },
   },
   { path: 'preparacion', label: 'Comandas', icon: '♨', title: 'Comandas', roles: ['ADMIN', 'KITCHEN'] },
+  { path: 'menu', label: 'Menú', icon: '☷', title: 'Menú y productos', roles: ['ADMIN'] },
 ];
 
 export function navItemsFor(role: Role | null): readonly NavItem[] {

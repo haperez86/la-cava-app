@@ -32,6 +32,7 @@ describe('Shell', () => {
               { path: 'dashboard', component: Home },
               { path: 'mesas', component: Blank },
               { path: 'preparacion', component: Blank },
+              { path: 'menu', component: Blank },
             ],
           },
           { path: 'login', component: Blank },
@@ -79,7 +80,7 @@ describe('Shell', () => {
   });
 
   it.each<[Role, string, string[]]>([
-    ['ADMIN', '/dashboard', ['Dashboard', 'Mesas', 'Comandas']],
+    ['ADMIN', '/dashboard', ['Dashboard', 'Mesas', 'Comandas', 'Menú']],
     ['CASHIER', '/dashboard', ['Dashboard', 'Mesas']],
     ['WAITER', '/mesas', ['Mis mesas']],
     ['KITCHEN', '/preparacion', ['Comandas']],
@@ -88,6 +89,14 @@ describe('Shell', () => {
     const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
     expect(labels(root, '.nav a')).toEqual(expected);
     expect(labels(root, '.mobile-nav a')).toEqual(expected);
+  });
+
+  it('LCV-HU-02 the Menú option leads ADMIN to /menu', async () => {
+    const harness = await open('ADMIN', '/menu');
+    const root = await settled(harness, () => http.expectOne('/api/v1/health').flush({ status: 'UP', db: 'UP' }));
+    const link = Array.from(root.querySelectorAll<HTMLAnchorElement>('.nav a')).find((a) => a.textContent?.includes('Menú'));
+    expect(link?.getAttribute('href')).toBe('/menu');
+    expect(root.querySelector('.crumb')?.textContent?.trim()).toBe('Menú');
   });
 
   it('the top bar title uses the same per-role label as the menu (WAITER sees "Mis mesas")', async () => {

@@ -21,7 +21,9 @@ Roles: **A** Administrador · **C** Cajero · **M** Mesero · **P** Preparación
 | POST | `/products` | A | `{name, categoryName, price, description, icon, minStock, seasonName?, seasonUntil?, initialLot?:{quantity, expiresOn}}` |
 | PUT | `/products/{id}` | A | |
 | PATCH | `/products/{id}/active` | A | `{active}` |
-| GET | `/categories` | todos | |
+| GET | `/categories` | todos | `[{id, name}]` ordenado por nombre |
+
+Respuesta de producto: `{id, name, categoryId, categoryName, price, description, icon, minStock, active, seasonName, seasonUntil, available}`; `GET /products` devuelve `{content, page, size, totalElements, totalPages}` (`page` desde 0; `sort` admite `name`, `price`, `minStock`, `createdAt`). `state`, `orderable` y `blockReason` llegan con HU-03 (D30). Nombre duplicado → 409 "Ya existe un producto con ese nombre.".
 
 ## Inventario
 | Método | Ruta | Rol | Descripción |

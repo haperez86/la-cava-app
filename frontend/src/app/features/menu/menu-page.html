@@ -1,0 +1,96 @@
+<div class="page-head">
+  <div>
+    <div class="eyebrow">La Cava · Copas y tablas</div>
+    <h2>Menú y productos</h2>
+    <p class="muted">Administra productos, precios, temporadas y disponibilidad en la carta</p>
+  </div>
+  <button type="button" class="btn primary" data-testid="new-product" (click)="openCreate()">＋ Nuevo producto</button>
+</div>
+
+<div class="toolbar">
+  <label class="sr-only" for="menu-search">Buscar producto</label>
+  <input
+    id="menu-search"
+    type="search"
+    placeholder="Buscar producto…"
+    autocomplete="off"
+    [value]="q()"
+    (input)="onSearch($any($event.target).value)"
+  />
+  <label class="sr-only" for="menu-category">Categoría</label>
+  <select id="menu-category" (change)="onCategory($any($event.target).value)">
+    <option value="">Todas las categorías</option>
+    @for (category of categories(); track category.id) {
+      <option [value]="category.id" [selected]="category.id === categoryId()">{{ category.name }}</option>
+    }
+  </select>
+</div>
+
+<div class="menu-grid" data-testid="product-list" [attr.aria-busy]="loading()">
+  @for (product of items(); track product.id) {
+    <article class="product" [class.off]="!product.active" data-testid="product">
+      <div class="product-art" aria-hidden="true">{{ product.icon || defaultIcon }}</div>
+      <div class="product-body">
+        <h4>{{ product.name }}</h4>
+        <p>{{ product.categoryName }}@if (product.description) { · {{ product.description }}}</p>
+        @if (product.seasonName) {
+          <p class="season" data-testid="product-season">
+            🗓 {{ product.seasonName }}@if (product.seasonUntil) { · hasta {{ formatDate(product.seasonUntil) }}}
+          </p>
+        }
+        <div class="product-foot">
+          <strong class="money">{{ product.price | cop }}</strong>
+          @if (product.active) {
+            <span class="pill" data-testid="product-state">Activo</span>
+          } @else {
+            <span class="pill danger" data-testid="product-state">Inactivo</span>
+          }
+        </div>
+        <p class="stock" data-testid="product-available">{{ product.available }} disponible(s)</p>
+        <div class="actions">
+          <button type="button" class="btn small" data-testid="edit-product" (click)="openEdit(product)">Editar</button>
+          <button
+            type="button"
+            class="btn small"
+            data-testid="toggle-active"
+            [disabled]="toggling() === product.id"
+            (click)="toggleActive(product)"
+          >
+            {{ product.active ? 'Retirar de la carta' : 'Volver a la carta' }}
+          </button>
+        </div>
+      </div>
+    </article>
+  } @empty {
+    @if (!loading()) {
+      <div class="card empty" data-testid="empty">No hay productos con ese filtro.</div>
+    }
+  }
+</div>
+
+<app-pagination [page]="page()" [size]="pageSize" [totalElements]="totalElements()" (pageChange)="onPage($event)" />
+
+@if (editor(); as state) {
+  <div class="modal-back" (click)="closeEditor()">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-modal-title"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-head">
+        <h3 id="product-modal-title">{{ state.product ? 'Editar producto' : 'Nuevo producto' }}</h3>
+        <button type="button" class="close" aria-label="Cerrar" (click)="closeEditor()">×</button>
+      </div>
+      <app-product-form
+        [product]="state.product"
+        [categories]="categories()"
+        (saved)="onSaved($event)"
+        (cancelled)="closeEditor()"
+      />
+    </div>
+  </div>
+}

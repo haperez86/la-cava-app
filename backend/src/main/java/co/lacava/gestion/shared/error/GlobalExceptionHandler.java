@@ -39,6 +39,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return respond(Problems.of(ex.getStatus(), ex.getMessage()));
     }
 
+    @ExceptionHandler(InvalidFieldsException.class)
+    ResponseEntity<ProblemDetail> handleInvalidFields(InvalidFieldsException ex) {
+        ProblemDetail problem = Problems.of(HttpStatus.BAD_REQUEST, Problems.VALIDATION);
+        problem.setProperty("errors", ex.getErrors());
+        return respond(problem);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     ResponseEntity<ProblemDetail> handleAuthentication(AuthenticationException ex) {
         return respond(Problems.of(HttpStatus.UNAUTHORIZED, Problems.UNAUTHENTICATED));
