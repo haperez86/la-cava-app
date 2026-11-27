@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Cava | Demo de gestión</title>
+<style>
+:root{--green:#10271f;--green2:#19392e;--gold:#c6a16a;--cream:#f7f4ed;--ink:#202821;--muted:#778078;--line:#e6e8e2;--white:#fff;--red:#b84d43;--amber:#c28a35;--shadow:0 8px 28px #14251a12}
+*{box-sizing:border-box}body{margin:0;background:#f3f5f1;color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh;display:grid;grid-template-columns:248px 1fr}.sidebar{background:var(--green);color:#f8f5ed;padding:24px 16px;display:flex;flex-direction:column;gap:26px}.brand{padding:8px 10px 20px;border-bottom:1px solid #ffffff20}.brand-mark{width:42px;height:42px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold);font-family:Georgia,serif;font-size:21px;margin-bottom:12px}.brand h1{font:600 21px Georgia,serif;letter-spacing:3px;margin:0;color:#e4c38e}.brand p{margin:4px 0 0;color:#c9cfc8;font-size:10px;letter-spacing:4px}.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;color:#dce4dc;text-align:left;padding:12px 14px;border-radius:10px;display:flex;gap:12px;align-items:center}.nav button.active,.nav button:hover{background:#ffffff16;color:#f1d39f}.nav .ico{width:20px;text-align:center}.side-foot{margin-top:auto;color:#b9c6bc;font-size:12px;padding:10px}.main{min-width:0}.topbar{height:76px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:4}.topbar .crumb{color:var(--muted);font-size:13px}.user{display:flex;align-items:center;gap:10px;font-size:13px}.avatar{width:34px;height:34px;border-radius:50%;background:#e8ddc8;color:var(--green);display:grid;place-items:center;font-weight:700}.content{padding:28px;max-width:1500px;margin:auto}.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:22px}.eyebrow{color:#9a7746;text-transform:uppercase;letter-spacing:2px;font-size:10px;font-weight:700}.page-head h2{font:600 29px Georgia,serif;margin:4px 0}.sub{color:var(--muted);margin:0;font-size:13px}.btn{border:1px solid var(--line);background:white;padding:10px 14px;border-radius:9px;color:var(--ink);font-weight:600}.btn.primary{background:var(--green);border-color:var(--green);color:white}.btn.gold{background:var(--gold);border-color:var(--gold);color:#17251d}.btn.small{padding:7px 10px;font-size:12px}.btn:disabled{opacity:.45;cursor:not-allowed}.grid{display:grid;gap:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:20px}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}.stat-label{font-size:12px;color:var(--muted)}.stat-value{font-size:26px;font-weight:700;margin:6px 0}.stat-note{font-size:11px;color:#718276}.layout2{grid-template-columns:1.35fr 1fr}.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.section-title h3{font:600 18px Georgia,serif;margin:0}.table-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.table-tile{border:1px solid var(--line);border-radius:12px;padding:14px;background:white;text-align:left;min-height:116px;display:flex;flex-direction:column;gap:8px}.table-tile.occupied{border-color:#d9bd8f;background:#fffdf8}.table-tile .num{font-size:21px;font-weight:700}.table-tile .meta{font-size:11px;color:var(--muted)}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:4px 8px;font-size:10px;font-weight:700;background:#edf2ed;color:#3f7454}.pill.busy{background:#fff1d9;color:#96651e}.pill.ready{background:#e7eff8;color:#456b91}.pill.danger{background:#fbe9e6;color:#a4473d}.list{display:grid;gap:10px}.order-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.order-row:last-child{border:0}.order-row strong{display:block;font-size:13px}.order-row small{color:var(--muted)}.money{font-weight:700;white-space:nowrap}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.toolbar input,.toolbar select,.field input,.field select{border:1px solid var(--line);background:white;border-radius:8px;padding:10px 11px;min-width:0}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:12px;font-weight:650;color:#536057}.field input,.field select{width:100%}.menu-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.product{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:white}.product-art{height:112px;background:linear-gradient(135deg,#19392e,#385b48);display:grid;place-items:center;font-size:42px}.product-body{padding:13px}.product-body h4{margin:0 0 4px;font-size:14px}.product-body p{margin:0 0 10px;color:var(--muted);font-size:11px}.product-foot{display:flex;justify-content:space-between;align-items:center}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.tab{border:1px solid var(--line);background:white;border-radius:99px;padding:7px 12px;font-size:12px}.tab.active{background:var(--green);color:white;border-color:var(--green)}.table-wrap{overflow:auto;background:white;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:570px}th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line);font-size:12px}th{color:var(--muted);font-weight:600;background:#fafbf9}tr:last-child td{border:0}.empty{padding:28px;text-align:center;color:var(--muted);font-size:13px}.modal-back{position:fixed;inset:0;background:#0b1712a8;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}.modal-back.show{display:flex}.modal{background:white;border-radius:16px;width:min(620px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 20px 70px #0004}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h3{font:600 21px Georgia,serif;margin:0}.close{border:0;background:#f0f2ef;border-radius:50%;width:32px;height:32px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.cart-line{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}.qty{display:flex;align-items:center;gap:8px}.qty button{border:1px solid var(--line);background:white;border-radius:6px;width:25px;height:25px}.total-line{display:flex;justify-content:space-between;padding:14px 0;font-size:17px;font-weight:750}.notice{background:#f8f3e9;border:1px solid #ead9b9;border-radius:10px;padding:12px;color:#6f5938;font-size:12px;margin-top:14px}.mobile-nav{display:none}.kitchen-card{border-left:4px solid var(--amber)}.kitchen-card.ready-card{border-left-color:#538d69}.kitchen-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.hide{display:none!important}.product-picker{max-height:260px;overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 8px}@media(max-width:700px){.product-picker{grid-template-columns:repeat(2,minmax(0,1fr));max-height:240px}.product-picker .product-art{height:64px}.product-picker .product-body{padding:9px}}
+@media print{
+ body{background:#fff!important}.sidebar,.topbar,.mobile-nav,.page-head .btn,.modal-back,.no-print{display:none!important}
+ .app{display:block}.content{padding:0;max-width:none}.card,.table-wrap{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+}
+@media(max-width:1050px){.stats{grid-template-columns:repeat(2,1fr)}.table-grid{grid-template-columns:repeat(3,1fr)}.menu-grid{grid-template-columns:repeat(2,1fr)}.layout2{grid-template-columns:1fr}.kitchen-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.app{display:block;padding-bottom:76px}.sidebar{display:none}.topbar{height:60px;padding:0 16px}.topbar .crumb{display:none}.content{padding:22px 16px}.page-head{margin-bottom:20px}.page-head h2{font-size:25px}.page-head .btn{font-size:11px;padding:9px}.stats{gap:12px}.card{padding:16px}.stat-value{font-size:22px}.table-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.table-tile{min-height:105px;padding:12px}.menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.product-art{height:86px}.product-body{padding:12px}.product-body h4{font-size:12px}.product-body p{font-size:10px}.kitchen-grid{grid-template-columns:1fr}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--line);z-index:5;justify-content:space-around;padding:7px 3px calc(7px + env(safe-area-inset-bottom))}.mobile-nav button{border:0;background:transparent;color:#68746b;font-size:10px;display:grid;gap:4px;justify-items:center;min-width:52px;padding:5px 2px;min-height:48px}.mobile-nav button.active{color:var(--green);font-weight:700}.mobile-nav span{font-size:18px}.user .user-name{display:none}.modal-back{align-items:flex-end;padding:0}.modal{border-radius:17px 17px 0 0;max-height:92vh;padding:19px 16px calc(18px + env(safe-area-inset-bottom))}.toolbar input{flex:1;width:100%}.page-head{align-items:center}.table-wrap{border-radius:9px}th,td{padding:11px 10px}}
+@media(max-width:700px){.btn{min-height:42px}.field{margin:15px 0}.field input,.field select{min-height:44px}.order-row{padding:14px 0}.section-title{gap:10px;align-items:flex-start}.table-tile{gap:10px}.card+.card{margin-top:2px}.modal-actions{flex-wrap:wrap}.modal-actions .btn{flex:1}}
+@media(max-width:380px){.content{padding:18px 12px}.stats{grid-template-columns:repeat(2,1fr)}.stat-value{font-size:19px}.table-grid{grid-template-columns:repeat(2,1fr)}.menu-grid{grid-template-columns:1fr 1fr}.page-head h2{font-size:22px}}
+
+/* Ajustes de usabilidad móvil: botones con espacio, ancho y jerarquía consistentes */
+@media(max-width:700px){
+  .page-head{display:flex;flex-direction:column;align-items:stretch;gap:12px}
+  .page-head>div{width:100%;min-width:0}
+  .page-head>.btn,.page-head button{width:100%;min-height:44px;font-size:13px;padding:11px 14px}
+  .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .toolbar>.btn,.toolbar>button{width:100%;min-height:44px;white-space:normal;line-height:1.25;padding:10px 8px}
+  .toolbar>input,.toolbar>select{grid-column:1/-1;width:100%;min-height:44px}
+  .section-title{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .section-title>div{flex:1 1 100%;min-width:0}
+  .section-title>.btn,.section-title>button{flex:1 1 100%;width:100%;min-height:42px}
+  .card>.btn,.card>button.btn{max-width:100%;white-space:normal;line-height:1.25}
+  .product-foot{flex-wrap:wrap;gap:9px}
+  .product-foot>.btn,.product-foot>button{width:100%;min-height:42px}
+  .modal-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .modal-actions>.btn,.modal-actions>button{width:100%;min-width:0;min-height:44px;white-space:normal;line-height:1.25;padding:10px 8px}
+  .modal-actions>.btn:only-child,.modal-actions>button:only-child{grid-column:1/-1}
+  .table-wrap .btn.small{min-height:36px;padding:7px 9px;white-space:nowrap}
+  .mobile-nav button{flex:1;min-width:0;min-height:52px;padding:6px 1px;font-size:10px}
+}
+@media(max-width:380px){
+  .toolbar{grid-template-columns:1fr}
+  .toolbar>.btn,.toolbar>button{grid-column:1/-1}
+  .modal-actions{grid-template-columns:1fr}
+  .modal-actions>.btn,.modal-actions>button{grid-column:1/-1}
+  .mobile-nav button{font-size:9px}
+}
+
+
+/* Corrección de desbordamiento y jerarquía en móviles */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+.app,.main,.content,.page,.card,.stats,.layout2{min-width:0;max-width:100%}
+@media(max-width:700px){
+  .app{width:100%;overflow-x:hidden}
+  .main{width:100%;min-width:0;overflow-x:hidden}
+  .topbar{width:100%;min-width:0;max-width:100%;padding:0 12px;gap:8px}
+  .topbar>div,.user{min-width:0;max-width:100%}
+  .user{display:flex;align-items:center;gap:7px}
+  .user>span{font-size:10px;white-space:nowrap}
+  .user select{max-width:112px;min-width:0;padding:7px 5px!important;font-size:11px!important}
+  .content{width:100%;max-width:100%;min-width:0;padding:18px 12px;overflow-x:hidden}
+  .page-head{width:100%;min-width:0}
+  .page-head h2{overflow-wrap:anywhere}
+  .page-head>.btn,.page-head button{width:100%;max-width:100%;min-width:0;white-space:normal}
+  .stats{display:grid;grid-template-columns:minmax(0,1fr);width:100%;gap:10px}
+  .stats>.card{width:100%;min-width:0;margin:0}
+  .card{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .layout2,.table-grid,.menu-grid,.kitchen-grid{min-width:0;max-width:100%}
+  .table-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .table-tile{min-width:0;max-width:100%}
+  .toolbar{width:100%;min-width:0}
+  .toolbar>*{min-width:0;max-width:100%}
+  .section-title>*{min-width:0;max-width:100%}
+  .mobile-nav{width:100%;max-width:100%;left:0;right:0}
+  .modal-back{width:100%;max-width:100%;overflow-x:hidden}
+  .modal{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+  .modal input,.modal select,.modal textarea{max-width:100%;min-width:0}
+}
+@media(max-width:380px){
+  .content{padding-left:10px;padding-right:10px}
+  .table-grid{grid-template-columns:minmax(0,1fr)}
+  .user>span{display:none}
+}
+
+
+/* Mejoras de distribución para escritorio y tablet; conserva reglas móviles */
+@media(min-width:701px){
+  .content{padding:30px 34px}
+  .kitchen-grid{grid-template-columns:repeat(3,minmax(280px,1fr));gap:20px;align-items:stretch}
+  .kitchen-card{padding:24px;min-width:0;display:flex;flex-direction:column}
+  .kitchen-card .section-title{align-items:flex-start;gap:14px;margin-bottom:12px}
+  .kitchen-card .section-title h3{font-size:23px}
+  .kitchen-card .sub{margin:4px 0 12px}
+  .kitchen-card .order-row{align-items:center;min-height:54px;padding:14px 0;gap:14px}
+  .kitchen-card .order-row strong{font-size:14px;line-height:1.35}
+  .kitchen-card .order-row small{font-size:12px;text-align:right;flex:0 0 auto}
+  .kitchen-card .modal-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    margin-top:20px;
+    justify-content:stretch;
+  }
+  .kitchen-card .modal-actions .btn{
+    width:100%;min-width:0;min-height:50px;padding:10px 12px;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;font-size:13px;line-height:1.25;white-space:normal;
+  }
+}
+@media(min-width:701px) and (max-width:1100px){
+  .kitchen-grid{grid-template-columns:repeat(2,minmax(260px,1fr));gap:16px}
+  .kitchen-card{padding:20px}
+  .content{padding:24px}
+}
+
+/* ===== Mejoras: estados, avisos, selector de pedido, inventario ===== */
+.pill.pending{background:#f3efe6;color:#7a6440}.pill.ready{background:#e3eefb;color:#2f5f8f}.pill.glow{animation:glow 1.4s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 #2f5f8f44}50%{box-shadow:0 0 0 5px #2f5f8f00}}
+.tile-pills{display:flex;gap:5px;flex-wrap:wrap}.table-tile.ready-tile{border-color:#7fa6cf;background:#f5f9fe}
+div.table-tile{cursor:default}.legend{align-items:center}.ready-box{border-left:4px solid #4f7fb0;margin-bottom:16px;background:#f7faff}
+.order-box{border:1px solid var(--line);border-radius:10px;padding:12px;margin:12px 0}
+.txt-red{color:var(--red)}.txt-amber{color:#96651e}.season{color:#7a5a2c!important;font-weight:600}
+.product.off{opacity:.72}.product.off .product-art{filter:grayscale(.8)}
+.form2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.filters{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr))}
+/* selector de productos del pedido */
+.pick-list{display:grid;gap:6px;max-height:min(46vh,380px);overflow-y:auto;overscroll-behavior:contain;padding:2px}
+.pick-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+.pick-row.off{background:#fafaf8;opacity:.75}.pick-emoji{font-size:24px;width:32px;text-align:center}
+.pick-info{flex:1;min-width:0}.pick-info strong{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pick-info small{color:var(--muted);font-size:11px}
+.stepper{display:flex;align-items:center;gap:8px}.stepper button{width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:18px;line-height:1}.stepper button:disabled{opacity:.35}.stepper b{min-width:18px;text-align:center}
+.cart-box{margin-top:14px}.cart-box h4{margin:0 0 6px}.cart-line{display:block}.cart-main{display:flex;justify-content:space-between;gap:10px}
+.note-in{width:100%;margin-top:6px;border:1px dashed var(--line);border-radius:7px;padding:7px 9px;font-size:12px}
+.sticky-foot{position:sticky;bottom:-22px;background:#fff;margin:14px -22px -22px;padding:12px 22px 16px;border-top:1px solid var(--line);box-shadow:0 -8px 18px #0000000d;z-index:2}
+.sticky-foot .modal-actions{margin-top:8px}.sticky-sum{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
+.toolbar.legend{display:flex!important;flex-wrap:wrap;gap:6px}.toolbar.legend .pill{width:auto}
+.link{border:0;background:none;color:var(--green);font-weight:700;text-decoration:underline;padding:4px}
+/* ranking */
+.rank-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.rank-row:last-child{border:0}
+.rank-n{width:26px;height:26px;border-radius:50%;background:#f1eadb;color:#7a5a2c;display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto}
+.rank-main{flex:1;min-width:0}.rank-top{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.bar{height:7px;background:#eef1ec;border-radius:9px;margin:6px 0 3px;overflow:hidden}.bar span{display:block;height:100%;background:var(--gold);border-radius:9px}
+/* campana y avisos */
+.bell{position:relative;border:1px solid var(--line);background:#fff;border-radius:50%;width:36px;height:36px;font-size:16px}
+.bell b{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border-radius:99px;font-size:10px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px}
+.toast-wrap{position:fixed;top:14px;right:14px;z-index:30;display:grid;gap:8px;max-width:min(360px,calc(100vw - 28px))}
+.toast{background:var(--green);color:#fff;padding:12px 14px;border-radius:11px;box-shadow:0 10px 30px #0003;font-size:13px;animation:tin .25s ease-out;transition:opacity .4s,transform .4s}
+.toast.ready{background:#2f5f8f}.toast.out{opacity:0;transform:translateY(-8px)}@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+.side-foot .btn{margin-top:10px;background:transparent;color:#dce4dc;border-color:#ffffff30;width:100%}
+@media(max-width:700px){
+ .form2{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}.filters>input{grid-column:1/-1}
+ .sticky-foot{bottom:calc(-18px - env(safe-area-inset-bottom));margin:14px -16px calc(-18px - env(safe-area-inset-bottom));padding:10px 16px calc(12px + env(safe-area-inset-bottom))}
+ .sticky-foot .modal-actions{display:grid;grid-template-columns:1fr 2fr}
+ .pick-list{max-height:42vh}.qr-btn{min-height:56px!important;font-size:16px!important}
+ .head-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.head-actions .btn{width:100%}
+ .toast-wrap{top:auto;bottom:86px;left:12px;right:12px;max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+ <div class="brand"><div class="brand-mark">LC</div><h1>LA CAVA</h1><p>COPAS Y TABLAS</p></div>
+ <nav class="nav" id="sideNav">
+  <button class="active" data-page="dashboard"><span class="ico">⌂</span>Dashboard</button>
+  <button data-page="mesas"><span class="ico">▦</span>Mesas</button>
+  <button data-page="pedidos"><span class="ico">＋</span>Pedidos</button>
+  <button data-page="preparacion"><span class="ico">♨</span>Preparación</button>
+  <button data-page="menu"><span class="ico">☷</span>Menú y productos</button>
+  <button data-page="caja"><span class="ico">＄</span>Caja</button>
+  <button data-page="arqueo"><span class="ico">▣</span>Arqueo de caja</button>
+  <button data-page="inventario"><span class="ico">▤</span>Inventario</button>
+  <button data-page="informes"><span class="ico">▥</span>Informes</button>
+  <button data-page="usuarios"><span class="ico">♙</span>Usuarios y roles</button>
+ </nav>
+ <div class="side-foot">Demo interactiva · Datos de ejemplo<br>La Cava © 2026<button class="btn small" onclick="resetDemo()">↺ Restablecer datos de demo</button></div>
+</aside>
+<main class="main">
+ <header class="topbar"><div><div class="crumb">La Cava / <strong id="crumb">Dashboard</strong></div></div><div class="user"><span>● Servicio de hoy</span><select aria-label="Simular rol" id="roleSimulator" onchange="switchRole(this.value)" style="border:1px solid var(--line);border-radius:8px;padding:7px;background:white;font-size:12px"><option>Administrador</option><option>Cajero</option><option>Mesero</option><option>Preparación</option></select><select aria-label="Mesero" id="waiterSelect" class="hide" onchange="setWaiter(this.value)" style="border:1px solid var(--line);border-radius:8px;padding:7px;background:white;font-size:12px"></select><button class="bell hide" id="bell" onclick="bellClick()" aria-label="Avisos">🔔<b id="bellCount" class="hide">0</b></button><div class="avatar" id="roleAvatar">AD</div></div></header>
+ <div class="content" id="view"></div>
+</main>
+</div>
+<nav class="mobile-nav" id="mobileNav">
+ <button class="active" data-page="dashboard"><span>⌂</span>Inicio</button><button data-page="mesas"><span>▦</span>Mesas</button><button data-page="pedidos"><span>＋</span>Pedidos</button><button data-page="preparacion"><span>♨</span>Preparación</button><button data-page="caja"><span>＄</span>Caja</button><button data-page="arqueo"><span>▣</span>Arqueo</button><button data-page="usuarios"><span>♙</span>Usuarios</button>
+</nav>
+<div class="toast-wrap" id="toasts" aria-live="polite"></div>
+<div class="modal-back" id="modalBack"><div class="modal" id="modal"></div></div>
+<script>
+/* ================== Utilidades ================== */
+const money=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n||0);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const isoDate=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayISO=()=>isoDate(new Date());
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return isoDate(d)};
+const fmtDate=s=>s?new Date(s+'T00:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const daysUntil=s=>Math.round((new Date(s+'T00:00:00')-new Date(todayISO()+'T00:00:00'))/864e5);
+const hhmm=d=>new Date(d).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+const store={get:(s,k)=>{try{return s.getItem(k)}catch(e){return null}},set:(s,k,v)=>{try{s.setItem(k,v)}catch(e){}}};
+const LS=(()=>{try{return window.localStorage}catch(e){return null}})(),SS=(()=>{try{return window.sessionStorage}catch(e){return null}})();
+const STORE_KEY='lacava-demo-v2',EXPIRY_WARN_DAYS=3,TABLES=Array.from({length:12},(_,i)=>i+1);
+const denominations=[100000,50000,20000,10000,5000,2000,1000,500,200,100,50];
+const PAGE_TITLES={dashboard:'Dashboard',mesas:'Mesas',pedidos:'Pedidos',preparacion:'Preparación',menu:'Menú y productos',caja:'Caja',arqueo:'Arqueo de caja',inventario:'Inventario',informes:'Informes',usuarios:'Usuarios y roles'};
+
+let page='dashboard',selectedTable=1,db=null,ord=null,qrStream=null,qrScanTimer=null;
+let activeRole=(SS&&store.get(SS,'lacava-role'))||'Administrador';
+let currentWaiter=(SS&&store.get(SS,'lacava-waiter'))||'Laura';
+const ui={orders:{status:'Todos',q:''},menu:{q:'',cat:'Todas',state:'Todos'},inv:{q:'',cat:'Todas',state:'Todos',season:'Todas'}};
+
+/* ================== Datos de ejemplo ================== */
+function seed(){
+ const now=Date.now(),ago=m=>new Date(now-m*60000).toISOString(),year=new Date().getFullYear();
+ const lot=(id,qty,days,season='')=>({id,qty,expires:addDays(days),season,received:addDays(-2)});
+ const P=(id,name,cat,price,emoji,desc,min,lots,season=null)=>({id,name,cat,price,emoji,desc,min,lots,season,active:true});
+ const products=[
+  P(1,'Tabla La Cava','Tablas',58000,'🧀','Selección de quesos y charcutería',4,[lot(1,9,3)]),
+  P(2,'Tabla para dos','Tablas',42000,'🥖','Para compartir',4,[lot(2,7,4)]),
+  P(3,'Copa de vino tinto','Vinos',18000,'🍷','Copa de la casa',10,[lot(3,36,240)]),
+  P(4,'Vino botella','Vinos',95000,'🍾','Selección de la casa',3,[lot(4,8,400)]),
+  P(5,'Cóctel de frutos rojos','Cócteles',26000,'🍹','Preparación de la casa',5,[lot(5,14,2)]),
+  P(6,'Limonada natural','Bebidas',12000,'🍋','Natural y refrescante',5,[lot(6,12,1)]),
+  P(7,'Agua','Bebidas',6000,'💧','Agua personal',10,[lot(7,30,180)]),
+  P(8,'Postre de la casa','Postres',16000,'🍰','Porción individual',4,[lot(8,2,-1),lot(9,3,1)]),
+  P(9,'Tabla vegetariana','Tablas',45000,'🥗','Quesos, frutas y frutos secos',3,[]),
+  P(10,'Vino caliente navideño','Vinos',22000,'🎄','Especial de temporada',5,[lot(10,15,20,'Navidad')],{name:'Navidad',until:year+'-12-31'}),
+  P(11,'Sangría de verano','Cócteles',24000,'🍊','Especial de temporada',5,[lot(11,6,30,'Verano')],{name:'Verano',until:addDays(-10)})
+ ];
+ const O=(id,table,waiter,items,status,mins,extra={})=>({id,table,waiter,items:items.map(([product,qty,note=''])=>({product,qty,note})),note:'',status,time:hhmm(ago(mins)),createdAt:ago(mins),paid:false,...extra});
+ const paid=(no,method,mins,extra={})=>({paid:true,payment:method,invoiceNo:'LC-'+year+'-'+pad(no).padStart(5,'0'),paidAt:ago(mins),customer:{},cashier:'Camila',...extra});
+ const orders=[
+  O(98,3,'Laura',[[3,4],[2,1]],'Cerrado',260,paid(1,'Efectivo',200,{received:120000,change:6000})),
+  O(99,6,'Andrés',[[1,1],[4,1]],'Cerrado',230,paid(2,'Datáfono',170,{approvalNumber:'845921'})),
+  O(100,1,'Laura',[[5,3],[7,2],[3,2]],'Cerrado',150,paid(3,'Transferencia',90)),
+  O(101,2,'Laura',[[1,1],[3,2]],'En preparación',18),
+  O(102,5,'Andrés',[[5,2,'Sin hielo']],'Listo',12,{readyAt:ago(3)}),
+  O(103,8,'Laura',[[2,1],[6,1]],'Pendiente',9)
+ ];
+ return {version:2,products,orders,
+  users:[{id:1,name:'Administrador Demo',username:'admin',role:'Administrador',active:true},{id:2,name:'Laura Gómez',username:'laura',role:'Mesero',active:true},{id:3,name:'Andrés Rojas',username:'andres',role:'Mesero',active:true},{id:4,name:'Camila Torres',username:'camila',role:'Cajero',active:true},{id:5,name:'Jorge Ruiz',username:'jorge',role:'Preparación',active:true}],
+  notifications:[{id:1,orderId:102,table:5,waiter:'Andrés',at:ago(3),seen:false}],
+  stockMoves:[],
+  cashShift:{opened:false,closed:false,base:0,movements:[],count:{},openedAt:null},
+  seq:{order:104,invoice:4,lot:20,product:12,notif:2,user:6}};
+}
+function loadState(){let raw=LS&&store.get(LS,STORE_KEY);try{const s=raw&&JSON.parse(raw);if(s&&s.version===2)return s}catch(e){}return seed()}
+function saveState(){if(LS)store.set(LS,STORE_KEY,JSON.stringify(db))}
+function commit(){saveState();render()}
+function resetDemo(){if(!confirm('¿Restablecer los datos de ejemplo? Se perderán los cambios hechos en la demo.'))return;db=seed();commit();toast('Datos de la demo restablecidos.')}
+
+/* ================== Reglas de negocio ================== */
+const product=id=>db.products.find(p=>p.id===id);
+const validLots=p=>p.lots.filter(l=>l.qty>0&&l.expires>=todayISO()).sort((a,b)=>a.expires.localeCompare(b.expires));
+const expiredLots=p=>p.lots.filter(l=>l.qty>0&&l.expires<todayISO());
+const available=p=>validLots(p).reduce((s,l)=>s+l.qty,0);
+const nextExpiry=p=>validLots(p)[0]?.expires||null;
+const seasonOver=p=>!!(p.season&&p.season.until<todayISO());
+function offerBlock(p){if(!p.active)return 'Retirado de la carta';if(seasonOver(p))return 'Fuera de temporada';if(available(p)<1)return 'Agotado';return ''}
+function stockState(p){if(!p.active)return {label:'Inactivo',cls:'danger'};if(seasonOver(p))return {label:'Fuera de temporada',cls:'danger'};const a=available(p);if(a<1)return {label:'Agotado',cls:'danger'};if(a<=p.min)return {label:'Stock bajo',cls:'busy'};return {label:'Disponible',cls:''}}
+const expiringSoon=p=>{const e=nextExpiry(p);return e!==null&&daysUntil(e)<=EXPIRY_WARN_DAYS};
+function consume(p,qty){let left=qty;for(const l of validLots(p)){const t=Math.min(l.qty,left);l.qty-=t;left-=t;if(!left)break}return qty-left}
+const totalOrder=o=>o.items.reduce((s,i)=>s+(product(i.product)?.price||0)*i.qty,0);
+const openOrders=id=>db.orders.filter(o=>o.table===id&&!o.paid);
+const tableTotal=id=>openOrders(id).reduce((s,o)=>s+totalOrder(o),0);
+const waiterNames=()=>db.users.filter(u=>u.role==='Mesero'&&u.active).map(u=>u.name.split(' ')[0]);
+const myNotifs=()=>db.notifications.filter(n=>!n.seen&&n.waiter===currentWaiter);
+function tableState(id){const os=openOrders(id);if(!os.length)return {status:'Disponible'};const has=s=>os.some(o=>o.status===s);return {status:'Ocupada',stage:has('Listo')?'Listo para recoger':has('En preparación')?'En preparación':has('Pendiente')?'Pendiente':'Servido'}}
+function statePill(s){const c={'Pendiente':'pending','En preparación':'busy','Listo':'ready','Listo para recoger':'ready glow','Entregado':'','Servido':'','Cerrado':'','Ocupada':'busy','Disponible':''}[s]??'';return `<span class="pill ${c}">${esc(s)}</span>`}
+function topProducts(list){const m={};list.forEach(o=>o.items.forEach(i=>{const p=product(i.product);if(!p)return;m[p.id]=m[p.id]||{p,qty:0,value:0};m[p.id].qty+=i.qty;m[p.id].value+=i.qty*p.price}));return Object.values(m).sort((a,b)=>b.qty-a.qty||b.value-a.value)}
+const isToday=iso=>iso&&isoDate(new Date(iso))===todayISO();
+
+/* ================== Notificaciones ================== */
+function toast(msg,type=''){const w=$('toasts');if(!w)return;const t=document.createElement('div');t.className='toast '+type;t.innerHTML=msg;w.appendChild(t);setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),400)},4200)}
+function buzz(){try{navigator.vibrate&&navigator.vibrate([180,90,180])}catch(e){}}
+function updateBell(){const b=$('bell');if(!b)return;let n=0;if(activeRole==='Mesero')n=myNotifs().length;else if(activeRole==='Preparación')n=db.orders.filter(o=>!o.paid&&o.status==='Pendiente').length;b.classList.toggle('hide',!['Mesero','Preparación'].includes(activeRole));$('bellCount').textContent=n;$('bellCount').classList.toggle('hide',!n);b.title=activeRole==='Mesero'?'Pedidos listos para recoger':'Comandas pendientes'}
+function bellClick(){go(activeRole==='Mesero'?'mesas':'preparacion')}
+/* Sincroniza pestañas del mismo navegador (p. ej. una en Preparación y otra en Mesero) */
+window.addEventListener('storage',e=>{if(e.key!==STORE_KEY||!e.newValue)return;let next;try{next=JSON.parse(e.newValue)}catch(err){return}const prev=db;db=next;
+ if(activeRole==='Mesero'){const old=new Set(prev.notifications.filter(n=>!n.seen).map(n=>n.id));const fresh=myNotifs().filter(n=>!old.has(n.id));if(fresh.length){buzz();fresh.forEach(n=>toast('🔔 <b>Pedido #'+n.orderId+' listo</b> · Mesa '+n.table+'. Pasa a recogerlo.','ready'))}}
+ if(activeRole==='Preparación'){const old=new Set(prev.orders.map(o=>o.id));db.orders.filter(o=>!old.has(o.id)).forEach(o=>{buzz();toast('♨ <b>Nuevo pedido #'+o.id+'</b> · Mesa '+o.table+' · '+esc(o.waiter))})}
+ if(!$('modalBack').classList.contains('show'))render();else updateBell();});
+
+/* ================== Navegación ================== */
+function go(p){page=p;document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));$('crumb').textContent=PAGE_TITLES[p];render()}
+document.querySelectorAll('#sideNav [data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+function head(title,sub,action=''){return `<div class="page-head"><div><div class="eyebrow">La Cava · Copas y tablas</div><h2>${title}</h2><p class="sub">${sub}</p></div>${action}</div>`}
+function render(){const v=$('view');({dashboard:dash,mesas:renderTables,pedidos:renderOrders,preparacion:renderKitchen,menu:renderMenu,caja:renderCash,arqueo:renderArqueo,inventario:renderInventory,informes:renderReports,usuarios:renderUsers})[page](v);updateBell()}
+
+/* ================== Dashboard ================== */
+function tileHTML(id,clickable=true){const st=tableState(id),os=openOrders(id),last=os.at(-1);const inner=`<span class="tile-pills"><span class="pill ${st.status==='Ocupada'?'busy':''}">${st.status}</span>${st.stage?statePill(st.stage):''}</span><span class="num">Mesa ${id}</span><span class="meta">${os.length?os.length+' pedido(s) · '+money(tableTotal(id))+' · '+esc(last.waiter):'Sin pedidos abiertos'}</span>`;const cls='table-tile '+(st.status==='Ocupada'?'occupied ':'')+(st.stage==='Listo para recoger'?'ready-tile':'');return clickable?`<button class="${cls}" onclick="openTable(${id})">${inner}</button>`:`<div class="${cls}">${inner}</div>`}
+function dash(v){const open=db.orders.filter(o=>!o.paid),todayPaid=db.orders.filter(o=>o.paid&&isToday(o.paidAt)),month=todayISO().slice(0,7),top=topProducts(monthOrders(month))[0];
+ const alerts=db.products.filter(p=>p.active&&!seasonOver(p)&&available(p)<1).length,soon=db.products.filter(p=>expiringSoon(p)).length,exp=db.products.filter(p=>expiredLots(p).length).length;
+ v.innerHTML=head('Resumen del servicio','Una vista rápida de la operación de hoy',`<button class="btn primary" onclick="openOrder()">＋ Nuevo pedido</button>`)+`
+ <div class="grid stats"><div class="card"><div class="stat-label">Ventas cobradas hoy</div><div class="stat-value">${money(todayPaid.reduce((s,o)=>s+totalOrder(o),0))}</div><div class="stat-note">${new Set(todayPaid.map(o=>o.invoiceNo)).size} comprobante(s)</div></div><div class="card"><div class="stat-label">Pedidos activos</div><div class="stat-value">${open.length}</div><div class="stat-note">${open.filter(o=>o.status==='Listo').length} listo(s) para recoger</div></div><div class="card"><div class="stat-label">Mesas ocupadas</div><div class="stat-value">${TABLES.filter(t=>openOrders(t).length).length} / ${TABLES.length}</div><div class="stat-note">Mesas en servicio</div></div><div class="card"><div class="stat-label">Por cobrar</div><div class="stat-value">${money(open.reduce((s,o)=>s+totalOrder(o),0))}</div><div class="stat-note">Cuentas abiertas</div></div></div>
+ ${activeRole==='Administrador'?`<div class="grid stats"><div class="card"><div class="stat-label">Producto más vendido del mes</div><div class="stat-value" style="font-size:19px">${top?top.p.emoji+' '+esc(top.p.name):'—'}</div><div class="stat-note">${top?top.qty+' unidades · '+money(top.value):'Sin ventas este mes'}</div></div><div class="card" onclick="ui.inv.state='Agotado';go('inventario')" style="cursor:pointer"><div class="stat-label">Productos agotados</div><div class="stat-value" style="color:${alerts?'var(--red)':'inherit'}">${alerts}</div><div class="stat-note">No se ofrecen en la carta</div></div><div class="card" onclick="ui.inv.state='Por vencer';go('inventario')" style="cursor:pointer"><div class="stat-label">Por vencer (≤ ${EXPIRY_WARN_DAYS} días)</div><div class="stat-value" style="color:${soon?'var(--amber)':'inherit'}">${soon}</div><div class="stat-note">Productos con lote próximo a vencer</div></div><div class="card" onclick="ui.inv.state='Con lotes vencidos';go('inventario')" style="cursor:pointer"><div class="stat-label">Con lotes vencidos</div><div class="stat-value" style="color:${exp?'var(--red)':'inherit'}">${exp}</div><div class="stat-note">Pendientes de dar de baja</div></div></div>`:''}
+ <div class="grid layout2"><section class="card"><div class="section-title"><h3>Estado de las mesas</h3><button class="btn small" onclick="go('mesas')">Ver todas</button></div><div class="grid table-grid">${TABLES.slice(0,8).map(t=>tileHTML(t)).join('')}</div></section>
+ <section class="card"><div class="section-title"><h3>Actividad reciente</h3>${activeRole==='Administrador'?`<button class="btn small" onclick="go('preparacion')">Ver comandas</button>`:''}</div><div class="list">${db.orders.slice().reverse().slice(0,6).map(o=>`<div class="order-row"><div><strong>Pedido #${o.id} · Mesa ${o.table}</strong><small>${esc(o.waiter)} · ${o.time} · ${esc(o.status)}</small></div><span class="money">${money(totalOrder(o))}</span></div>`).join('')}</div></section></div>`}
+
+/* ================== Mesas ================== */
+const LEGEND='<div class="toolbar legend"><span class="pill">● Disponible</span><span class="pill busy">● Ocupada</span><span class="pill pending">Pendiente</span><span class="pill busy">En preparación</span><span class="pill ready">Listo para recoger</span><span class="pill">Servido</span></div>';
+function renderTables(v){
+ if(activeRole==='Mesero'){
+  const notes=myNotifs(),mine=db.orders.filter(o=>!o.paid&&o.waiter===currentWaiter&&o.status!=='Entregado');
+  v.innerHTML=head('Mis mesas','Hola '+esc(currentWaiter)+'. Escanea el QR de la mesa para cargarla y asignarle pedidos.',`<button class="btn primary qr-btn" onclick="openQrScanner()">▦ Escanear QR de mesa</button>`)+
+  (notes.length?`<section class="card ready-box"><div class="section-title"><h3>🔔 Listos para recoger</h3><span class="pill ready glow">${notes.length}</span></div>${notes.map(n=>{const o=db.orders.find(x=>x.id===n.orderId);return `<div class="order-row"><div><strong>Pedido #${n.orderId} · Mesa ${n.table}</strong><small>${o?o.items.map(i=>i.qty+'× '+esc(product(i.product)?.name)).join(', '):''} · avisado ${hhmm(n.at)}</small></div><button class="btn primary small" onclick="deliverOrder(${n.orderId})">Recogido y entregado</button></div>`}).join('')}</section>`:'')+
+  `<section class="card" style="margin-bottom:16px"><div class="section-title"><h3>Mis pedidos en curso</h3><span class="pill">${mine.length}</span></div>${mine.length?mine.map(o=>`<div class="order-row"><div><strong>Pedido #${o.id} · Mesa ${o.table}</strong><small>${o.time} · ${o.items.reduce((s,i)=>s+i.qty,0)} producto(s)</small></div>${statePill(o.status)}</div>`).join(''):'<div class="empty">No tienes pedidos en curso.</div>'}</section>`+
+  LEGEND+`<div class="grid table-grid">${TABLES.map(t=>tileHTML(t,false)).join('')}</div><p class="notice">Para abrir una mesa, escanea el código QR pegado en ella. Así el pedido queda asignado a la mesa correcta.</p>`;return}
+ v.innerHTML=head('Mesas','Consulta las mesas, el estado de sus pedidos y sus cuentas.')+LEGEND+`<div class="grid table-grid">${TABLES.map(t=>tileHTML(t)).join('')}</div>`}
+function orderBlock(o,waiterView){return `<section class="order-box"><div class="section-title"><div><strong>Pedido #${o.id}</strong><div class="sub">${esc(o.waiter)} · ${o.time}</div></div>${statePill(o.status)}</div>${o.items.map(i=>{const p=product(i.product);return `<div class="order-row"><div><strong>${i.qty} × ${esc(p?.name||'Producto')}</strong>${i.note?`<small>Obs.: ${esc(i.note)}</small>`:''}</div><span class="money">${money((p?.price||0)*i.qty)}</span></div>`}).join('')}${o.note?`<p class="sub">Observación: ${esc(o.note)}</p>`:''}${waiterView&&o.status==='Listo'?`<button class="btn primary" style="width:100%;margin-top:8px" onclick="deliverOrder(${o.id},true)">Recogido y entregado en la mesa</button>`:''}</section>`}
+function openTable(id,viaQr=false){
+ if(activeRole==='Mesero'&&!viaQr){toast('Escanea el QR de la mesa para abrirla.');return}
+ selectedTable=id;const os=openOrders(id);
+ if(activeRole==='Mesero'){showModal(`<div class="modal-head"><div><div class="eyebrow">Mesa cargada por QR · ${esc(currentWaiter)}</div><h3>Mesa ${id}</h3></div><button class="close" onclick="closeModal()">×</button></div>${statePill(os.length?'Ocupada':'Disponible')} <p class="sub">${os.length?os.length+' pedido(s) en la cuenta':'Mesa disponible para recibir un pedido.'}</p>${os.map(o=>orderBlock(o,true)).join('')}<div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn primary" onclick="closeModal();openOrder(${id})">＋ Asignar pedido</button></div>`);return}
+ const canPay=['Administrador','Cajero'].includes(activeRole);
+ showModal(`<div class="modal-head"><div><div class="eyebrow">Detalle de consumo · Cuenta de mesa</div><h3>Mesa ${id}</h3></div><button class="close" onclick="closeModal()">×</button></div><p class="sub">${os.length?os.length+' pedido(s) asociados':'Esta mesa está disponible'}</p>${os.length?os.map(o=>orderBlock(o,false)).join(''):'<div class="empty">Aún no hay pedidos en esta mesa.</div>'}<div class="total-line"><span>Total pendiente de la mesa</span><span>${money(tableTotal(id))}</span></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn primary" onclick="closeModal();openOrder(${id})">＋ Agregar pedido</button>${os.length&&canPay?`<button class="btn gold" onclick="closeModal();payTable(${id})">Cobrar cuenta</button>`:''}</div>`)}
+function deliverOrder(orderId,fromModal){const o=db.orders.find(x=>x.id===orderId);if(!o||o.status!=='Listo'){toast('Ese pedido ya no está pendiente de recoger.');return}o.status='Entregado';o.deliveredAt=new Date().toISOString();db.notifications.forEach(n=>{if(n.orderId===orderId)n.seen=true});if(fromModal)closeModal();commit();toast('✓ Pedido #'+o.id+' entregado en la mesa '+o.table+'.')}
+
+/* ================== QR ================== */
+function openQrScanner(){showModal('<div class="modal-head"><h3>Escanear QR de mesa</h3><button class="close" onclick="stopQrCamera();closeModal()">×</button></div><p class="sub">Apunta la cámara al código QR de la mesa. Si la cámara no está disponible, escribe el código impreso.</p><video id="qrVideo" playsinline muted style="width:100%;max-height:260px;background:#111;border-radius:12px;display:none;margin-top:10px"></video><div class="field"><label>Código de mesa</label><input id="qrCodeInput" placeholder="LACAVA:MESA:4" autocomplete="off" onkeydown="if(event.key===\'Enter\')loadQrTable()"></div><div class="modal-actions"><button class="btn" onclick="startQrCamera()">Activar cámara</button><button class="btn primary" onclick="loadQrTable()">Cargar mesa</button></div><p class="sub" id="qrStatus">Formato de demo: LACAVA:MESA:1 a LACAVA:MESA:12 (también acepta M4).</p>');if(window.isSecureContext&&'BarcodeDetector'in window)startQrCamera()}
+function stopQrCamera(){if(qrScanTimer){clearInterval(qrScanTimer);qrScanTimer=null}if(qrStream){qrStream.getTracks().forEach(t=>t.stop());qrStream=null}}
+async function startQrCamera(){if(!('BarcodeDetector'in window)){$('qrStatus').textContent='Este navegador no lee QR con la cámara (p. ej. Safari en iPhone). Escribe el código de la mesa.';return}try{const detector=new BarcodeDetector({formats:['qr_code']});qrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});const video=$('qrVideo');if(!video){stopQrCamera();return}video.srcObject=qrStream;video.style.display='block';await video.play();$('qrStatus').textContent='Buscando código QR…';qrScanTimer=setInterval(async()=>{try{const codes=await detector.detect(video);if(codes.length){$('qrCodeInput').value=codes[0].rawValue;loadQrTable()}}catch(e){}},350)}catch(e){$('qrStatus').textContent='No se pudo activar la cámara. Revisa los permisos o escribe el código.'}}
+function loadQrTable(){const value=$('qrCodeInput').value.trim();const m=value.match(/(?:LACAVA\s*[:_-]?\s*)?(?:MESA|TABLE)\s*[:_-]?\s*(\d+)/i)||value.match(/^M(\d+)$/i);const id=Number(m&&m[1]);if(!id||!TABLES.includes(id)){$('qrStatus').textContent='Código inválido. Usa LACAVA:MESA:1 hasta LACAVA:MESA:12.';return}stopQrCamera();closeModal();openTable(id,true)}
+
+/* ================== Pedidos ================== */
+function renderOrders(v){const states=['Todos','Pendiente','En preparación','Listo','Entregado','Cerrado'];
+ v.innerHTML=head('Pedidos','Registra consumos en la mesa. Una cuenta puede contener varios pedidos.',`<button class="btn primary" onclick="openOrder()">＋ Nuevo pedido</button>`)+`<div class="toolbar"><input type="search" placeholder="Buscar por #pedido, mesa o mesero…" value="${esc(ui.orders.q)}" oninput="ui.orders.q=this.value.trim().toLowerCase();fillOrders()"></div><div class="tabs">${states.map(s=>`<button class="tab ${ui.orders.status===s?'active':''}" onclick="ui.orders.status='${s}';render()">${s} <small>(${s==='Todos'?db.orders.length:db.orders.filter(o=>o.status===s).length})</small></button>`).join('')}</div><div class="table-wrap"><table><thead><tr><th>Pedido</th><th>Mesa</th><th>Mesero</th><th>Estado</th><th>Total</th><th></th></tr></thead><tbody id="ordersBody"></tbody></table></div>`;fillOrders()}
+function fillOrders(){const q=ui.orders.q,list=db.orders.filter(o=>(ui.orders.status==='Todos'||o.status===ui.orders.status)&&(!q||('#'+o.id+' mesa '+o.table+' '+o.waiter).toLowerCase().includes(q))).slice().reverse();$('ordersBody').innerHTML=list.length?list.map(o=>`<tr><td><strong>#${o.id}</strong><br><small>${o.time}</small></td><td>Mesa ${o.table}</td><td>${esc(o.waiter)}</td><td>${statePill(o.status)}</td><td><strong>${money(totalOrder(o))}</strong></td><td><button class="btn small" onclick="viewOrder(${o.id})">Detalle</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">No hay pedidos con ese filtro.</td></tr>'}
+function viewOrder(id){const o=db.orders.find(x=>x.id===id);showModal(`<div class="modal-head"><h3>Pedido #${o.id} · Mesa ${o.table}</h3><button class="close" onclick="closeModal()">×</button></div>${orderBlock(o,false)}<div class="total-line"><span>Total</span><span>${money(totalOrder(o))}</span></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn primary" onclick="printOrder(${o.id})">Imprimir comanda</button></div>`)}
+
+/* Modal de nuevo pedido: filtros funcionales y resumen fijo abajo */
+function openOrder(tableId){
+ if(activeRole==='Mesero'&&!tableId){openQrScanner();return}
+ ord={table:tableId||null,cat:'Todas',search:'',cart:[]};
+ const cats=['Todas',...new Set(db.products.map(p=>p.cat))],waiter=activeRole==='Mesero';
+ const names=waiterNames();
+ showModal(`<div class="modal-head"><div><div class="eyebrow">${waiter?'Mesa '+tableId+' · '+esc(currentWaiter):'Servicio en mesa'}</div><h3>Nuevo pedido</h3></div><button class="close" onclick="closeModal()">×</button></div>
+ ${waiter?'':`<div class="form2"><div class="field"><label>Mesa</label><select id="orderTable">${TABLES.map(t=>`<option value="${t}" ${t===tableId?'selected':''}>Mesa ${t}${openOrders(t).length?' · Ocupada':''}</option>`).join('')}</select></div><div class="field"><label>Mesero que atiende</label><select id="orderWaiter">${names.map(n=>`<option>${esc(n)}</option>`).join('')}</select></div></div>`}
+ <div class="field"><label>Buscar producto</label><input id="productSearch" type="search" placeholder="Nombre, descripción o categoría…" autocomplete="off" oninput="ord.search=this.value.trim().toLowerCase();drawPicker()"></div>
+ <div class="tabs" id="catTabs">${cats.map(c=>`<button type="button" class="tab ${c==='Todas'?'active':''}" data-cat="${esc(c)}" onclick="setOrderCat(this)">${esc(c)}</button>`).join('')}</div>
+ <div id="pickerList" class="pick-list"></div>
+ <div id="cartBox" class="cart-box"></div>
+ <div class="field"><label>Observación general (opcional)</label><input id="orderNote" maxlength="140" placeholder="Ej. atender primero las bebidas"></div>
+ <div class="sticky-foot"><div class="sticky-sum"><span id="cartSum"></span><button type="button" class="link" onclick="$('cartBox').scrollIntoView({behavior:'smooth',block:'center'})">Ver pedido ↓</button></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="sendOrderBtn" onclick="saveOrder()">Enviar a preparación</button></div></div>`);
+ drawPicker();drawCart()}
+function setOrderCat(btn){ord.cat=btn.dataset.cat;document.querySelectorAll('#catTabs .tab').forEach(b=>b.classList.toggle('active',b===btn));drawPicker()}
+function drawPicker(){const s=ord.search,list=db.products.filter(p=>(ord.cat==='Todas'||p.cat===ord.cat)&&(!s||(p.name+' '+p.desc+' '+p.cat).toLowerCase().includes(s))).sort((a,b)=>(!!offerBlock(a))-(!!offerBlock(b)));
+ $('pickerList').innerHTML=list.length?list.map(p=>{const block=offerBlock(p),item=ord.cart.find(x=>x.id===p.id),left=available(p)-(item?.qty||0);
+  return `<div class="pick-row ${block?'off':''}"><span class="pick-emoji">${p.emoji}</span><div class="pick-info"><strong>${esc(p.name)}</strong><small>${money(p.price)} · ${block?`<b class="txt-red">${block}</b>`:left+' disponible(s)'}${p.season&&!block?' · '+esc(p.season.name):''}</small></div>${block?'<span class="pill danger">No disponible</span>':item?`<div class="stepper"><button onclick="cartAdd(${p.id},-1)" aria-label="Quitar">−</button><b>${item.qty}</b><button onclick="cartAdd(${p.id},1)" ${left<1?'disabled':''} aria-label="Agregar">+</button></div>`:`<button class="btn small" onclick="cartAdd(${p.id},1)">Agregar</button>`}</div>`}).join(''):'<div class="empty">No hay productos que coincidan con el filtro.</div>'}
+function cartAdd(id,d){const p=product(id);let it=ord.cart.find(x=>x.id===id);if(d>0){if(offerBlock(p))return;if((it?.qty||0)+1>available(p)){toast('Solo hay '+available(p)+' unidad(es) de '+esc(p.name)+'.');return}if(!it){it={id,qty:0,note:''};ord.cart.push(it)}}if(!it)return;it.qty+=d;if(it.qty<=0)ord.cart=ord.cart.filter(x=>x!==it);drawPicker();drawCart()}
+function drawCart(){const units=ord.cart.reduce((s,x)=>s+x.qty,0),total=ord.cart.reduce((s,x)=>s+x.qty*product(x.id).price,0);
+ $('cartBox').innerHTML='<h4>Pedido actual</h4>'+(ord.cart.length?ord.cart.map(x=>{const p=product(x.id);return `<div class="cart-line"><div class="cart-main"><span>${x.qty} × ${esc(p.name)}</span><strong>${money(p.price*x.qty)}</strong></div><input class="note-in" maxlength="80" placeholder="Observación (ej. sin hielo)" value="${esc(x.note)}" oninput="ord.cart.find(c=>c.id===${x.id}).note=this.value"></div>`}).join(''):'<div class="empty">Agrega productos al pedido.</div>');
+ $('cartSum').innerHTML=units?`<b>${units}</b> producto(s) · <b>${money(total)}</b>`:'Sin productos';$('sendOrderBtn').disabled=!units}
+function saveOrder(){if(!ord||!ord.cart.length){alert('Agrega al menos un producto.');return}
+ for(const x of ord.cart){const p=product(x.id);if(offerBlock(p)||x.qty>available(p)){alert(p.name+': solo hay '+available(p)+' disponible(s).');drawPicker();return}}
+ const waiter=activeRole==='Mesero';const table=waiter?ord.table:Number($('orderTable').value),who=waiter?currentWaiter:$('orderWaiter').value;
+ if(!who){alert('No hay meseros activos para asignar.');return}
+ ord.cart.forEach(x=>consume(product(x.id),x.qty));
+ const now=new Date().toISOString(),o={id:db.seq.order++,table,waiter:who,items:ord.cart.map(x=>({product:x.id,qty:x.qty,note:x.note.trim()})),note:$('orderNote').value.trim(),status:'Pendiente',time:hhmm(now),createdAt:now,paid:false};
+ db.orders.push(o);ord=null;closeModal();
+ if(waiter)page='mesas';commit();toast('Pedido #'+o.id+' enviado a preparación · Mesa '+o.table+'.')}
+
+/* ================== Preparación ================== */
+function renderKitchen(v){const open=db.orders.filter(o=>!o.paid&&['Pendiente','En preparación','Listo'].includes(o.status)),order={'Pendiente':0,'En preparación':1,'Listo':2};open.sort((a,b)=>order[a.status]-order[b.status]||a.id-b.id);
+ v.innerHTML=head('Preparación','Gestiona las comandas. Al marcar un pedido como listo se avisa automáticamente al mesero.')+`<div class="toolbar legend">${['Pendiente','En preparación','Listo'].map(s=>statePill(s)+' <b>'+open.filter(o=>o.status===s).length+'</b>').join(' ')}</div><div class="grid kitchen-grid">${open.length?open.map(o=>`<div class="card kitchen-card ${o.status==='Listo'?'ready-card':''}"><div class="section-title"><div><div class="eyebrow">Pedido #${o.id} · ${o.time}</div><h3>Mesa ${o.table}</h3></div>${statePill(o.status)}</div><p class="sub">Mesero: <b>${esc(o.waiter)}</b></p>${o.items.map(i=>`<div class="order-row"><strong>${i.qty} × ${esc(product(i.product)?.name||'Producto')}</strong><small>${esc(i.note)}</small></div>`).join('')}${o.note?`<p class="notice" style="margin-top:8px">${esc(o.note)}</p>`:''}<div class="modal-actions"><button class="btn small" onclick="printOrder(${o.id})">Imprimir comanda</button>${o.status==='Pendiente'?`<button class="btn primary" onclick="setStatus(${o.id},'En preparación')">Iniciar preparación</button>`:o.status==='En preparación'?`<button class="btn gold" onclick="markReady(${o.id})">Listo · avisar a ${esc(o.waiter)}</button>`:`<button class="btn" onclick="markReady(${o.id},true)">Reenviar aviso</button>`}</div>${o.status==='Listo'?`<p class="sub" style="margin-top:10px">🔔 Avisado a ${esc(o.waiter)} ${o.readyAt?'a las '+hhmm(o.readyAt):''}. Esperando que lo recoja.</p>`:''}</div>`).join(''):'<div class="card empty">No hay comandas activas.</div>'}</div>`}
+function setStatus(id,s){const o=db.orders.find(x=>x.id===id);if(!o)return;o.status=s;commit()}
+function markReady(id,resend){const o=db.orders.find(x=>x.id===id);if(!o)return;o.status='Listo';o.readyAt=new Date().toISOString();db.notifications.forEach(n=>{if(n.orderId===id)n.seen=true});db.notifications.push({id:db.seq.notif++,orderId:o.id,table:o.table,waiter:o.waiter,at:o.readyAt,seen:false});commit();toast((resend?'Aviso reenviado':'🔔 Aviso enviado')+' a '+esc(o.waiter)+': pedido #'+o.id+' listo.','ready')}
+
+/* ================== Menú ================== */
+function renderMenu(v){const cats=['Todas',...new Set(db.products.map(p=>p.cat))];
+ v.innerHTML=head('Menú y productos','Administra productos, precios, temporadas y disponibilidad en la carta',`<button class="btn primary" onclick="addProduct()">＋ Producto</button>`)+`<div class="toolbar filters"><input type="search" placeholder="Buscar producto…" value="${esc(ui.menu.q)}" oninput="ui.menu.q=this.value.trim().toLowerCase();fillMenu()"><select onchange="ui.menu.cat=this.value;fillMenu()">${cats.map(c=>`<option value="${esc(c)}" ${ui.menu.cat===c?'selected':''}>${c==='Todas'?'Todas las categorías':esc(c)}</option>`).join('')}</select><select onchange="ui.menu.state=this.value;fillMenu()">${['Todos','En la carta','Agotados','De temporada','Fuera de temporada','Inactivos'].map(s=>`<option value="${s}" ${ui.menu.state===s?'selected':''}>${s==='Todos'?'Todos los estados':s}</option>`).join('')}</select></div><div class="grid menu-grid" id="menuGrid"></div>`;fillMenu()}
+function fillMenu(){const f=ui.menu,list=db.products.filter(p=>(f.cat==='Todas'||p.cat===f.cat)&&(!f.q||(p.name+' '+p.desc).toLowerCase().includes(f.q))&&({'Todos':true,'En la carta':!offerBlock(p),'Agotados':p.active&&!seasonOver(p)&&available(p)<1,'De temporada':!!p.season,'Fuera de temporada':seasonOver(p),'Inactivos':!p.active})[f.state]);
+ $('menuGrid').innerHTML=list.length?list.map(p=>{const st=stockState(p),block=offerBlock(p);return `<div class="product ${block?'off':''}"><div class="product-art">${p.emoji}</div><div class="product-body"><h4>${esc(p.name)}</h4><p>${esc(p.cat)} · ${esc(p.desc)}</p>${p.season?`<p class="season">🗓 ${esc(p.season.name)} · hasta ${fmtDate(p.season.until)}</p>`:''}<div class="product-foot"><strong>${money(p.price)}</strong><span class="pill ${st.cls}">${st.label}</span></div><p class="sub" style="margin:8px 0 0;font-size:11px">${available(p)} disponible(s)${block?' · no se ofrece':''}</p><button class="btn small" style="margin-top:10px;width:100%" onclick="toggleActive(${p.id})">${p.active?'Retirar de la carta':'Volver a la carta'}</button></div></div>`}).join(''):'<div class="card empty" style="grid-column:1/-1">No hay productos con ese filtro.</div>'}
+function toggleActive(id){const p=product(id);p.active=!p.active;commit()}
+function addProduct(){const cats=[...new Set(db.products.map(p=>p.cat))];showModal(`<div class="modal-head"><h3>Nuevo producto</h3><button class="close" onclick="closeModal()">×</button></div><div class="form2"><div class="field"><label>Nombre *</label><input id="pName" maxlength="60"></div><div class="field"><label>Categoría *</label><input id="pCat" list="catList" placeholder="Ej. Vinos"><datalist id="catList">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div><div class="field"><label>Precio (COP) *</label><input id="pPrice" type="number" min="1"></div><div class="field"><label>Stock mínimo</label><input id="pMin" type="number" min="0" value="5"></div></div><div class="field"><label>Descripción</label><input id="pDesc" maxlength="80"></div><h4 style="margin:16px 0 0">Temporada (opcional)</h4><p class="sub">Si es un producto de temporada, deja de ofrecerse automáticamente después de la fecha final.</p><div class="form2"><div class="field"><label>Temporada</label><input id="pSeason" list="seasonList" placeholder="Ej. Navidad"><datalist id="seasonList">${allSeasons().map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div><div class="field"><label>Disponible hasta</label><input id="pUntil" type="date" min="${todayISO()}"></div></div><h4 style="margin:16px 0 0">Inventario inicial (opcional)</h4><div class="form2"><div class="field"><label>Cantidad</label><input id="pQty" type="number" min="0" value="0"></div><div class="field"><label>Fecha de vencimiento</label><input id="pExp" type="date" min="${todayISO()}"></div></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveProduct()">Guardar producto</button></div>`)}
+function saveProduct(){const name=$('pName').value.trim(),cat=$('pCat').value.trim(),price=Number($('pPrice').value),min=Math.max(0,Math.floor(Number($('pMin').value)||0)),season=$('pSeason').value.trim(),until=$('pUntil').value,qty=Math.floor(Number($('pQty').value)||0),exp=$('pExp').value;
+ if(!name||!cat||!(price>0)){alert('Ingresa nombre, categoría y un precio válido.');return}
+ if(db.products.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert('Ya existe un producto con ese nombre.');return}
+ if(season&&!until){alert('Indica hasta qué fecha está disponible la temporada.');return}
+ if(qty<0){alert('La cantidad no puede ser negativa.');return}
+ if(qty>0&&!exp){alert('Indica la fecha de vencimiento del inventario inicial.');return}
+ if(exp&&exp<todayISO()){alert('La fecha de vencimiento no puede estar en el pasado.');return}
+ const p={id:db.seq.product++,name,cat,price,desc:$('pDesc').value.trim(),emoji:'🍽️',min,active:true,season:season?{name:season,until}:null,lots:[]};
+ if(qty>0){p.lots.push({id:db.seq.lot++,qty,expires:exp,season,received:todayISO()});logMove(p,'Entrada',qty,'Inventario inicial'+(season?' · '+season:''))}
+ db.products.push(p);closeModal();commit();toast('Producto '+esc(name)+' creado.')}
+
+/* ================== Inventario ================== */
+function allSeasons(){return [...new Set([...db.products.map(p=>p.season?.name),...db.products.flatMap(p=>p.lots.map(l=>l.season))].filter(Boolean))]}
+function logMove(p,type,qty,detail){db.stockMoves.unshift({at:new Date().toISOString(),product:p.id,type,qty,detail});db.stockMoves=db.stockMoves.slice(0,60)}
+function renderInventory(v){const f=ui.inv,cats=['Todas',...new Set(db.products.map(p=>p.cat))],seasons=['Todas',...allSeasons()];
+ const out=db.products.filter(p=>p.active&&!seasonOver(p)&&available(p)<1).length,low=db.products.filter(p=>stockState(p).label==='Stock bajo').length,soon=db.products.filter(expiringSoon).length,expd=db.products.reduce((s,p)=>s+expiredLots(p).reduce((a,l)=>a+l.qty,0),0);
+ v.innerHTML=head('Inventario','Existencias por producto, lotes, temporadas y fechas de vencimiento',`<div class="head-actions"><button class="btn" onclick="stockOut()">− Salida / merma</button><button class="btn primary" onclick="stockIn()">＋ Registrar entrada</button></div>`)+
+ `<div class="grid stats"><div class="card"><div class="stat-label">Agotados (no se ofrecen)</div><div class="stat-value" style="color:${out?'var(--red)':'inherit'}">${out}</div></div><div class="card"><div class="stat-label">Stock bajo</div><div class="stat-value" style="color:${low?'var(--amber)':'inherit'}">${low}</div></div><div class="card"><div class="stat-label">Vencen en ≤ ${EXPIRY_WARN_DAYS} días</div><div class="stat-value" style="color:${soon?'var(--amber)':'inherit'}">${soon}</div></div><div class="card"><div class="stat-label">Unidades vencidas</div><div class="stat-value" style="color:${expd?'var(--red)':'inherit'}">${expd}</div>${expd?'<button class="btn small" onclick="writeOffExpired()">Dar de baja vencidos</button>':'<div class="stat-note">Sin vencidos</div>'}</div></div>
+ <div class="toolbar filters"><input type="search" placeholder="Buscar producto…" value="${esc(f.q)}" oninput="ui.inv.q=this.value.trim().toLowerCase();fillInventory()"><select onchange="ui.inv.cat=this.value;fillInventory()">${cats.map(c=>`<option value="${esc(c)}" ${f.cat===c?'selected':''}>${c==='Todas'?'Todas las categorías':esc(c)}</option>`).join('')}</select><select onchange="ui.inv.state=this.value;fillInventory()">${['Todos','Disponible','Stock bajo','Agotado','Por vencer','Con lotes vencidos','Fuera de temporada'].map(s=>`<option value="${s}" ${f.state===s?'selected':''}>${s==='Todos'?'Todos los estados':s}</option>`).join('')}</select><select onchange="ui.inv.season=this.value;fillInventory()" aria-label="Temporada">${seasons.map(s=>`<option value="${esc(s)}" ${f.season===s?'selected':''}>${s==='Todas'?'Todas las temporadas':esc(s)}</option>`).join('')}</select></div>
+ <div class="table-wrap"><table><thead><tr><th>Producto</th><th>Categoría</th><th>Temporada</th><th>Disponible</th><th>Mínimo</th><th>Próximo vencimiento</th><th>Estado</th><th></th></tr></thead><tbody id="invBody"></tbody></table></div>
+ <section class="card" style="margin-top:16px"><div class="section-title"><h3>Movimientos recientes</h3></div>${db.stockMoves.length?db.stockMoves.slice(0,10).map(m=>`<div class="order-row"><div><strong>${esc(m.type)} · ${esc(product(m.product)?.name||'')}</strong><small>${new Date(m.at).toLocaleString('es-CO')} · ${esc(m.detail)}</small></div><span class="money">${m.type==='Entrada'?'+':'−'}${m.qty}</span></div>`).join(''):'<div class="empty">Aún no hay movimientos en esta sesión. Las ventas descuentan el inventario automáticamente (primero el lote que vence antes).</div>'}</section>`;fillInventory()}
+function fillInventory(){const f=ui.inv,list=db.products.filter(p=>{const st=stockState(p).label;const okState={'Todos':true,'Disponible':st==='Disponible','Stock bajo':st==='Stock bajo','Agotado':st==='Agotado','Por vencer':expiringSoon(p),'Con lotes vencidos':expiredLots(p).length>0,'Fuera de temporada':seasonOver(p)}[f.state];const okSeason=f.season==='Todas'||p.season?.name===f.season||p.lots.some(l=>l.season===f.season&&l.qty>0);return okState&&okSeason&&(f.cat==='Todas'||p.cat===f.cat)&&(!f.q||p.name.toLowerCase().includes(f.q))});
+ $('invBody').innerHTML=list.length?list.map(p=>{const st=stockState(p),e=nextExpiry(p),d=e?daysUntil(e):null,ex=expiredLots(p);return `<tr><td><strong>${p.emoji} ${esc(p.name)}</strong></td><td>${esc(p.cat)}</td><td>${p.season?esc(p.season.name)+'<br><small class="sub">hasta '+fmtDate(p.season.until)+'</small>':'—'}</td><td><strong>${available(p)}</strong></td><td>${p.min}</td><td>${e?fmtDate(e)+'<br><small class="'+(d<=EXPIRY_WARN_DAYS?'txt-amber':'sub')+'">'+(d===0?'vence hoy':d===1?'vence mañana':'en '+d+' días')+'</small>':'—'}${ex.length?'<br><small class="txt-red">'+ex.reduce((s,l)=>s+l.qty,0)+' und. vencidas</small>':''}</td><td><span class="pill ${st.cls}">${st.label}</span></td><td style="white-space:nowrap"><button class="btn small" onclick="showLots(${p.id})">Lotes</button> <button class="btn small" onclick="stockIn(${p.id})">＋ Entrada</button></td></tr>`}).join(''):'<tr><td colspan="8" class="empty">No hay productos con ese filtro.</td></tr>'}
+function lotState(l){if(!l.qty)return '<span class="pill">Consumido</span>';const d=daysUntil(l.expires);if(d<0)return '<span class="pill danger">Vencido</span>';if(d<=EXPIRY_WARN_DAYS)return '<span class="pill busy">Vence pronto</span>';return '<span class="pill">Vigente</span>'}
+function showLots(id){const p=product(id);showModal(`<div class="modal-head"><div><div class="eyebrow">Lotes y vencimientos</div><h3>${p.emoji} ${esc(p.name)}</h3></div><button class="close" onclick="closeModal()">×</button></div><p class="sub">Disponible para la venta: <b>${available(p)}</b>. Las ventas descuentan primero el lote que vence antes.</p><div class="table-wrap" style="margin-top:12px"><table style="min-width:480px"><thead><tr><th>Lote</th><th>Temporada</th><th>Recibido</th><th>Vence</th><th>Cantidad</th><th>Estado</th></tr></thead><tbody>${p.lots.length?p.lots.slice().sort((a,b)=>a.expires.localeCompare(b.expires)).map(l=>`<tr><td>#${l.id}</td><td>${esc(l.season)||'—'}</td><td>${fmtDate(l.received)}</td><td>${fmtDate(l.expires)}</td><td>${l.qty}</td><td>${lotState(l)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Sin lotes registrados.</td></tr>'}</tbody></table></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn primary" onclick="stockIn(${p.id})">＋ Registrar entrada</button></div>`)}
+function stockIn(id){showModal(`<div class="modal-head"><h3>Registrar entrada de inventario</h3><button class="close" onclick="closeModal()">×</button></div><div class="field"><label>Producto *</label><select id="inProduct" onchange="const p=product(+this.value);$('inSeason').value=p?.season?.name||''">${db.products.map(p=>`<option value="${p.id}" ${p.id===id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="form2"><div class="field"><label>Cantidad *</label><input id="inQty" type="number" min="1" step="1"></div><div class="field"><label>Fecha de vencimiento *</label><input id="inExp" type="date" min="${todayISO()}"></div></div><div class="field"><label>Temporada (opcional)</label><input id="inSeason" list="seasonList2" placeholder="Ej. Navidad"><datalist id="seasonList2">${allSeasons().map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div><div class="notice">Cada entrada queda como un lote con su fecha de vencimiento. Al llegar la fecha, ese lote deja de contarse como disponible.</div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveStockIn()">Guardar entrada</button></div>`);const p=product(+$('inProduct').value);$('inSeason').value=p?.season?.name||''}
+function saveStockIn(){const p=product(+$('inProduct').value),qty=Number($('inQty').value),exp=$('inExp').value,season=$('inSeason').value.trim();if(!p||!Number.isInteger(qty)||qty<1){alert('Ingresa una cantidad entera mayor que cero.');return}if(!exp||exp<todayISO()){alert('Ingresa una fecha de vencimiento válida (hoy o posterior).');return}p.lots.push({id:db.seq.lot++,qty,expires:exp,season,received:todayISO()});logMove(p,'Entrada',qty,'Lote vence '+fmtDate(exp)+(season?' · '+season:''));closeModal();commit();toast('Entrada registrada: '+qty+' × '+esc(p.name)+'.')}
+function stockOut(){showModal(`<div class="modal-head"><h3>Salida / merma de inventario</h3><button class="close" onclick="closeModal()">×</button></div><div class="field"><label>Producto *</label><select id="outProduct">${db.products.map(p=>`<option value="${p.id}">${esc(p.name)} (${available(p)} disp.)</option>`).join('')}</select></div><div class="form2"><div class="field"><label>Cantidad *</label><input id="outQty" type="number" min="1" step="1"></div><div class="field"><label>Motivo</label><select id="outReason"><option>Merma</option><option>Producto dañado</option><option>Consumo interno</option><option>Ajuste de inventario</option></select></div></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveStockOut()">Guardar salida</button></div>`)}
+function saveStockOut(){const p=product(+$('outProduct').value),qty=Number($('outQty').value);if(!Number.isInteger(qty)||qty<1){alert('Cantidad inválida.');return}if(qty>available(p)){alert('Solo hay '+available(p)+' disponible(s).');return}consume(p,qty);logMove(p,'Salida',qty,$('outReason').value);closeModal();commit();toast('Salida registrada.')}
+function writeOffExpired(){let n=0;db.products.forEach(p=>expiredLots(p).forEach(l=>{logMove(p,'Salida',l.qty,'Baja por vencimiento (lote #'+l.id+')');n+=l.qty;l.qty=0}));commit();toast(n+' unidad(es) vencida(s) dadas de baja.')}
+
+/* ================== Caja y facturas ================== */
+function invoices(){const m={};db.orders.filter(o=>o.paid&&o.invoiceNo).forEach(o=>{(m[o.invoiceNo]=m[o.invoiceNo]||[]).push(o)});return Object.entries(m).map(([no,os])=>({no,os,first:os[0],total:os.reduce((s,o)=>s+totalOrder(o),0)})).sort((a,b)=>b.first.paidAt.localeCompare(a.first.paidAt))}
+function renderCash(v){const tablesOpen=TABLES.filter(t=>tableTotal(t)>0),inv=invoices().filter(i=>isToday(i.first.paidAt));
+ v.innerHTML=head('Caja y cuentas','Revisa con el cliente el detalle de lo consumido antes de cobrar e imprime la factura')+(db.cashShift.opened?'':`<p class="notice" style="margin:0 0 16px">⚠ La caja no está abierta. Ábrela en <a href="#" onclick="go('arqueo');return false">Arqueo de caja</a> para poder cobrar.</p>`)+`<div class="grid stats"><div class="card"><div class="stat-label">Cuentas abiertas</div><div class="stat-value">${tablesOpen.length}</div></div><div class="card"><div class="stat-label">Total por cobrar</div><div class="stat-value">${money(tablesOpen.reduce((s,t)=>s+tableTotal(t),0))}</div></div><div class="card"><div class="stat-label">Cobrado hoy</div><div class="stat-value">${money(inv.reduce((s,i)=>s+i.total,0))}</div></div><div class="card"><div class="stat-label">Facturas hoy</div><div class="stat-value">${inv.length}</div></div></div><div class="grid table-grid">${tablesOpen.map(t=>{const os=openOrders(t),q={};os.flatMap(o=>o.items).forEach(i=>q[i.product]=(q[i.product]||0)+i.qty);const notReady=os.filter(o=>!['Entregado'].includes(o.status)).length;return `<div class="card"><span class="pill busy">Cuenta abierta</span>${notReady?` <span class="pill pending">${notReady} sin entregar</span>`:''}<h3>Mesa ${t}</h3><p class="sub">${os.length} pedido(s)</p><div style="margin:12px 0">${Object.entries(q).map(([pid,n])=>{const p=product(+pid);return `<div class="order-row"><span>${n} × ${esc(p?.name||'Producto')}</span><strong>${money((p?.price||0)*n)}</strong></div>`}).join('')}</div><div class="total-line"><span>Total</span><span>${money(tableTotal(t))}</span></div><button class="btn" style="width:100%;margin-bottom:8px" onclick="openTable(${t})">Ver detalle completo</button><button class="btn primary" style="width:100%" onclick="payTable(${t})">Cobrar cuenta</button></div>`}).join('')||'<div class="card empty">No hay cuentas pendientes.</div>'}</div>
+ <section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Facturas emitidas hoy</h3><p class="sub">Reimprime la factura de venta si el cliente la solicita.</p></div></div><div class="table-wrap"><table><thead><tr><th>Número</th><th>Hora</th><th>Mesa</th><th>Cliente</th><th>Medio de pago</th><th>Total</th><th></th></tr></thead><tbody>${inv.length?inv.map(i=>`<tr><td><strong>${i.no}</strong></td><td>${hhmm(i.first.paidAt)}</td><td>Mesa ${i.first.table}</td><td>${esc(i.first.customer?.name)||'Consumidor final'}</td><td>${esc(i.first.payment)}</td><td><strong>${money(i.total)}</strong></td><td><button class="btn small" onclick="printInvoice('${i.no}')">🖨 Imprimir</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">Aún no hay facturas hoy.</td></tr>'}</tbody></table></div></section>`}
+function payTable(id){const due=tableTotal(id);if(!due){alert('La mesa no tiene saldo pendiente.');return}if(!db.cashShift.opened){if(confirm('La caja está cerrada. ¿Ir a Arqueo de caja para abrirla?'))go('arqueo');return}
+ showModal(`<div class="modal-head"><h3>Cobrar mesa ${id}</h3><button class="close" onclick="closeModal()">×</button></div><div class="total-line"><span>Total a pagar</span><span>${money(due)}</span></div><div class="field"><label>Medio de pago</label><select id="payMethod"><option>Efectivo</option><option>Transferencia</option><option>Datáfono</option></select></div><div class="field" id="cashField"><label>Valor recibido</label><input id="cashReceived" type="number" value="${due}" oninput="calcChange(${due})"></div><div class="notice" id="changeBox">Vueltas: ${money(0)}</div><div class="field hide" id="approvalField"><label>Número de aprobación del datáfono *</label><input id="approvalNumber" maxlength="40" placeholder="Ej. 845921"></div><div class="form2"><div class="field"><label>Nombre del cliente (opcional)</label><input id="customerName" maxlength="80" placeholder="Nombre o razón social"></div><div class="field"><label>Documento / NIT (opcional)</label><input id="customerDoc" maxlength="20" placeholder="CC o NIT"></div></div><div class="field"><label>Correo electrónico (opcional)</label><input id="customerEmail" type="email" placeholder="cliente@correo.com"></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="confirmPay(${id})">Confirmar pago</button></div>`);
+ $('payMethod').addEventListener('change',e=>{const cash=e.target.value==='Efectivo',card=e.target.value==='Datáfono';$('cashField').classList.toggle('hide',!cash);$('changeBox').classList.toggle('hide',!cash);$('approvalField').classList.toggle('hide',!card)})}
+function calcChange(due){const n=Number($('cashReceived').value)||0;$('changeBox').textContent='Vueltas: '+money(Math.max(0,n-due))}
+function confirmPay(id){const method=$('payMethod').value,due=tableTotal(id),approval=$('approvalNumber').value.trim(),received=Number($('cashReceived').value)||0;if(method==='Efectivo'&&received<due){alert('El valor recibido no alcanza para cubrir la cuenta.');return}if(method==='Datáfono'&&!approval){alert('Ingresa el número de aprobación del datáfono.');return}
+ const customer={name:$('customerName').value.trim(),doc:$('customerDoc').value.trim(),email:$('customerEmail').value.trim()},invoiceNo='LC-'+new Date().getFullYear()+'-'+String(db.seq.invoice++).padStart(5,'0'),paidAt=new Date().toISOString(),cashier=activeRole==='Cajero'?(db.users.find(u=>u.role==='Cajero'&&u.active)?.name.split(' ')[0]||'Cajero'):'Administrador';
+ openOrders(id).forEach(o=>Object.assign(o,{paid:true,status:'Cerrado',payment:method,approvalNumber:method==='Datáfono'?approval:'',customer,invoiceNo,paidAt,cashier,received:method==='Efectivo'?received:null,change:method==='Efectivo'?received-due:0}));
+ db.notifications.forEach(n=>{if(db.orders.find(o=>o.id===n.orderId)?.paid)n.seen=true});
+ commit();
+ showModal(`<div class="modal-head"><h3>✓ Pago registrado</h3><button class="close" onclick="closeModal()">×</button></div><div class="total-line"><span>Factura ${invoiceNo}</span><span>${money(due)}</span></div>${method==='Efectivo'?`<p class="sub">Recibido ${money(received)} · Vueltas <b>${money(received-due)}</b></p>`:`<p class="sub">Pago por ${method}</p>`}<div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn primary" onclick="printInvoice('${invoiceNo}')">🖨 Imprimir factura</button></div>`)}
+function printHTML(html){let f=$('printFrame');if(f)f.remove();f=document.createElement('iframe');f.id='printFrame';f.setAttribute('aria-hidden','true');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';document.body.appendChild(f);const d=f.contentWindow.document;d.open();d.write(html);d.close();setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){alert('No se pudo abrir la impresión.')}},300)}
+const TICKET_CSS='@page{size:80mm auto;margin:4mm}body{font:12px/1.4 "Courier New",monospace;color:#000;width:72mm;margin:0 auto}h1{font-size:18px;letter-spacing:3px;text-align:center;margin:0}.c{text-align:center}.sm{font-size:10px}hr{border:0;border-top:1px dashed #000;margin:8px 0}table{width:100%;border-collapse:collapse}td,th{padding:3px 0;text-align:left;vertical-align:top}th{border-bottom:1px dashed #000}.r{text-align:right}.tot td{font-size:15px;font-weight:bold;padding-top:6px}';
+function printInvoice(no){const same=db.orders.filter(o=>o.paid&&o.invoiceNo===no);if(!same.length){alert('No se encontró la factura '+no+'.');return}
+ const f=same[0],total=same.reduce((a,o)=>a+totalOrder(o),0),q={};same.flatMap(o=>o.items).forEach(i=>q[i.product]=(q[i.product]||0)+i.qty);
+ const lines=Object.entries(q).map(([pid,n])=>{const p=product(+pid);return `<tr><td>${n}</td><td>${esc(p?.name||'Producto')}<br><span class="sm">${money(p?.price||0)} c/u</span></td><td class="r">${money((p?.price||0)*n)}</td></tr>`}).join('');
+ printHTML(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Factura ${no}</title><style>${TICKET_CSS}</style></head><body><h1>LA CAVA</h1><p class="c sm">Copas y Tablas<br>NIT 900.000.000-0 (demo)<br>Dirección y teléfono del local</p><hr><p><b>FACTURA DE VENTA</b><br>No. ${no}<br>Fecha: ${new Date(f.paidAt).toLocaleString('es-CO')}<br>Mesa: ${f.table} · Mesero: ${esc([...new Set(same.map(o=>o.waiter))].join(', '))}<br>Cajero: ${esc(f.cashier||'—')}</p><hr><p>Cliente: ${esc(f.customer?.name)||'Consumidor final'}<br>CC/NIT: ${esc(f.customer?.doc)||'—'}${f.customer?.email?'<br>Correo: '+esc(f.customer.email):''}</p><table><thead><tr><th>Cant</th><th>Descripción</th><th class="r">Valor</th></tr></thead><tbody>${lines}</tbody><tfoot><tr class="tot"><td colspan="2">TOTAL</td><td class="r">${money(total)}</td></tr></tfoot></table><hr><p>Medio de pago: ${esc(f.payment)}${f.approvalNumber?'<br>Aprobación datáfono: '+esc(f.approvalNumber):''}${f.payment==='Efectivo'&&f.received!=null?'<br>Recibido: '+money(f.received)+'<br>Vueltas: '+money(f.change):''}</p><hr><p class="c">¡Gracias por su visita!</p><p class="c sm">Documento de demostración: no es factura electrónica validada por la DIAN (sin CUFE).</p></body></html>`)}
+function printOrder(id){const o=db.orders.find(x=>x.id===id);if(!o)return;const lines=o.items.map(i=>`<tr><td><b>${i.qty}</b></td><td>${esc(product(i.product)?.name||'Producto')}${i.note?'<br><span class="sm">» '+esc(i.note)+'</span>':''}</td></tr>`).join('');
+ printHTML(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Comanda #${o.id}</title><style>${TICKET_CSS}</style></head><body><h1>LA CAVA</h1><p class="c"><b>COMANDA DE PREPARACIÓN</b></p><hr><p>Pedido: #${o.id}<br>Mesa: <b>${o.table}</b><br>Mesero: ${esc(o.waiter)}<br>Hora: ${o.time}</p><table><thead><tr><th>Cant</th><th>Producto</th></tr></thead><tbody>${lines}</tbody></table>${o.note?'<hr><p>Obs.: '+esc(o.note)+'</p>':''}</body></html>`)}
+
+/* ================== Arqueo ================== */
+const shiftCashSales=()=>db.cashShift.openedAt?db.orders.filter(o=>o.paid&&o.payment==='Efectivo'&&o.paidAt>=db.cashShift.openedAt).reduce((s,o)=>s+totalOrder(o),0):0;
+function shiftExpected(){const cs=db.cashShift;return cs.base+shiftCashSales()+cs.movements.reduce((s,m)=>s+(m.type==='Entrada'?m.amount:-m.amount),0)}
+const countedCash=()=>denominations.reduce((s,d)=>s+d*(Number(db.cashShift.count[d])||0),0);
+function renderArqueo(v){const cs=db.cashShift,expected=shiftExpected(),counted=countedCash(),diff=counted-expected;
+ v.innerHTML=head('Arqueo y cierre de caja','Controla la base inicial, movimientos y efectivo contado')+
+ `<div class="grid stats"><div class="card"><div class="stat-label">Estado del turno</div><div class="stat-value" style="font-size:20px">${cs.opened?'Abierto':cs.closed?'Cerrado':'Sin apertura'}</div><div class="stat-note">${cs.opened?'Desde '+new Date(cs.openedAt).toLocaleString('es-CO'):'Registra una apertura para comenzar'}</div></div><div class="card"><div class="stat-label">Base inicial</div><div class="stat-value">${money(cs.base)}</div></div><div class="card"><div class="stat-label">Efectivo esperado</div><div class="stat-value">${money(expected)}</div></div><div class="card"><div class="stat-label">Efectivo contado</div><div class="stat-value">${money(counted)}</div></div></div>
+ <div class="grid layout2"><section class="card"><div class="section-title"><h3>Apertura y movimientos</h3>${cs.opened?'<span class="pill">Turno abierto</span>':'<span class="pill danger">Turno sin abrir</span>'}</div>
+ ${!cs.opened&&!cs.closed?`<div class="field"><label>Base inicial de caja (COP)</label><input id="openingBase" type="number" min="0" placeholder="Ej. 200000"></div><button class="btn primary" onclick="openCashShift()">Abrir caja</button>`:cs.opened?`<button class="btn" onclick="cashMovement()">＋ Registrar entrada / salida</button>`:`<p class="sub">El turno está cerrado. Inicia un nuevo turno para continuar.</p><button class="btn primary" onclick="newCashShift()">Abrir nuevo turno</button>`}
+ <div style="margin-top:18px"><h3 style="font:600 17px Georgia,serif">Movimientos de caja</h3>${cs.movements.length?cs.movements.map(m=>`<div class="order-row"><div><strong>${esc(m.type)}: ${esc(m.reason)}</strong><small>${m.time}</small></div><span class="money">${m.type==='Entrada'?'+':'−'}${money(m.amount)}</span></div>`).join(''):'<div class="empty">No hay movimientos registrados.</div>'}</div></section>
+ <section class="card"><div class="section-title"><h3>Resumen del turno</h3></div><div class="order-row"><span>Base inicial</span><strong>${money(cs.base)}</strong></div><div class="order-row"><span>Ventas en efectivo del turno</span><strong>${money(shiftCashSales())}</strong></div><div class="order-row"><span>Entradas de caja</span><strong>${money(cs.movements.filter(m=>m.type==='Entrada').reduce((s,m)=>s+m.amount,0))}</strong></div><div class="order-row"><span>Salidas de caja</span><strong>${money(cs.movements.filter(m=>m.type==='Salida').reduce((s,m)=>s+m.amount,0))}</strong></div><div class="total-line"><span>Efectivo esperado</span><span>${money(expected)}</span></div><div class="notice">Solo cuenta ventas en efectivo cobradas desde la apertura de este turno. Transferencias y datáfono no se suman al efectivo físico.</div></section></div>
+ <section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Conteo de efectivo por denominación</h3><p class="sub">Ingresa cuántos billetes y monedas tienes físicamente.</p></div><button class="btn small" onclick="clearCashCount()">Limpiar conteo</button></div><div class="table-wrap"><table><thead><tr><th>Denominación</th><th>Cantidad</th><th>Subtotal</th></tr></thead><tbody>${denominations.map(d=>`<tr><td><strong>${money(d)}</strong></td><td><input aria-label="Cantidad ${d}" type="number" min="0" inputmode="numeric" style="width:90px;padding:8px;border:1px solid var(--line);border-radius:7px" value="${cs.count[d]||''}" onchange="setCashCount(${d},this.value)" placeholder="0"></td><td><strong>${money(d*(Number(cs.count[d])||0))}</strong></td></tr>`).join('')}</tbody></table></div><div class="grid stats" style="margin-top:15px"><div class="card"><div class="stat-label">Total contado</div><div class="stat-value">${money(counted)}</div></div><div class="card"><div class="stat-label">Efectivo esperado</div><div class="stat-value">${money(expected)}</div></div><div class="card"><div class="stat-label">Diferencia</div><div class="stat-value" style="color:${diff===0?'#3f7454':diff<0?'#b84d43':'#96651e'}">${money(diff)}</div></div><div class="card"><div class="stat-label">Resultado</div><div class="stat-value" style="font-size:18px">${diff===0?'Cuadre exacto':diff<0?'Faltante':'Sobrante'}</div></div></div>${cs.opened?`<div class="modal-actions"><button class="btn gold" onclick="closeCashShift()">Realizar cierre de caja</button></div>`:''}</section>`}
+function openCashShift(){const n=Number($('openingBase').value);if(!Number.isFinite(n)||n<0||$('openingBase').value===''){alert('Ingresa una base inicial válida');return}db.cashShift={opened:true,closed:false,base:n,movements:[],count:{},openedAt:new Date().toISOString()};commit();toast('Caja abierta.')}
+function newCashShift(){db.cashShift={opened:false,closed:false,base:0,movements:[],count:{},openedAt:null};commit()}
+function cashMovement(){showModal(`<div class="modal-head"><h3>Movimiento de caja</h3><button class="close" onclick="closeModal()">×</button></div><div class="field"><label>Tipo de movimiento</label><select id="moveType"><option>Entrada</option><option>Salida</option></select></div><div class="field"><label>Concepto</label><input id="moveReason" placeholder="Ej. compra urgente de insumos"></div><div class="field"><label>Valor (COP)</label><input id="moveAmount" type="number" min="1"></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveCashMovement()">Guardar movimiento</button></div>`)}
+function saveCashMovement(){const amount=Number($('moveAmount').value),reason=$('moveReason').value.trim(),type=$('moveType').value;if(!(amount>0)||!reason){alert('Completa el concepto y un valor válido.');return}db.cashShift.movements.push({type,amount,reason,time:new Date().toLocaleString('es-CO')});closeModal();commit()}
+function setCashCount(d,v){db.cashShift.count[d]=Math.max(0,Math.floor(Number(v)||0));commit()}
+function clearCashCount(){db.cashShift.count={};commit()}
+function closeCashShift(){const expected=shiftExpected(),counted=countedCash(),diff=counted-expected;if(!confirm(`¿Confirmas el cierre de caja?\nEfectivo esperado: ${money(expected)}\nEfectivo contado: ${money(counted)}\nDiferencia: ${money(diff)}`))return;db.cashShift.opened=false;db.cashShift.closed=true;commit();toast('Cierre de caja registrado.')}
+
+/* ================== Roles ================== */
+const ROLE_PAGES={Administrador:['dashboard','mesas','pedidos','preparacion','menu','caja','arqueo','inventario','informes','usuarios'],Cajero:['dashboard','mesas','pedidos','caja','arqueo'],Mesero:['mesas'],'Preparación':['preparacion']};
+const ROLE_MOBILE={Administrador:[['dashboard','⌂','Inicio'],['mesas','▦','Mesas'],['pedidos','＋','Pedidos'],['caja','＄','Caja'],['inventario','▤','Inventario'],['informes','▥','Informes']],Cajero:[['dashboard','⌂','Inicio'],['mesas','▦','Mesas'],['caja','＄','Caja'],['arqueo','▣','Arqueo']],Mesero:[['mesas','▦','Mis mesas']],'Preparación':[['preparacion','♨','Comandas']]};
+function switchRole(role){if(!ROLE_PAGES[role])role='Administrador';activeRole=role;if(SS)store.set(SS,'lacava-role',role);$('roleSimulator').value=role;
+ $('roleAvatar').textContent={Administrador:'AD',Cajero:'CJ',Mesero:'ME','Preparación':'PR'}[role];
+ const allowed=ROLE_PAGES[role];document.querySelectorAll('#sideNav [data-page]').forEach(b=>b.classList.toggle('hide',!allowed.includes(b.dataset.page)));
+ $('mobileNav').innerHTML=ROLE_MOBILE[role].map(([p,icon,label])=>`<button data-page="${p}" class="${page===p?'active':''}"><span>${icon}</span>${label}</button>`).join('');
+ document.querySelectorAll('#mobileNav [data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+ refreshWaiterSelect();
+ go(allowed.includes(page)?page:allowed[0]);
+ if(role==='Mesero'&&myNotifs().length){buzz();toast('🔔 Tienes '+myNotifs().length+' pedido(s) listo(s) para recoger.','ready')}}
+function refreshWaiterSelect(){const sel=$('waiterSelect'),names=waiterNames();if(!names.includes(currentWaiter))currentWaiter=names[0]||'';sel.innerHTML=names.map(n=>`<option ${n===currentWaiter?'selected':''}>${esc(n)}</option>`).join('');sel.classList.toggle('hide',activeRole!=='Mesero')}
+function setWaiter(n){currentWaiter=n;if(SS)store.set(SS,'lacava-waiter',n);render();if(myNotifs().length)toast('🔔 '+esc(n)+' tiene '+myNotifs().length+' pedido(s) listo(s).','ready')}
+
+/* ================== Usuarios ================== */
+function renderUsers(v){const roles=[{name:'Administrador',icon:'🛡️',desc:'Control completo del negocio, configuración y supervisión.',perms:'Dashboard · Usuarios · Productos · Mesas · Inventario · Caja · Arqueo · Informes'},{name:'Cajero',icon:'💳',desc:'Gestiona cuentas, cobros, facturas, apertura y cierre de caja.',perms:'Mesas · Cuentas · Pagos · Facturas · Caja · Arqueo'},{name:'Mesero',icon:'🍽️',desc:'Desde el celular: escanea el QR de la mesa, asigna pedidos y recibe aviso cuando están listos.',perms:'Mis mesas · Escaneo QR · Pedidos · Entregas'},{name:'Preparación',icon:'👨‍🍳',desc:'Recibe las comandas, las prepara y avisa al mesero al terminar.',perms:'Comandas · Estados de preparación · Avisos'}];
+ v.innerHTML=head('Usuarios y roles','Administra los accesos y responsabilidades del equipo',`<button class="btn primary" onclick="newAppUser()">＋ Crear usuario</button>`)+`<div class="grid stats" style="margin-bottom:18px">${roles.map(r=>`<div class="card"><div style="font-size:27px">${r.icon}</div><h3 style="font:600 19px Georgia,serif;margin:8px 0">${r.name}</h3><p class="sub">${r.desc}</p><div class="notice">${r.perms}</div></div>`).join('')}</div>
+ <div class="card"><div class="section-title"><div><h3>Equipo de La Cava</h3><p class="sub">Usuarios registrados en la demostración</p></div><span class="pill">${db.users.filter(u=>u.active).length} activos</span></div><div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${db.users.map(u=>`<tr><td><strong>${esc(u.name)}</strong></td><td>${esc(u.username)}</td><td><span class="pill">${esc(u.role)}</span></td><td><span class="pill ${u.active?'':'danger'}">${u.active?'Activo':'Inactivo'}</span></td><td><button class="btn small" onclick="toggleAppUser(${u.id})">${u.active?'Desactivar':'Activar'}</button></td></tr>`).join('')}</tbody></table></div><div class="notice">El selector de rol en la barra superior simula las vistas de cada perfil. La autenticación y el control de permisos definitivo requieren backend.</div></div>`}
+function newAppUser(){showModal(`<div class="modal-head"><h3>Crear usuario</h3><button class="close" onclick="closeModal()">×</button></div><div class="field"><label>Nombre completo</label><input id="uName" placeholder="Nombre del empleado"></div><div class="field"><label>Nombre de usuario</label><input id="uLogin" placeholder="Ej. maria"></div><div class="field"><label>Rol</label><select id="uRole"><option>Mesero</option><option>Preparación</option><option>Cajero</option><option>Administrador</option></select></div><div class="notice">La contraseña y recuperación de acceso se configurarán cuando se conecte el módulo de autenticación.</div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveAppUser()">Crear usuario</button></div>`)}
+function saveAppUser(){const name=$('uName').value.trim(),username=$('uLogin').value.trim(),role=$('uRole').value;if(!name||!username){alert('Completa nombre y usuario');return}if(db.users.some(u=>u.username.toLowerCase()===username.toLowerCase())){alert('Ese nombre de usuario ya existe');return}db.users.push({id:db.seq.user++,name,username,role,active:true});closeModal();refreshWaiterSelect();commit()}
+function toggleAppUser(id){const u=db.users.find(x=>x.id===id);u.active=!u.active;refreshWaiterSelect();commit()}
+
+/* ================== Informes ================== */
+const monthKey=d=>{const x=new Date(d);return x.getFullYear()+'-'+pad(x.getMonth()+1)};
+function monthLabel(key){const [y,m]=key.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('es-CO',{month:'long',year:'numeric'})}
+const monthOrders=key=>db.orders.filter(o=>monthKey(o.createdAt)===key);
+function monthlySummary(key){const list=monthOrders(key),paid=list.filter(o=>o.paid),pending=list.filter(o=>!o.paid);return {list,paid,pending,total:list.reduce((s,o)=>s+totalOrder(o),0),paidTotal:paid.reduce((s,o)=>s+totalOrder(o),0),pendingTotal:pending.reduce((s,o)=>s+totalOrder(o),0)}}
+function renderReports(v){const key=window.reportMonth||todayISO().slice(0,7),s=monthlySummary(key),top=topProducts(s.list),maxQ=top[0]?.qty||1,units=top.reduce((a,t)=>a+t.qty,0);
+ v.innerHTML=head('Informes y cuentas del mes','Consulta ventas, productos más vendidos, cobros y saldos pendientes por período',`<button class="btn primary" onclick="exportMonthlyExcel()">⇩ Exportar Excel</button>`)+
+ `<div class="card" style="margin-bottom:16px"><div class="toolbar" style="align-items:center;margin:0"><label for="reportMonth" style="font-size:12px;font-weight:700">Mes del informe</label><input id="reportMonth" type="month" value="${key}" onchange="window.reportMonth=this.value;render()"><span class="sub">${monthLabel(key)}</span></div></div>
+ <div class="grid stats"><div class="card"><div class="stat-label">Pedidos del mes</div><div class="stat-value">${s.list.length}</div></div><div class="card"><div class="stat-label">Valor total generado</div><div class="stat-value">${money(s.total)}</div></div><div class="card"><div class="stat-label">Total recaudado</div><div class="stat-value">${money(s.paidTotal)}</div></div><div class="card"><div class="stat-label">Producto más vendido</div><div class="stat-value" style="font-size:18px">${top[0]?top[0].p.emoji+' '+esc(top[0].p.name):'—'}</div><div class="stat-note">${top[0]?top[0].qty+' unidades':''}</div></div></div>
+ <div class="grid layout2"><section class="card"><div class="section-title"><div><h3>Productos más vendidos</h3><p class="sub">Unidades pedidas en ${monthLabel(key)}</p></div></div>${top.length?top.map((t,i)=>`<div class="rank-row"><span class="rank-n">${i+1}</span><div class="rank-main"><div class="rank-top"><strong>${t.p.emoji} ${esc(t.p.name)}</strong><span><b>${t.qty}</b> und · ${money(t.value)}</span></div><div class="bar"><span style="width:${Math.max(4,t.qty/maxQ*100)}%"></span></div><small class="sub">${Math.round(t.qty/units*100)}% de las unidades vendidas</small></div></div>`).join(''):'<div class="empty">No hay ventas en este mes.</div>'}</section>
+ <section class="card"><div class="section-title"><h3>Resumen y medios de pago</h3><span class="pill">${monthLabel(key)}</span></div><div class="order-row"><span>Consumo total registrado</span><strong>${money(s.total)}</strong></div><div class="order-row"><span>Pagos recibidos</span><strong>${money(s.paidTotal)}</strong></div><div class="order-row"><span>Saldo por cobrar</span><strong>${money(s.pendingTotal)}</strong></div>${['Efectivo','Transferencia','Datáfono'].map(m=>`<div class="order-row"><span>${m}</span><strong>${money(s.paid.filter(o=>o.payment===m).reduce((a,o)=>a+totalOrder(o),0))}</strong></div>`).join('')}</section></div>
+ <section class="card" style="margin-top:16px"><div class="section-title"><div><h3>Detalle de cuentas del mes</h3><p class="sub">Cada pedido se incluye dentro de la cuenta de su mesa.</p></div></div><div class="table-wrap"><table><thead><tr><th>Pedido</th><th>Mesa</th><th>Mesero</th><th>Fecha</th><th>Estado de cuenta</th><th>Medio de pago</th><th>Factura</th><th>Total</th></tr></thead><tbody>${s.list.length?s.list.slice().reverse().map(o=>`<tr><td>#${o.id}</td><td>Mesa ${o.table}</td><td>${esc(o.waiter)}</td><td>${new Date(o.createdAt).toLocaleDateString('es-CO')}</td><td>${o.paid?'Pagada':'Pendiente'}</td><td>${esc(o.payment)||'—'}</td><td>${o.invoiceNo?`<button class="btn small" onclick="printInvoice('${o.invoiceNo}')">${o.invoiceNo}</button>`:'—'}</td><td><strong>${money(totalOrder(o))}</strong></td></tr>`).join(''):`<tr><td colspan="8" class="empty">No hay cuentas para este mes.</td></tr>`}</tbody></table></div></section>`}
+function exportMonthlyExcel(){const key=window.reportMonth||todayISO().slice(0,7),s=monthlySummary(key),top=topProducts(s.list);
+ const rows=[['LA CAVA - REPORTE MENSUAL',monthLabel(key)],[],['Indicador','Valor'],['Pedidos / cuentas',s.list.length],['Consumo total',s.total],['Total recaudado',s.paidTotal],['Saldo pendiente',s.pendingTotal],[],['Productos más vendidos','Unidades','Valor'],...top.map(t=>[t.p.name,t.qty,t.value]),[],['Pedido','Mesa','Mesero','Fecha','Estado','Medio de pago','Aprobación datáfono','Factura','Total'],...s.list.map(o=>[o.id,'Mesa '+o.table,o.waiter,new Date(o.createdAt).toLocaleDateString('es-CO'),o.paid?'Pagada':'Pendiente',o.payment||'',o.approvalNumber||'',o.invoiceNo||'',totalOrder(o)])];
+ const headRows=new Set([0,2,8,10+top.length]);const table=rows.map((r,i)=>'<tr>'+r.map(c=>{const t=headRows.has(i)?'th':'td';return `<${t}>${esc(c)}</${t}>`}).join('')+'</tr>').join('');
+ const blob=new Blob(['﻿<html><head><meta charset="utf-8"></head><body><table>'+table+'</table></body></html>'],{type:'application/vnd.ms-excel;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`la-cava-reporte-${key}.xls`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+
+/* ================== Modal e inicio ================== */
+function showModal(content){$('modal').innerHTML=content;$('modalBack').classList.add('show');$('modal').scrollTop=0}
+function closeModal(){stopQrCamera();ord=null;$('modalBack').classList.remove('show');render()}
+$('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack')closeModal()});
+db=loadState();saveState();
+switchRole(activeRole);
+
+</script>
+</body></html>
