@@ -1,0 +1,24 @@
+<form (submit)="onSubmit(); $event.preventDefault()" novalidate>
+  <div class="field">
+    <label for="tf-number">Número de mesa *</label>
+    <input
+      id="tf-number"
+      type="number"
+      step="1"
+      inputmode="numeric"
+      [formField]="tableForm.number"
+      [attr.aria-invalid]="!!errorOf(tableForm.number)"
+    />
+    @if (errorOf(tableForm.number); as error) {
+      <p class="field-error" data-testid="error-number">{{ error }}</p>
+    }
+  </div>
+  <p class="muted">Al crearla se generan su código QR y un PIN de 4 dígitos para el ingreso manual.</p>
+
+  <div class="modal-actions">
+    <button type="button" class="btn" (click)="cancelled.emit()">Cancelar</button>
+    <button type="submit" class="btn primary" data-testid="save-table" [disabled]="submitting()">
+      {{ submitting() ? 'Guardando…' : 'Crear mesa' }}
+    </button>
+  </div>
+</form>

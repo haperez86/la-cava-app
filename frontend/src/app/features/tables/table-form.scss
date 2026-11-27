@@ -1,0 +1,7 @@
+@use '../inventory/modal';
+
+@include modal.modal-actions;
+
+.muted {
+  margin: 0;
+}

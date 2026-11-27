@@ -31,6 +31,7 @@ import co.lacava.gestion.menu.application.ProductData;
 import co.lacava.gestion.menu.application.ProductService;
 import co.lacava.gestion.menu.application.ProductState;
 import co.lacava.gestion.menu.application.ProductView;
+import co.lacava.gestion.tables.application.TableService;
 import co.lacava.gestion.users.application.UserService;
 import co.lacava.gestion.users.domain.AppUser;
 
@@ -70,6 +71,7 @@ class LocalDataSeederTest {
     private final UserService users = mock(UserService.class);
     private final ProductService products = mock(ProductService.class);
     private final InventoryService inventory = mock(InventoryService.class);
+    private final TableService tables = mock(TableService.class);
     private final PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
 
     @Test
@@ -77,11 +79,11 @@ class LocalDataSeederTest {
     void doesNotSeedRemoteDatabase() {
         seeder("jdbc:postgresql://db.example.com:5432/la_cava").run(null);
 
-        verifyNoInteractions(users, products, inventory);
+        verifyNoInteractions(users, products, inventory, tables);
     }
 
     @Test
-    @DisplayName("Con una base en localhost siembra los usuarios y los 11 productos de la demo con sus lotes")
+    @DisplayName("Con una base en localhost siembra los usuarios, los 11 productos de la demo con sus lotes y 12 mesas")
     void seedsLocalDatabase() {
         AppUser admin = mock(AppUser.class);
         when(admin.getId()).thenReturn(1L);
@@ -100,26 +102,32 @@ class LocalDataSeederTest {
         // 10 productos con un lote, "Postre de la casa" con dos (uno vencido) y "Tabla vegetariana" sin lotes.
         verify(inventory, times(11)).loadSampleLot(anyLong(), anyInt(), any(), any(), any(), anyLong());
         verify(inventory).loadSampleLot(anyLong(), anyInt(), eq(LocalDate.of(2026, 11, 26)), any(), any(), anyLong());
+        verify(tables, times(12)).create(anyInt());
+        for (int number = 1; number <= 12; number++) {
+            verify(tables).create(number);
+        }
     }
 
     @Test
-    @DisplayName("Es idempotente: un producto que ya existe no se crea de nuevo ni recibe lotes")
+    @DisplayName("Es idempotente: un producto o una mesa que ya existen no se crean de nuevo")
     void doesNotDuplicateProducts() {
         AppUser admin = mock(AppUser.class);
         when(admin.getId()).thenReturn(1L);
         when(users.findByUsername(anyString())).thenReturn(Optional.of(admin));
         when(products.findByName(anyString())).thenReturn(Optional.of(view("existente")));
         when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
+        when(tables.existsByNumber(anyInt())).thenReturn(true);
 
         seeder("jdbc:postgresql://localhost:5432/la_cava").run(null);
 
+        verify(tables, never()).create(anyInt());
         verify(users, never()).create(anyString(), anyString(), anyString(), any());
         verify(products, never()).create(any(), any(), anyLong());
         verify(inventory, never()).loadSampleLot(anyLong(), anyInt(), any(), any(), any(), anyLong());
     }
 
     private LocalDataSeeder seeder(String url) {
-        return new LocalDataSeeder(users, products, inventory, ZoneId.of("America/Bogota"),
+        return new LocalDataSeeder(users, products, inventory, tables, ZoneId.of("America/Bogota"),
                 new TransactionTemplate(txManager), url);
     }
 

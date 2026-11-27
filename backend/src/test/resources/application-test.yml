@@ -13,3 +13,6 @@ app:
   jwt:
     # Solo pruebas: secreto fijo de 32+ caracteres
     secret: test-only-secret-for-la-cava-jwt-0123456789
+  qr:
+    # Solo pruebas: secreto fijo de 32+ caracteres
+    secret: test-only-secret-for-la-cava-qr-0123456789

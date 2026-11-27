@@ -65,10 +65,11 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 
 ## Épica 3 · Mesas y QR
 
-### LCV-HU-07 · Mesas y códigos QR ⬜
+### LCV-HU-07 · Mesas y códigos QR ✅
 - **CA1** El administrador crea y desactiva mesas; cada mesa recibe un token HMAC y un PIN de 4 dígitos.
 - **CA2** Hoja de QR imprimible (número de mesa, QR y PIN debajo).
 - **CA3** Regenerar el token invalida el QR anterior (`resolve` del código viejo → 404).
+- **Desviaciones:** `resolve` y la cuenta responden con pedidos vacíos hasta la Épica 4 (D35); `/tables/{id}/account` solo A y C (el mesero vía `resolve`); el PIN se compara como texto de 4 dígitos; V4 añade un `CHECK` del formato del PIN; se puede regenerar el QR de una mesa inactiva; la hoja de QR (A4, 6 por página) se imprime en blanco y negro; reutiliza el diálogo de confirmación y `_modal.scss` de inventario. Pendientes menores: límite de intentos de PIN (D36, se implementa en HU-08); mover `ConfirmDialog` y `_modal.scss` a `shared/`; silenciar el aviso de build de `qrcode` (CommonJS) en `angular.json`; prueba que decodifique el QR generado.
 
 ### LCV-HU-08 · Escanear QR y abrir mesa (mesero) ⬜
 - **CA1** "Escanear QR de mesa" abre la cámara (`BarcodeDetector` o `@zxing/browser`) y, al leer un código válido, carga la mesa con su cuenta.
@@ -76,7 +77,8 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA3** Código inválido, PIN errado o mesa inactiva → "Código de mesa inválido".
 - **CA4** En "Mis mesas" las mesas se ven pero **no** se pueden abrir tocándolas.
 
-### LCV-HU-09 · Estado de mesas ⬜
+### LCV-HU-09 · Estado de mesas ⛔
+- **Bloqueada:** su estado, etapa, número de pedidos, total y mesero salen de los pedidos (HU-10). Se implementa justo después de HU-10 (D35).
 - **CA1** Cada mesa muestra Disponible/Ocupada y, si está ocupada, la etapa más urgente (Listo para recoger > En preparación > Pendiente > Servido) resaltada, junto con el número de pedidos, el total y el mesero.
 - **CA2** La leyenda de estados es visible.
 
