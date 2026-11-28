@@ -5,13 +5,15 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import co.lacava.gestion.orders.domain.CustomerOrder;
 import co.lacava.gestion.orders.domain.OrderStatus;
 
-public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Long> {
+public interface CustomerOrderRepository
+        extends JpaRepository<CustomerOrder, Long>, JpaSpecificationExecutor<CustomerOrder> {
 
     /** Pedidos de la mesa en los estados indicados, del más antiguo al más reciente. */
     List<CustomerOrder> findByTableIdAndStatusInOrderByCreatedAtAscIdAsc(Long tableId,

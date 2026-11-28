@@ -99,7 +99,8 @@ public class OrderViews implements OpenTableOrders {
             DiningTable table = tableById.get(order.getTableId());
             AppUser waiter = waiterById.get(order.getWaiterId());
             views.add(new OrderView(order.getId(), order.getTableId(), table.getNumber(), order.getWaiterId(),
-                    waiter.getFullName(), order.getStatus(), order.getNote(), order.getCreatedAt(), lines, total));
+                    waiter.getFullName(), order.getStatus(), order.getNote(), order.getCreatedAt(), lines, total,
+                    order.getCancelReason(), order.getCancelledAt()));
         }
         return views;
     }

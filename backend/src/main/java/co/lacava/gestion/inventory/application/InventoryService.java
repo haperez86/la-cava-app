@@ -194,6 +194,27 @@ public class InventoryService {
     }
 
     /**
+     * Devuelve al stock lo que consumió un pedido cancelado (LCV-HU-11, D39): suma cada cantidad al lote exacto de
+     * {@code order_item_lot} (también si ya venció: queda vencida, spec §3.2) y registra un movimiento
+     * {@code ORDER_CANCEL_RETURN} positivo por lote, en la transacción del llamador.
+     *
+     * @param quantityByLot cantidad total a devolver por id de lote
+     */
+    @Transactional
+    public void returnToLots(long orderId, Map<Long, Integer> quantityByLot, long userId) {
+        if (quantityByLot.isEmpty()) {
+            return;
+        }
+        Instant now = clock.instant();
+        for (StockLot lot : lots.lockByIds(quantityByLot.keySet())) {
+            int units = quantityByLot.get(lot.getId());
+            lot.giveBack(units);
+            movements.save(new StockMovement(lot.getProductId(), lot.getId(), MovementType.ORDER_CANCEL_RETURN, units,
+                    null, orderId, userId, now));
+        }
+    }
+
+    /**
      * Salida manual (LCV-HU-05 CA2): {@code type} en {@link #OUTPUT_TYPES}, observación obligatoria (recortada,
      * máximo {@link #NOTE_MAX}) y cantidad {@code > 0} y {@code <=} la vigente; si no, 400 por campo.
      * Producto inexistente: 404. Consume en FEFO con {@link #consume}.

@@ -36,6 +36,15 @@ public interface StockLotRepository extends JpaRepository<StockLot, Long> {
             """)
     List<StockLot> lockAvailable(@Param("productId") Long productId, @Param("today") LocalDate today);
 
+    /** Lotes por id (vigentes o no), bloqueados en el mismo orden que el consumo (producto, vencimiento, id). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select l from StockLot l
+            where l.id in :ids
+            order by l.productId asc, l.expiresOn asc, l.id asc
+            """)
+    List<StockLot> lockByIds(@Param("ids") Collection<Long> ids);
+
     /** Lotes vencidos ({@code expiresOn < today}) con cantidad, de todos los productos, bloqueados para la baja. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

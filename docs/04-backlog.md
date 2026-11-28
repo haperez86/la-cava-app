@@ -96,10 +96,11 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA5** Al guardar se consumen los lotes (FEFO, con `order_item_lot`) y el pedido queda `PENDING`; si un producto no alcanza (p. ej. otra mesa lo pidió antes), 422 y no se guarda nada.
 - **Desviaciones:** `tableCode` = comprobante de mesa firmado de 4 h (D37); Cajero/Admin con mesa inactiva → 422 y el mesero → 403; pedido ajeno para el mesero → 404; tope de 999 unidades por ítem; `stock_movement.order_id` sin FK; se adelantó `GET /users/waiters`; pantalla `/pedidos` con "Nuevo pedido" (el listado llega en HU-11); la cuenta del mesero se actualiza en el cliente tras crear el pedido; tras un 422 el modal ajusta la cantidad o deshabilita el producto. Incluye la corrección de la grilla de mesas en pantallas anchas (máximo 6 columnas). Pendientes menores: el modal carga una sola página de 100 productos; `TableAccount.orders` como `List<?>` deja el esquema OpenAPI impreciso. HU-09 se desbloquea con esta HU.
 
-### LCV-HU-11 · Listado de pedidos y cancelación ⬜
+### LCV-HU-11 · Listado de pedidos y cancelación ✅
 - **CA1** Listado con filtros por estado (con contadores) y búsqueda por número, mesa o mesero.
 - **CA2** Cancelar (A, C) solo en `PENDING` y con motivo; las cantidades vuelven a sus lotes.
 - **CA3** Transiciones inválidas → 409.
+- **Desviaciones:** alcance según D39. Contadores en `GET /orders/summary` (una consulta `count` por estado); `q` numérico = número de pedido o de mesa, texto = mesero. Orden de errores al cancelar: 400 por motivo → 404 → 409. La devolución bloquea los lotes en el mismo orden que el consumo (D33). Pendientes menores: los componentes de `OrderSummary` en mayúsculas para calzar el JSON (mejor `@JsonProperty`); un cuerpo ausente en `cancel` da 400 genérico en lugar de 400 en `reason`.
 
 ---
 

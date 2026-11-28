@@ -43,6 +43,46 @@ export interface Order {
   readonly createdAt: string;
   readonly items: readonly OrderItem[];
   readonly total: number;
+  /** Motivo y fecha de la cancelación (HU-11, D39); `null` o ausentes si el pedido no está cancelado. */
+  readonly cancelReason?: string | null;
+  readonly cancelledAt?: string | null;
+}
+
+/** Filtro de estado del listado; `null` = todos. */
+export type OrderStatusFilter = OrderStatus | null;
+
+/** Respuesta de GET /api/v1/orders/summary: contadores con los mismos `q` e ignorando el estado (D39). */
+export interface OrderSummary {
+  readonly all: number;
+  readonly PENDING: number;
+  readonly IN_PREPARATION: number;
+  readonly READY: number;
+  readonly DELIVERED: number;
+  readonly CLOSED: number;
+  readonly CANCELLED: number;
+}
+
+/** Pills del listado, en orden: clave del contador y estado que filtran. */
+export const ORDER_STATUS_FILTERS: readonly {
+  readonly key: keyof OrderSummary;
+  readonly status: OrderStatusFilter;
+  readonly label: string;
+}[] = [
+  { key: 'all', status: null, label: 'Todos' },
+  { key: 'PENDING', status: 'PENDING', label: 'Pendientes' },
+  { key: 'IN_PREPARATION', status: 'IN_PREPARATION', label: 'En preparación' },
+  { key: 'READY', status: 'READY', label: 'Listos' },
+  { key: 'DELIVERED', status: 'DELIVERED', label: 'Entregados' },
+  { key: 'CLOSED', status: 'CLOSED', label: 'Cerrados' },
+  { key: 'CANCELLED', status: 'CANCELLED', label: 'Cancelados' },
+];
+
+/** Parámetros de GET /api/v1/orders. */
+export interface OrderQuery {
+  readonly status: OrderStatusFilter;
+  readonly q: string;
+  readonly page: number;
+  readonly size: number;
 }
 
 export interface CreateOrderItem {

@@ -26,6 +26,8 @@ import co.lacava.gestion.menu.infrastructure.ProductRepository;
 import co.lacava.gestion.orders.domain.CustomerOrder;
 import co.lacava.gestion.orders.domain.OrderItem;
 import co.lacava.gestion.orders.domain.OrderItemLot;
+import co.lacava.gestion.orders.domain.OrderStateMachine;
+import co.lacava.gestion.orders.domain.OrderStatus;
 import co.lacava.gestion.orders.infrastructure.CustomerOrderRepository;
 import co.lacava.gestion.orders.infrastructure.OrderItemLotRepository;
 import co.lacava.gestion.orders.infrastructure.OrderItemRepository;
@@ -66,6 +68,11 @@ public class OrderService {
     public static final String TABLE_NOT_FOUND = "La mesa no existe.";
     public static final String ORDER_NOT_FOUND = "El pedido no existe.";
     public static final String PRODUCT_NOT_FOUND = "El producto no existe.";
+    public static final int CANCEL_REASON_MAX = 120;
+    public static final String CANCEL_REASON_REQUIRED = "El motivo de cancelación es obligatorio.";
+    public static final String CANCEL_REASON_TOO_LONG = "El motivo admite máximo " + CANCEL_REASON_MAX
+            + " caracteres.";
+    public static final String ONLY_PENDING_CANCELLABLE = "Solo se puede cancelar un pedido pendiente.";
 
     private final CustomerOrderRepository orders;
     private final OrderItemRepository items;
@@ -161,6 +168,36 @@ public class OrderService {
             List<OrderItem> ofProduct = saved.stream().filter(i -> i.getProductId().equals(product.getId())).toList();
             itemLots.saveAll(distribute(ofProduct, allocations));
         }
+        return views.of(order);
+    }
+
+    /**
+     * Cancela un pedido {@code PENDING} con motivo (LCV-HU-11, D39). Motivo recortado de 1 a 120 caracteres (400 en
+     * {@code reason}); inexistente → 404; fuera de {@code PENDING} → 409. La transición solo pasa por
+     * {@link OrderStateMachine} y la devolución, por {@link InventoryService}, a los lotes exactos de
+     * {@code order_item_lot} (un movimiento por lote), todo en una transacción.
+     */
+    @Transactional
+    public OrderView cancel(long id, String reason, long actorId) {
+        String trimmed = reason == null ? "" : reason.trim();
+        if (trimmed.isEmpty()) {
+            throw new InvalidFieldsException(List.of(new FieldError("reason", CANCEL_REASON_REQUIRED)));
+        }
+        if (trimmed.length() > CANCEL_REASON_MAX) {
+            throw new InvalidFieldsException(List.of(new FieldError("reason", CANCEL_REASON_TOO_LONG)));
+        }
+        CustomerOrder order = orders.findById(id).orElseThrow(() -> BusinessException.notFound(ORDER_NOT_FOUND));
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw BusinessException.conflict(ONLY_PENDING_CANCELLABLE);
+        }
+        OrderStateMachine.transition(order, OrderStatus.CANCELLED, clock.instant(), trimmed);
+        // Si otra petición cambió el pedido (@Version), falla aquí y no se devuelve nada.
+        orders.saveAndFlush(order);
+        Map<Long, Integer> byLot = new TreeMap<>();
+        for (OrderItemLot used : itemLots.findByOrderId(order.getId())) {
+            byLot.merge(used.getLotId(), used.getQuantity(), Math::addExact);
+        }
+        inventory.returnToLots(order.getId(), byLot, actorId);
         return views.of(order);
     }
 

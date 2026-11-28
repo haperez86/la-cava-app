@@ -1,0 +1,10 @@
+@use '../inventory/modal';
+
+@include modal.modal-shell(440px);
+@include modal.modal-actions;
+
+.message {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}

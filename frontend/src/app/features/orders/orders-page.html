@@ -7,8 +7,98 @@
   <button type="button" class="btn primary" data-testid="new-order" (click)="openCreate()">＋ Nuevo pedido</button>
 </div>
 
-<div class="card empty" data-testid="orders-empty">{{ emptyText }}</div>
+<div class="status-pills" role="group" aria-label="Filtrar por estado" data-testid="status-pills">
+  @for (filter of filters; track filter.key) {
+    <button
+      type="button"
+      class="filter-pill"
+      [class.active]="status() === filter.status"
+      [attr.aria-pressed]="status() === filter.status"
+      [attr.data-testid]="'status-' + filter.key"
+      (click)="onStatus(filter.status)"
+    >
+      {{ filter.label }}
+      <span class="count" [attr.data-testid]="'count-' + filter.key">{{ summary()[filter.key] }}</span>
+    </button>
+  }
+</div>
+
+<div class="toolbar">
+  <div class="field">
+    <label class="sr-only" for="orders-search">Buscar pedido</label>
+    <input
+      id="orders-search"
+      type="search"
+      placeholder="Buscar por número, mesa o mesero…"
+      autocomplete="off"
+      [value]="q()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </div>
+</div>
+
+@if (loaded() && totalElements() === 0 && !q().trim() && status() === null) {
+  <div class="card empty" data-testid="orders-empty">{{ emptyText }}</div>
+} @else {
+  <div class="table-wrap" [attr.aria-busy]="loading()">
+    <table data-testid="orders-table">
+      <thead>
+        <tr>
+          <th scope="col">Pedido</th>
+          <th scope="col">Mesa</th>
+          <th scope="col">Mesero</th>
+          <th scope="col">Productos</th>
+          <th scope="col">Total</th>
+          <th scope="col">Creado</th>
+          <th scope="col">Estado</th>
+          <th scope="col"><span class="sr-only">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (order of rows(); track order.id) {
+          <tr class="row" data-testid="order-row">
+            <td class="order-cell"><strong data-testid="row-number">#{{ order.id }}</strong></td>
+            <td data-label="Mesa" data-testid="row-table">Mesa {{ order.tableNumber }}</td>
+            <td data-label="Mesero" data-testid="row-waiter">{{ order.waiterName }}</td>
+            <td data-label="Productos">
+              @for (item of order.items; track item.id) {
+                <small class="item">{{ item.quantity }} × {{ item.productName }}</small>
+              }
+            </td>
+            <td data-label="Total"><strong>{{ formatMoney(order.total) }}</strong></td>
+            <td data-label="Creado">{{ formatDate(order.createdAt) }}</td>
+            <td data-label="Estado" class="state-cell">
+              <span class="pill {{ statusPill[order.status] }}" data-testid="row-status">{{ statusLabel[order.status] }}</span>
+              @if (order.status === 'CANCELLED' && order.cancelReason) {
+                <small class="sub" data-testid="row-reason">{{ order.cancelReason }}</small>
+              }
+            </td>
+            <td class="actions-cell">
+              @if (order.status === 'PENDING') {
+                <button type="button" class="btn small" data-testid="cancel-order" (click)="askCancel(order)">
+                  Cancelar
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          @if (!loading()) {
+            <tr class="empty-row">
+              <td colspan="8" class="empty" data-testid="orders-no-match">{{ noMatchText }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [page]="page()" [size]="pageSize" [totalElements]="totalElements()" (pageChange)="onPage($event)" />
+}
 
 @if (creating()) {
   <app-order-dialog (created)="onCreated($event)" (closed)="closeCreate()" />
+}
+
+@if (cancelling(); as order) {
+  <app-cancel-order-dialog [order]="order" (cancelled)="onCancelled($event)" (closed)="closeCancel()" />
 }

@@ -9,7 +9,7 @@ import { storeTestSession } from '../../core/auth/testing';
 import { CATEGORIES_URL, PRODUCTS_URL } from '../menu/products.service';
 import { TABLES_URL } from '../tables/tables.service';
 import { ORDERS_EMPTY, OrdersPage } from './orders-page';
-import { WAITERS_URL } from './orders.service';
+import { ORDERS_URL, WAITERS_URL } from './orders.service';
 
 /** D38: /pedidos "Pedidos" solo para ADMIN y CASHIER; los demás roles vuelven a su pantalla inicial. */
 describe('/pedidos route', () => {
@@ -32,6 +32,10 @@ describe('/pedidos route', () => {
     storeTestSession(role);
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/pedidos');
+    harness.detectChanges();
+    http.expectOne((r) => r.url === ORDERS_URL).flush({ content: [], page: 0, size: 10, totalElements: 0, totalPages: 0 });
+    http.expectOne(`${ORDERS_URL}/summary`).flush({ all: 0, PENDING: 0, IN_PREPARATION: 0, READY: 0, DELIVERED: 0, CLOSED: 0, CANCELLED: 0 });
+    await harness.fixture.whenStable();
     harness.detectChanges();
 
     expect(harness.fixture.debugElement.query((el) => el.componentInstance instanceof OrdersPage)).not.toBeNull();

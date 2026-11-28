@@ -1,0 +1,40 @@
+<div class="modal-back" (click)="onClose()">
+  <div
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cancel-title"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="modal-head">
+      <h3 id="cancel-title">Cancelar pedido #{{ order().id }}</h3>
+      <button type="button" class="close" aria-label="Cerrar" [disabled]="submitting()" (click)="onClose()">×</button>
+    </div>
+    <p class="message">Mesa {{ order().tableNumber }} · Las cantidades volverán a sus lotes.</p>
+    <form (submit)="onSubmit(); $event.preventDefault()" novalidate>
+      <div class="field">
+        <label for="cancel-reason">Motivo *</label>
+        <textarea
+          id="cancel-reason"
+          rows="3"
+          placeholder="Ej. El cliente se fue"
+          [formField]="cancelForm.reason"
+          [attr.aria-invalid]="!!errorOf()"
+        ></textarea>
+        @if (errorOf(); as error) {
+          <p class="field-error" data-testid="error-reason">{{ error }}</p>
+        }
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-testid="cancel-dismiss" [disabled]="submitting()" (click)="onClose()">
+          Volver
+        </button>
+        <button type="submit" class="btn primary" data-testid="cancel-confirm" [disabled]="submitting()">
+          Cancelar pedido
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
