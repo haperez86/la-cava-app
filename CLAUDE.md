@@ -118,9 +118,18 @@ La sesión principal es el **orquestador** y no escribe código de producción. 
 | `developer` | Sonnet | Implementa la HU (código + pruebas). Único que edita `backend/` y `frontend/`. |
 | `test-runner` | Haiku | Corre `./mvnw verify`, `npm test`, `npm run build` y reporta. No edita nada. |
 | `code-explorer` | Haiku | Localiza código y patrones (también en `../proto-inventario-app`). Solo lectura. |
-| `hu-reviewer` | Opus | Revisa el diff contra los CA y las convenciones antes del commit. Solo lectura. |
+| `hu-reviewer` | Sonnet | Revisa el diff contra los CA y las convenciones antes del commit. Solo lectura. |
 
 El orquestador sí puede editar `docs/` (backlog, decisiones, API) y hacer los commits.
+
+### Modelos y ahorro de tokens (obligatorio)
+- **Opus solo orquesta**: decide, escribe encargos y docs, hace commits. No implementa ni lee archivos grandes.
+- **Sonnet (`developer`)** escribe todo el código y sus pruebas. **Haiku** hace lo mecánico: `test-runner` (suites y build) y `code-explorer` (búsquedas). `hu-reviewer` usa Sonnet.
+- Si los subagentes del proyecto no aparecen en la sesión, usa el agente general con `model: sonnet` (código) o `model: haiku` (pruebas, búsquedas) y pídele que lea primero `.claude/agents/<rol>.md`. Nunca lances agentes heredando Opus para implementar o correr pruebas.
+- Encargos cortos: CA verbatim, rutas de docs y decisiones (`D#`) en vez de copiar su contenido, superficies permitidas y la verificación pedida.
+- Un solo `./mvnw verify` a la vez: `la_cava_test` es compartida y dos corridas simultáneas se borran el esquema.
+- Arreglos menores de la revisión: una sola ronda; los pendientes no críticos se anotan en el backlog en lugar de abrir otra ronda.
+- Reportes al dueño breves: estado, decisión pendiente y siguiente paso.
 
 ## Flujo de trabajo por HU
 

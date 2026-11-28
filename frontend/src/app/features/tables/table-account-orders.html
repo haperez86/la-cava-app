@@ -1,0 +1,31 @@
+@for (order of account().orders; track order.id) {
+  <section class="order-box" data-testid="account-order">
+    <div class="order-head">
+      <div>
+        <strong>Pedido #{{ order.id }}</strong>
+        <div class="muted">{{ order.waiterName }}</div>
+      </div>
+      <span class="pill {{ statusPill[order.status] }}">{{ statusLabel[order.status] }}</span>
+    </div>
+    @for (item of order.items; track item.id) {
+      <div class="order-row">
+        <div>
+          <strong>{{ item.quantity }} × {{ item.productName }}</strong>
+          @if (item.note) {
+            <small>Obs.: {{ item.note }}</small>
+          }
+        </div>
+        <span class="money">{{ item.subtotal | cop }}</span>
+      </div>
+    }
+    @if (order.note) {
+      <p class="muted order-note">Observación: {{ order.note }}</p>
+    }
+  </section>
+}
+@if (account().orders.length) {
+  <div class="total-line" data-testid="account-total">
+    <span>{{ totalLabel() }}</span>
+    <span>{{ account().total | cop }}</span>
+  </div>
+}

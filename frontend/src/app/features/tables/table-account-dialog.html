@@ -1,0 +1,48 @@
+@if (ordering()) {
+  <app-order-dialog mode="staff" [table]="table()" (created)="onOrderCreated()" (closed)="closeOrder()" />
+} @else {
+  <div class="modal-back" (click)="close()">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="account-title"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      data-testid="account-dialog"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow">Detalle de consumo · Cuenta de mesa</div>
+          <h3 id="account-title">Mesa {{ table().number }}</h3>
+        </div>
+        <button type="button" class="close" aria-label="Cerrar" data-testid="account-close" (click)="close()">×</button>
+      </div>
+
+      <div class="account-state" [attr.aria-busy]="loading()">
+        @if (account()) {
+          <span class="pill {{ statusPill() }}" data-testid="account-status">{{ statusLabel() }}</span>
+          <span class="muted" data-testid="account-summary">{{ summary() }}</span>
+        } @else if (loading()) {
+          <span class="muted">Cargando la cuenta…</span>
+        }
+      </div>
+
+      @if (account(); as account) {
+        @if (account.orders.length) {
+          <app-table-account-orders [account]="account" totalLabel="Total pendiente de la mesa" />
+        } @else {
+          <p class="empty" data-testid="account-empty">{{ emptyText }}</p>
+        }
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn" (click)="close()">Cerrar</button>
+        <button type="button" class="btn primary" data-testid="account-new-order" (click)="newOrder()">
+          ＋ Nuevo pedido
+        </button>
+      </div>
+    </div>
+  </div>
+}

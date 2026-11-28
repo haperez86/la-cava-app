@@ -2,6 +2,7 @@ package co.lacava.gestion.tables.application;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -25,18 +26,26 @@ public class TableService {
     private final TableTokenService tokens;
     private final Clock clock;
     private final PinAttemptService pinAttempts;
+    private final TablePassService passes;
+    private final OpenTableOrders openOrders;
 
     public TableService(DiningTableRepository tables, TableTokenService tokens, Clock clock,
-            PinAttemptService pinAttempts) {
+            PinAttemptService pinAttempts, TablePassService passes, OpenTableOrders openOrders) {
         this.tables = tables;
         this.tokens = tokens;
         this.clock = clock;
         this.pinAttempts = pinAttempts;
+        this.passes = passes;
+        this.openOrders = openOrders;
     }
 
+    /** LCV-HU-09 CA1: mesas por número con estado, etapa, pedidos abiertos, total y último mesero (sin N+1). */
     @Transactional(readOnly = true)
     public List<TableView> list() {
-        return tables.findAllByOrderByNumberAsc().stream().map(TableService::view).toList();
+        Map<Long, TableOccupancy> occupancy = openOrders.occupancyByTable();
+        return tables.findAllByOrderByNumberAsc().stream()
+                .map(t -> TableView.of(t.getId(), t.getNumber(), t.isActive(), occupancy.get(t.getId())))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +60,8 @@ public class TableService {
             throw BusinessException.conflict(DUPLICATE_NUMBER);
         }
         DiningTable table = new DiningTable(number, tokens.newToken(number), tokens.newPin(), clock.instant());
-        return view(tables.save(table));
+        DiningTable saved = tables.save(table);
+        return TableView.of(saved.getId(), saved.getNumber(), saved.isActive(), null);
     }
 
     /** CA1: activa o desactiva la mesa. */
@@ -78,14 +88,17 @@ public class TableService {
                 .toList();
     }
 
-    /** Mesa activa cuyo código del QR coincide (comparación en tiempo constante), o 404 genérico. */
+    /**
+     * Mesa activa cuyo código del QR coincide (comparación en tiempo constante), o 404 genérico. Devuelve la cuenta
+     * abierta y un comprobante de mesa (D37) emitido para {@code userId}.
+     */
     @Transactional(readOnly = true)
-    public TableAccount resolveByCode(String code) {
+    public ResolvedTable resolveByCode(String code, long userId) {
         DiningTable table = tokens.parse(code)
                 .flatMap(parsed -> activeByNumber(parsed.number())
                         .filter(t -> tokens.matches(t.getQrToken(), parsed.token())))
                 .orElseThrow(TableService::invalidCode);
-        return account(table);
+        return resolved(table, userId);
     }
 
     /**
@@ -94,7 +107,7 @@ public class TableService {
      * correcto. Siempre se busca y compara, para que el bloqueo no se distinga por el tiempo de respuesta.
      */
     @Transactional(readOnly = true)
-    public TableAccount resolveByPin(int number, String pin, long userId, String username) {
+    public ResolvedTable resolveByPin(int number, String pin, long userId, String username) {
         AttemptLimiter.Permit permit = pinAttempts.tryAcquire(userId);
         Optional<DiningTable> table = activeByNumber(number).filter(t -> tokens.matches(t.getPin(), pin));
         if (!permit.allowed()) {
@@ -105,7 +118,7 @@ public class TableService {
             throw invalidCode();
         }
         pinAttempts.recordSuccess(userId);
-        return account(table.get());
+        return resolved(table.get(), userId);
     }
 
     @Transactional(readOnly = true)
@@ -121,12 +134,19 @@ public class TableService {
         return tables.findById(id).orElseThrow(() -> BusinessException.notFound(NOT_FOUND));
     }
 
-    private static TableAccount account(DiningTable table) {
-        return new TableAccount(table.getId(), table.getNumber(), TableAccount.Account.empty());
+    private TableAccount account(DiningTable table) {
+        return new TableAccount(table.getId(), table.getNumber(), openOrders.openAccount(table.getId()));
     }
 
-    private static TableView view(DiningTable table) {
-        return new TableView(table.getId(), table.getNumber(), table.isActive());
+    private ResolvedTable resolved(DiningTable table, long userId) {
+        TablePassService.TablePass pass = passes.issue(table, userId);
+        return new ResolvedTable(table.getId(), table.getNumber(), openOrders.openAccount(table.getId()),
+                pass.value(), pass.expiresAt());
+    }
+
+    private TableView view(DiningTable table) {
+        return TableView.of(table.getId(), table.getNumber(), table.isActive(),
+                openOrders.occupancyByTable().get(table.getId()));
     }
 
     private static BusinessException invalidCode() {

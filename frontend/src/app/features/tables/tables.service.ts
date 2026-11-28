@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Service, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { DiningTable, QrSheetEntry, ResolveTableRequest, ResolvedTable } from './tables.model';
+import { DiningTable, QrSheetEntry, ResolveTableRequest, ResolvedTable, TableAccountResponse } from './tables.model';
 
 export const TABLES_URL = '/api/v1/tables';
 export const QR_SHEET_URL = '/api/v1/tables/qr-sheet';
@@ -17,7 +17,12 @@ export function rotateTokenUrl(id: number): string {
   return `${TABLES_URL}/${id}/rotate-token`;
 }
 
-/** Acceso a la API de mesas y QR (LCV-HU-07 y LCV-HU-08). */
+/** GET /api/v1/tables/{id}/account. */
+export function tableAccountUrl(id: number): string {
+  return `${TABLES_URL}/${id}/account`;
+}
+
+/** Acceso a la API de mesas y QR (LCV-HU-07, LCV-HU-08 y LCV-HU-09). */
 @Service()
 export class TablesService {
   readonly #http = inject(HttpClient);
@@ -49,5 +54,10 @@ export class TablesService {
   /** HU-08: carga la mesa con su cuenta a partir del QR o del número y el PIN; 404 "Código de mesa inválido". */
   resolve(request: ResolveTableRequest): Promise<ResolvedTable> {
     return firstValueFrom(this.#http.post<ResolvedTable>(RESOLVE_TABLE_URL, request));
+  }
+
+  /** HU-09 (A, C): cuenta abierta de la mesa con sus pedidos, ítems y total. */
+  account(id: number): Promise<TableAccountResponse> {
+    return firstValueFrom(this.#http.get<TableAccountResponse>(tableAccountUrl(id)));
   }
 }

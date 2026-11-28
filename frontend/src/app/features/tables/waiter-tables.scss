@@ -1,8 +1,10 @@
 @use 'styles/breakpoints' as bp;
 @use '../inventory/modal';
+@use 'table-grid';
 
 @include modal.modal-shell(460px);
 @include modal.modal-actions;
+@include table-grid.table-grid;
 
 // Celular primero (perfil mesero, 390px): encabezado en columna y botón de escaneo al 100%.
 .page-head {
@@ -37,33 +39,6 @@
   font-weight: 700;
 }
 
-// Mesas (.table-grid): 1 columna ≤ 380px, 2 en móvil, 3 en tablet y 4+ en escritorio.
-.table-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
-}
-
-.table-tile {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--surface);
-  min-height: 72px;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  overflow-wrap: anywhere;
-}
-
-.num {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 19px;
-  font-weight: 700;
-}
-
 .empty {
   grid-column: 1 / -1;
   padding: 28px;
@@ -81,18 +56,6 @@
   margin: 10px 0 0;
 }
 
-.note {
-  margin: 8px 0 0;
-  font-size: 12px;
-  text-align: right;
-}
-
-@media (min-width: #{bp.$bp-xs-max + 1}) {
-  .table-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (min-width: #{bp.$bp-mobile-max + 1}) {
   .page-head {
     flex-direction: row;
@@ -107,20 +70,5 @@
   .qr-btn {
     width: auto;
     flex-shrink: 0;
-  }
-
-  .table-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .num {
-    font-size: 21px;
-  }
-}
-
-@media (min-width: bp.$bp-desktop-min) {
-  .table-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }

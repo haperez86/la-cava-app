@@ -1,5 +1,6 @@
 @use 'styles/breakpoints' as bp;
 @use '../inventory/modal';
+@use 'table-grid';
 
 @include modal.modal-shell(440px);
 
@@ -37,52 +38,12 @@
   font-weight: 700;
 }
 
-// Mesas (.table-grid): 1 columna ≤ 380px, 2 en móvil, 3 en tablet y 4+ en escritorio.
-.table-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
-}
-
-.table-tile {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--surface);
-  min-height: 105px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-wrap: anywhere;
-
-  &.off {
-    background: var(--bg);
-
-    .num {
-      color: var(--muted);
-    }
-  }
-}
-
-.tile-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.num {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 19px;
-  font-weight: 700;
-}
+// Mesas (.table-grid): 1 columna ≤ 380px, 2 en móvil, 3 en tablet y máximo 6 en escritorio.
+@include table-grid.table-grid;
 
 .actions {
   display: grid;
+  width: 100%;
   gap: 6px;
   margin-top: auto;
 
@@ -93,18 +54,20 @@
   }
 }
 
+// Tarjeta ancha (escritorio con pocas columnas o pantallas grandes): las cuatro acciones en 2 × 2 en vez de
+// apiladas. El contenedor es la propia tarjeta (`app-table-status-card`).
+@container (min-width: 300px) {
+  .actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .empty {
   grid-column: 1 / -1;
   padding: 28px;
   text-align: center;
   color: var(--muted);
   font-size: 13px;
-}
-
-@media (min-width: #{bp.$bp-xs-max + 1}) {
-  .table-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (min-width: #{bp.$bp-mobile-max + 1}) {
@@ -127,28 +90,7 @@
     }
   }
 
-  .table-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .table-tile {
-    padding: 14px;
-    min-height: 116px;
-  }
-
-  .num {
-    font-size: 21px;
-  }
-
   .actions .btn {
     min-height: 36px;
-  }
-}
-
-@media (min-width: bp.$bp-desktop-min) {
-  // 4 columnas con el sidebar en 1051px y más a medida que crece el ancho (4+).
-  .table-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }

@@ -1,0 +1,61 @@
+:host {
+  display: block;
+}
+
+// Cuenta de la mesa (.order-box de la demo).
+.order-box {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 12px 0;
+  min-width: 0;
+}
+
+.order-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  &:last-child {
+    border: 0;
+  }
+
+  strong {
+    display: block;
+    font-size: 13px;
+  }
+
+  small {
+    color: var(--muted);
+  }
+}
+
+.money {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.order-note {
+  margin: 8px 0 0;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 0 0;
+  font-size: 17px;
+  font-weight: 750;
+}

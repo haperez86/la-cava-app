@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -31,9 +33,14 @@ import co.lacava.gestion.menu.application.ProductData;
 import co.lacava.gestion.menu.application.ProductService;
 import co.lacava.gestion.menu.application.ProductState;
 import co.lacava.gestion.menu.application.ProductView;
+import co.lacava.gestion.orders.application.NewOrder;
+import co.lacava.gestion.orders.application.OrderService;
 import co.lacava.gestion.tables.application.TableService;
+import co.lacava.gestion.tables.application.TableStatus;
+import co.lacava.gestion.tables.application.TableView;
 import co.lacava.gestion.users.application.UserService;
 import co.lacava.gestion.users.domain.AppUser;
+import co.lacava.gestion.users.domain.Role;
 
 /** P2: los datos de ejemplo solo se siembran contra una base en localhost. */
 class LocalDataSeederTest {
@@ -72,6 +79,7 @@ class LocalDataSeederTest {
     private final ProductService products = mock(ProductService.class);
     private final InventoryService inventory = mock(InventoryService.class);
     private final TableService tables = mock(TableService.class);
+    private final OrderService orders = mock(OrderService.class);
     private final PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
 
     @Test
@@ -79,7 +87,7 @@ class LocalDataSeederTest {
     void doesNotSeedRemoteDatabase() {
         seeder("jdbc:postgresql://db.example.com:5432/la_cava").run(null);
 
-        verifyNoInteractions(users, products, inventory, tables);
+        verifyNoInteractions(users, products, inventory, tables, orders);
     }
 
     @Test
@@ -126,13 +134,54 @@ class LocalDataSeederTest {
         verify(inventory, never()).loadSampleLot(anyLong(), anyInt(), any(), any(), any(), anyLong());
     }
 
+    @Test
+    @DisplayName("HU-10 siembra 3 pedidos PENDING (mesas 2, 5 y 8) con el servicio de pedidos si no hay ninguno")
+    void seedsSampleOrders() {
+        AppUser user = mock(AppUser.class);
+        when(user.getId()).thenReturn(1L);
+        when(users.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(products.findByName(anyString())).thenReturn(Optional.of(view("existente")));
+        when(tables.existsByNumber(anyInt())).thenReturn(true);
+        when(tables.list()).thenReturn(List.of(freeTable(12L, 2), freeTable(15L, 5), freeTable(18L, 8)));
+        when(orders.hasAny()).thenReturn(false);
+        when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
+
+        seeder("jdbc:postgresql://localhost:5432/la_cava").run(null);
+
+        verify(orders, times(3)).create(any(NewOrder.class), eq(1L), eq(Role.ADMIN));
+        for (long tableId : new long[] { 12L, 15L, 18L }) {
+            verify(orders).create(argThat(o -> o != null && o.tableId() == tableId && o.tableCode() == null),
+                    eq(1L), eq(Role.ADMIN));
+        }
+    }
+
+    @Test
+    @DisplayName("HU-10 es idempotente: si ya hay pedidos no crea los de ejemplo")
+    void doesNotDuplicateOrders() {
+        AppUser user = mock(AppUser.class);
+        when(user.getId()).thenReturn(1L);
+        when(users.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(products.findByName(anyString())).thenReturn(Optional.of(view("existente")));
+        when(tables.existsByNumber(anyInt())).thenReturn(true);
+        when(orders.hasAny()).thenReturn(true);
+        when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
+
+        seeder("jdbc:postgresql://localhost:5432/la_cava").run(null);
+
+        verify(orders, never()).create(any(), anyLong(), any());
+    }
+
     private LocalDataSeeder seeder(String url) {
-        return new LocalDataSeeder(users, products, inventory, tables, ZoneId.of("America/Bogota"),
+        return new LocalDataSeeder(users, products, inventory, tables, orders, ZoneId.of("America/Bogota"),
                 new TransactionTemplate(txManager), url);
     }
 
     private static ProductView view(String name) {
         return new ProductView(7L, name, 1L, "Tablas", BigDecimal.TEN, null, null, 0, true, null, null, 0,
                 ProductState.OUT_OF_STOCK, false, "Agotado");
+    }
+
+    private static TableView freeTable(long id, int number) {
+        return new TableView(id, number, true, TableStatus.FREE, null, 0, BigDecimal.ZERO, null);
     }
 }

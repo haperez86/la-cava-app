@@ -24,13 +24,14 @@ import co.lacava.gestion.tables.api.TableRequests.ActiveRequest;
 import co.lacava.gestion.tables.api.TableRequests.CreateTableRequest;
 import co.lacava.gestion.tables.api.TableRequests.ResolveRequest;
 import co.lacava.gestion.tables.application.QrSheetEntry;
+import co.lacava.gestion.tables.application.ResolvedTable;
 import co.lacava.gestion.tables.application.TableAccount;
 import co.lacava.gestion.tables.application.TableService;
 import co.lacava.gestion.tables.application.TableView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-/** LCV-HU-07: mesas y códigos QR. El token y el PIN solo salen en {@code qr-sheet} (ADMIN). */
+/** LCV-HU-07 y LCV-HU-09: mesas, códigos QR y estado de mesas. El token y el PIN solo salen en {@code qr-sheet} (ADMIN). */
 @RestController
 @RequestMapping("/api/v1/tables")
 @Tag(name = "Mesas")
@@ -44,7 +45,8 @@ class TableController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER', 'WAITER')")
-    @Operation(summary = "Mesas ordenadas por número (sin token ni PIN)")
+    @Operation(summary = "Mesas ordenadas por número con estado (FREE/OCCUPIED), etapa más urgente, pedidos abiertos, "
+            + "total y último mesero (sin token ni PIN)")
     List<TableView> list() {
         return tableService.list();
     }
@@ -80,10 +82,11 @@ class TableController {
 
     @PostMapping("/resolve")
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER', 'WAITER')")
-    @Operation(summary = "Mesa y cuenta a partir del código del QR o de número + PIN; 404 si no es válido")
-    TableAccount resolve(@RequestBody ResolveRequest request, @AuthenticationPrincipal Jwt jwt) {
+    @Operation(summary = "Mesa, cuenta y comprobante de mesa (tablePass, D37) a partir del código del QR o de "
+            + "número + PIN; 404 si no es válido")
+    ResolvedTable resolve(@RequestBody ResolveRequest request, @AuthenticationPrincipal Jwt jwt) {
         if (request.code() != null && !request.code().isBlank()) {
-            return tableService.resolveByCode(request.code());
+            return tableService.resolveByCode(request.code(), CurrentUser.id(jwt));
         }
         if (request.number() != null && request.pin() != null && !request.pin().isBlank()) {
             // D36: número + PIN se limita por usuario autenticado; el código del QR no.

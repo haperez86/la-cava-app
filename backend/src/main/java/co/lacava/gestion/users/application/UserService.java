@@ -2,6 +2,7 @@ package co.lacava.gestion.users.application;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -42,6 +43,18 @@ public class UserService {
     @Transactional(readOnly = true)
     public Optional<AppUser> findByUsername(String username) {
         return users.findByUsername(normalizeUsername(username));
+    }
+
+    /** Meseros activos ordenados por nombre (para asignar pedidos, D38). */
+    @Transactional(readOnly = true)
+    public List<AppUser> activeWaiters() {
+        return users.findByRoleAndActiveTrueOrderByFullNameAscIdAsc(Role.WAITER);
+    }
+
+    /** Usuario por id, si existe. */
+    @Transactional(readOnly = true)
+    public Optional<AppUser> findById(long id) {
+        return users.findById(id);
     }
 
     /** Crea un usuario activo con la contraseña cifrada con BCrypt. 409 si el usuario ya existe. */

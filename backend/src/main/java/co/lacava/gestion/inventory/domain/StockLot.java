@@ -67,6 +67,11 @@ public class StockLot {
         return taken;
     }
 
+    /** Devuelve unidades al lote (cancelación de un pedido); un lote vencido las recibe igual. */
+    public void giveBack(int units) {
+        quantityAvailable += units;
+    }
+
     /** Deja el lote en 0 y devuelve las unidades que tenía. */
     public int writeOff() {
         int units = quantityAvailable;

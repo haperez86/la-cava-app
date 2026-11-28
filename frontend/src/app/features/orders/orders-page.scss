@@ -1,0 +1,252 @@
+@use 'styles/breakpoints' as bp;
+
+// Celular primero: encabezado en columna con el botón principal al 100%.
+.page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+// --- Pills de estado con contador: una fila desplazable dentro de su contenedor en móvil ---
+.status-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  min-height: 42px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+
+  .count {
+    background: var(--bg);
+    border-radius: var(--radius-pill);
+    padding: 1px 8px;
+    font-size: 12px;
+  }
+
+  &.active {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--white);
+
+    .count {
+      background: var(--green2);
+      color: var(--white);
+    }
+  }
+}
+
+.toolbar {
+  margin-bottom: 16px;
+
+  .field {
+    margin: 0;
+  }
+}
+
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+// --- Listado: tarjetas apiladas en móvil, tabla desde tablet (scroll solo dentro de su contenedor) ---
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+tbody {
+  display: grid;
+  gap: 10px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 0;
+
+  td {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    font-size: 13px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  td[data-label]::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .order-cell,
+  .state-cell,
+  .actions-cell {
+    grid-column: 1 / -1;
+  }
+
+  .actions-cell:not(:has(*)) {
+    display: none;
+  }
+
+  .actions-cell .btn {
+    width: 100%;
+    min-height: 42px;
+  }
+}
+
+.item,
+.sub {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+@media (max-width: bp.$bp-mobile-max) {
+  .empty-row,
+  .empty-row .empty {
+    display: block;
+  }
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .page-head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    h2 {
+      font-size: 29px;
+    }
+
+    .btn {
+      width: auto;
+      flex-shrink: 0;
+    }
+  }
+
+  .toolbar .field {
+    max-width: 420px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  table {
+    min-width: 760px;
+  }
+
+  thead {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  tbody {
+    display: table-row-group;
+  }
+
+  .row {
+    display: table-row;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+
+    td {
+      display: table-cell;
+      vertical-align: top;
+    }
+
+    td[data-label]::before {
+      content: none;
+    }
+
+    .actions-cell .btn {
+      width: auto;
+      min-height: 0;
+    }
+
+    .actions-cell:not(:has(*)) {
+      display: table-cell;
+    }
+
+    .item {
+      display: block;
+    }
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 13px 15px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+  }
+
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    background: var(--bg);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}

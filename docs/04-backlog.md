@@ -78,26 +78,29 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA4** En "Mis mesas" las mesas se ven pero **no** se pueden abrir tocándolas.
 - **Desviaciones:** incluye D36 (límite de intentos de PIN) con un `AttemptLimiter` genérico que ahora también usa el login sin cambiar D27; durante el bloqueo se sigue comparando el PIN y se descarta, para no delatarlo por tiempo; si no hay cámara o se niega el permiso, el diálogo pasa solo al modo manual; textos de error de cámara propios; el botón "Asignar pedido" queda deshabilitado hasta HU-10; zxing se carga bajo demanda. Pendiente para HU-10: hoy ni el QR (el frontend no lo guarda) ni el PIN dejan un `tableCode` para crear pedidos (D13); hay que decidirlo al empezar HU-10. Pendiente menor: quitar `PinAttemptService.isLocked`, que no se usa.
 
-### LCV-HU-09 · Estado de mesas ⛔
-- **Bloqueada:** su estado, etapa, número de pedidos, total y mesero salen de los pedidos (HU-10). Se implementa justo después de HU-10 (D35).
+### LCV-HU-09 · Estado de mesas ✅
+- Estuvo ⛔ bloqueada hasta HU-10 (D35); se implementa en la rama de la Épica 4.
 - **CA1** Cada mesa muestra Disponible/Ocupada y, si está ocupada, la etapa más urgente (Listo para recoger > En preparación > Pendiente > Servido) resaltada, junto con el número de pedidos, el total y el mesero.
 - **CA2** La leyenda de estados es visible.
+- **Desviaciones:** las respuestas de `POST`/`PATCH /tables` también traen el estado; total 0 en mesas libres; el mesero de la mesa es el del pedido abierto más reciente (desempate por id); la leyenda va en orden de urgencia; el cajero y el mesero solo ven mesas activas, y el administrador ve todas, con "Ver cuenta" habilitado mientras la mesa tenga pedidos abiertos; el mesero ve estado, total y mesero de todas las mesas (consulta, no opera); el cajero abre la cuenta de una mesa y crea pedidos con la mesa fija. Pendientes menores: `view()` al activar o regenerar calcula el resumen de todas las mesas; el filtro parametrizado de estados puede no usar el índice parcial; falta una prueba de que POST/PATCH devuelven los campos nuevos.
 
 ---
 
 ## Épica 4 · Pedidos
 
-### LCV-HU-10 · Crear pedido ⬜
+### LCV-HU-10 · Crear pedido ✅
 - **CA1** El modal de pedido tiene búsqueda y pestañas de categoría que **sí filtran**, una lista compacta con −/+ y una **barra inferior fija** con unidades, total y "Enviar a preparación" (no hay que desplazarse para enviar).
 - **CA2** Los productos no disponibles se ven deshabilitados con su motivo; no puedo superar la existencia vigente.
 - **CA3** Observaciones por ítem y general.
 - **CA4** El mesero crea pedidos solo con el `tableCode` del QR y queda asignado; el Cajero y el Administrador eligen mesa y mesero.
 - **CA5** Al guardar se consumen los lotes (FEFO, con `order_item_lot`) y el pedido queda `PENDING`; si un producto no alcanza (p. ej. otra mesa lo pidió antes), 422 y no se guarda nada.
+- **Desviaciones:** `tableCode` = comprobante de mesa firmado de 4 h (D37); Cajero/Admin con mesa inactiva → 422 y el mesero → 403; pedido ajeno para el mesero → 404; tope de 999 unidades por ítem; `stock_movement.order_id` sin FK; se adelantó `GET /users/waiters`; pantalla `/pedidos` con "Nuevo pedido" (el listado llega en HU-11); la cuenta del mesero se actualiza en el cliente tras crear el pedido; tras un 422 el modal ajusta la cantidad o deshabilita el producto. Incluye la corrección de la grilla de mesas en pantallas anchas (máximo 6 columnas). Pendientes menores: el modal carga una sola página de 100 productos; `TableAccount.orders` como `List<?>` deja el esquema OpenAPI impreciso. HU-09 se desbloquea con esta HU.
 
-### LCV-HU-11 · Listado de pedidos y cancelación ⬜
+### LCV-HU-11 · Listado de pedidos y cancelación ✅
 - **CA1** Listado con filtros por estado (con contadores) y búsqueda por número, mesa o mesero.
 - **CA2** Cancelar (A, C) solo en `PENDING` y con motivo; las cantidades vuelven a sus lotes.
 - **CA3** Transiciones inválidas → 409.
+- **Desviaciones:** alcance según D39. Contadores en `GET /orders/summary` (una consulta `count` por estado); `q` numérico = número de pedido o de mesa, texto = mesero. Orden de errores al cancelar: 400 por motivo → 404 → 409. La devolución bloquea los lotes en el mismo orden que el consumo (D33). Pendientes menores: los componentes de `OrderSummary` en mayúsculas para calzar el JSON (mejor `@JsonProperty`); un cuerpo ausente en `cancel` da 400 genérico en lugar de 400 en `reason`.
 
 ---
 

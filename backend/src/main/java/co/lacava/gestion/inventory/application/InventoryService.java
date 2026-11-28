@@ -148,7 +148,8 @@ public class InventoryService {
      * Consumo FEFO (D33): bloquea con {@code SELECT … FOR UPDATE} los lotes vigentes del producto en orden de
      * vencimiento y descuenta {@code quantity} repartiéndola entre ellos. Registra un movimiento de cantidad negativa
      * por lote tocado (con {@code orderId} si se indica), en la transacción del llamador si la hay. Cantidad {@code > 0}
-     * y {@code <=} la existencia vigente; si no, 400 en {@code quantity} y no cambia nada.
+     * y {@code <=} la existencia vigente; si no, {@link InsufficientStockException} (400 en {@code quantity}) y no
+     * cambia nada.
      * <p>
      * Contrato para el llamador:
      * <ul>
@@ -175,7 +176,7 @@ public class InventoryService {
         List<StockLot> available = lots.lockAvailable(productId, today());
         int total = available.stream().mapToInt(StockLot::getQuantityAvailable).sum();
         if (total < quantity) {
-            throw new InvalidFieldsException(List.of(new FieldError("quantity", notEnough(total))));
+            throw new InsufficientStockException(productId, total);
         }
         Instant now = clock.instant();
         List<LotAllocation> allocations = new ArrayList<>();
@@ -190,6 +191,27 @@ public class InventoryService {
             movements.save(new StockMovement(productId, lot.getId(), type, -taken, note, orderId, userId, now));
         }
         return allocations;
+    }
+
+    /**
+     * Devuelve al stock lo que consumió un pedido cancelado (LCV-HU-11, D39): suma cada cantidad al lote exacto de
+     * {@code order_item_lot} (también si ya venció: queda vencida, spec §3.2) y registra un movimiento
+     * {@code ORDER_CANCEL_RETURN} positivo por lote, en la transacción del llamador.
+     *
+     * @param quantityByLot cantidad total a devolver por id de lote
+     */
+    @Transactional
+    public void returnToLots(long orderId, Map<Long, Integer> quantityByLot, long userId) {
+        if (quantityByLot.isEmpty()) {
+            return;
+        }
+        Instant now = clock.instant();
+        for (StockLot lot : lots.lockByIds(quantityByLot.keySet())) {
+            int units = quantityByLot.get(lot.getId());
+            lot.giveBack(units);
+            movements.save(new StockMovement(lot.getProductId(), lot.getId(), MovementType.ORDER_CANCEL_RETURN, units,
+                    null, orderId, userId, now));
+        }
     }
 
     /**

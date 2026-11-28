@@ -51,13 +51,14 @@ Fila de inventario (`GET /inventory`, paginado): `{productId, name, icon, catego
 | POST | `/tables/{id}/rotate-token` | A | Invalida el QR anterior |
 | GET | `/tables/qr-sheet` | A | Datos para imprimir los QR: `[{number, code, pin}]` (el frontend dibuja los QR) |
 
-Mesa: `{id, number, active}` (los campos de estado llegan con HU-09). `POST /tables`: número entero > 0 (400 `errors[]`), repetido → 409 "Ya existe una mesa con ese número.". `resolve` con `{code}` o `{number, pin}` (PIN como texto de 4 dígitos) → `{id, number, account:{orders, total}}`; cualquier código, PIN o mesa inválidos o inactivos → 404 "Código de mesa inválido"; sin datos → 400. `qr-sheet` solo trae mesas activas. Hasta la Épica 4 la cuenta llega vacía (D35).
+Mesa: `{id, number, active, status, stage, openOrders, total, waiterName}`; `status` = `FREE`/`OCCUPIED` según haya pedidos abiertos (`PENDING`, `IN_PREPARATION`, `READY`, `DELIVERED`); `stage` = la etapa más urgente (`READY` > `IN_PREPARATION` > `PENDING` > `SERVED`, todos entregados) o `null`; `waiterName` = mesero del pedido abierto más reciente (HU-09). `POST /tables`: número entero > 0 (400 `errors[]`), repetido → 409 "Ya existe una mesa con ese número.". `resolve` con `{code}` o `{number, pin}` (PIN como texto de 4 dígitos) → `{id, number, account:{orders, total}}`; cualquier código, PIN o mesa inválidos o inactivos → 404 "Código de mesa inválido"; sin datos → 400. `qr-sheet` solo trae mesas activas. `resolve` devuelve además `tablePass` y `passExpiresAt` (comprobante de mesa de 4 h, D37); `account.orders` son los pedidos abiertos de la mesa con el formato de `OrderResponse`.
 
 ## Pedidos
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
 | POST | `/orders` | M, C, A | `{tableId, waiterId?, items:[{productId, quantity, note?}], note?, tableCode?}`. Mesero: `waiterId` se ignora (es él) y `tableCode` del QR es **obligatorio**. 422 por existencia insuficiente o producto no disponible |
 | GET | `/orders` | A, C | Filtros `status`, `q` (número, mesa o mesero), fechas; paginado |
+| GET | `/orders/summary` | A, C | Contadores `{all, PENDING, IN_PREPARATION, READY, DELIVERED, CLOSED, CANCELLED}` con los mismos `q`/`from`/`to`, ignorando `status` (D39) |
 | GET | `/orders/mine` | M | Pedidos propios no entregados |
 | GET | `/orders/{id}` | todos | El mesero solo los suyos |
 | POST | `/orders/{id}/start` | P, A | `PENDING → IN_PREPARATION` |
@@ -66,6 +67,8 @@ Mesa: `{id, number, active}` (los campos de estado llegan con HU-09). `POST /tab
 | POST | `/orders/{id}/deliver` | M (propio), A | `READY → DELIVERED`; marca leídos sus avisos |
 | POST | `/orders/{id}/cancel` | A, C | `{reason}`; solo `PENDING`; devuelve el stock a sus lotes |
 | GET | `/kitchen/board` | P, A | Pedidos `PENDING`, `IN_PREPARATION` y `READY` con ítems |
+
+Pedido (`OrderResponse`): `{id, tableId, tableNumber, waiterId, waiterName, status, note, createdAt, items:[{id, productId, productName, unitPrice, quantity, note, subtotal}], total, cancelReason, cancelledAt}` (los dos últimos solo con valor si está `CANCELLED`). `GET /orders`: más reciente primero; `q` numérico busca por número de pedido o de mesa, de texto por nombre del mesero; `from`/`to` en hora de Bogotá; `status` inválido o `from` > `to` → 400. `POST /orders/{id}/cancel`: `{reason}` de 1 a 120 caracteres sin espacios sobrantes (400 en `reason`); fuera de `PENDING` → 409 "Solo se puede cancelar un pedido pendiente."; inexistente → 404; devuelve el `OrderResponse` cancelado (D39). En `POST /orders` el mesero envía `tableCode` = `tablePass` de `resolve`; si falta, es de otra mesa o de otro mesero, venció, se regeneró el QR o la mesa está inactiva → 403 "Escanea de nuevo el QR de la mesa.". Cajero/Admin: `waiterId` de un mesero activo (400 si no); mesa inexistente → 404, inactiva → 422. Notas: ítem ≤ 80, general ≤ 140; cantidad entera de 1 a 999 por ítem. Producto inexistente → 404. Existencia insuficiente o producto no disponible → 422 con `productId`, `productName`, `available` (y `reason` si no está disponible); no se guarda nada. `GET /orders/{id}`: un pedido ajeno para el mesero → 404 (D38).
 
 ## Notificaciones (tiempo real)
 | Método | Ruta | Rol | Descripción |

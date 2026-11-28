@@ -1,5 +1,7 @@
 package co.lacava.gestion.shared.error;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 
 /**
@@ -9,10 +11,17 @@ import org.springframework.http.HttpStatus;
 public class BusinessException extends RuntimeException {
 
     private final HttpStatus status;
+    private final Map<String, Object> properties;
 
     public BusinessException(HttpStatus status, String message) {
+        this(status, message, Map.of());
+    }
+
+    /** Con propiedades extra que se copian al {@code ProblemDetail} (p. ej. {@code productId} y {@code available}). */
+    public BusinessException(HttpStatus status, String message, Map<String, Object> properties) {
         super(message);
         this.status = status;
+        this.properties = Map.copyOf(properties);
     }
 
     /** 409: la petición choca con el estado actual (duplicados, caja abierta, venta anulada…). */
@@ -37,5 +46,9 @@ public class BusinessException extends RuntimeException {
 
     public HttpStatus getStatus() {
         return status;
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 }

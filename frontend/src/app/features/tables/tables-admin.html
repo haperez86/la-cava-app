@@ -2,7 +2,7 @@
   <div>
     <div class="eyebrow">La Cava · Copas y tablas</div>
     <h2>Mesas</h2>
-    <p class="muted">Crea y desactiva mesas, imprime sus códigos QR y regenéralos si un QR se pierde.</p>
+    <p class="muted">Estado de cada mesa y su cuenta. Crea y desactiva mesas, imprime sus códigos QR y regenéralos si un QR se pierde.</p>
   </div>
   <div class="head-actions">
     <button type="button" class="btn" data-testid="print-all" [disabled]="printing()" (click)="printQr()">
@@ -12,18 +12,28 @@
   </div>
 </div>
 
+<!-- HU-09 CA2: leyenda de estados. -->
+<app-table-legend />
+
 <div class="table-grid" data-testid="table-list" [attr.aria-busy]="loading()">
   @for (table of tables(); track table.id) {
-    <article class="table-tile" [class.off]="!table.active" data-testid="table">
-      <div class="tile-head">
-        <span class="num"><app-icon name="tables" [size]="16" /> Mesa {{ table.number }}</span>
-        @if (table.active) {
-          <span class="pill" data-testid="table-state">Activa</span>
-        } @else {
-          <span class="pill danger" data-testid="table-state">Inactiva</span>
-        }
-      </div>
-      <div class="actions">
+    <!-- HU-09 CA1: estado, etapa, pedidos, total y mesero; además Activa/Inactiva y la gestión de HU-07. -->
+    <app-table-status-card [table]="table" [inactive]="!table.active" data-testid="table">
+      @if (table.active) {
+        <span tileFlag class="pill" data-testid="table-state">Activa</span>
+      } @else {
+        <span tileFlag class="pill danger" data-testid="table-state">Inactiva</span>
+      }
+      <span class="actions">
+        <button
+          type="button"
+          class="btn small"
+          data-testid="view-account"
+          [disabled]="!table.active && table.openOrders === 0"
+          (click)="viewAccount(table)"
+        >
+          Ver cuenta
+        </button>
         <button
           type="button"
           class="btn small"
@@ -45,8 +55,8 @@
         >
           {{ table.active ? 'Desactivar' : 'Activar' }}
         </button>
-      </div>
-    </article>
+      </span>
+    </app-table-status-card>
   } @empty {
     @if (!loading()) {
       <div class="card empty" data-testid="empty">Aún no hay mesas. Crea la primera con «Nueva mesa».</div>
@@ -72,6 +82,10 @@
       <app-table-form (saved)="onCreated($event)" (cancelled)="closeForm()" />
     </div>
   </div>
+}
+
+@if (accountOf(); as table) {
+  <app-table-account-dialog [table]="table" (closed)="closeAccount()" (changed)="load()" />
 }
 
 @if (rotating(); as table) {

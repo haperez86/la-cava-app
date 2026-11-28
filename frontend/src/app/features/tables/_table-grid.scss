@@ -1,0 +1,35 @@
+@use 'styles/breakpoints' as bp;
+
+// Rejilla de mesas (.table-grid) compartida por la vista de administrador y la del mesero.
+// Mobile-first: 1 columna ≤ 380px, 2 en móvil, 3 en tablet y 3–6 en escritorio, máximo 6.
+@mixin table-grid {
+  .table-grid {
+    --table-gap: 12px;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--table-gap);
+  }
+
+  @media (min-width: #{bp.$bp-xs-max + 1}) {
+    .table-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: #{bp.$bp-mobile-max + 1}) {
+    .table-grid {
+      --table-gap: 16px;
+
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: bp.$bp-desktop-min) {
+    // Máximo 6: el mínimo de cada tarjeta nunca baja de un sexto del ancho (menos los 5 huecos),
+    // así auto-fill no pasa de 6 columnas y en pantallas anchas las tarjetas crecen.
+    .table-grid {
+      grid-template-columns: repeat(auto-fill, minmax(max(220px, calc((100% - 5 * var(--table-gap)) / 6)), 1fr));
+    }
+  }
+}

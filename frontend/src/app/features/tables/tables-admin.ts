@@ -3,10 +3,12 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { problemMessage } from '../../core/http/problem';
 import { ToastService } from '../../core/notifications/toast.service';
 import { HtmlPrinter } from '../../core/print/print-html';
-import { Icon } from '../../shared/icons/icon';
 import { ConfirmDialog } from '../inventory/confirm-dialog';
 import { QrCodeRenderer, qrSheetHtml } from './qr-sheet';
+import { TableAccountDialog } from './table-account-dialog';
 import { TableForm } from './table-form';
+import { TableLegend } from './table-legend';
+import { TableStatusCard } from './table-status-card';
 import { DiningTable } from './tables.model';
 import { TablesService } from './tables.service';
 
@@ -17,10 +19,10 @@ export const rotateConfirmMessage = (n: number) =>
   'tendrás que imprimir el nuevo y reemplazarlo.';
 export const rotatedMessage = (n: number) => `QR de la mesa ${n} regenerado. Imprime el nuevo.`;
 
-/** Gestión de mesas y QR para el administrador (LCV-HU-07). */
+/** Gestión de mesas y QR para el administrador (LCV-HU-07) con el estado de cada mesa y su cuenta (LCV-HU-09). */
 @Component({
   selector: 'app-tables-admin',
-  imports: [CdkTrapFocus, ConfirmDialog, Icon, TableForm],
+  imports: [CdkTrapFocus, ConfirmDialog, TableAccountDialog, TableForm, TableLegend, TableStatusCard],
   templateUrl: './tables-admin.html',
   styleUrl: './tables-admin.scss',
   host: { '(document:keydown.escape)': 'closeForm()' },
@@ -41,6 +43,8 @@ export class TablesAdmin {
   /** Id de la mesa que se está activando o desactivando. */
   protected readonly toggling = signal<number | null>(null);
   protected readonly printing = signal(false);
+  /** Mesa cuya cuenta está abierta (HU-09). */
+  protected readonly accountOf = signal<DiningTable | null>(null);
   protected readonly rotateMessage = computed(() => rotateConfirmMessage(this.rotating()?.number ?? 0));
 
   constructor() {
@@ -75,6 +79,14 @@ export class TablesAdmin {
     } finally {
       this.toggling.set(null);
     }
+  }
+
+  protected viewAccount(table: DiningTable): void {
+    this.accountOf.set(table);
+  }
+
+  protected closeAccount(): void {
+    this.accountOf.set(null);
   }
 
   protected askRotate(table: DiningTable): void {

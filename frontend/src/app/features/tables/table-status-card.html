@@ -1,0 +1,20 @@
+<span class="tile-pills">
+  <span class="pill {{ statusPill() }}" data-testid="table-status">{{ statusLabel() }}</span>
+  @if (stage(); as stage) {
+    <span class="pill stage {{ stage.pill }}" data-testid="table-stage">{{ stage.label }}</span>
+  }
+  <ng-content select="[tileFlag]" />
+</span>
+<span class="num"><app-icon name="tables" [size]="16" /> Mesa {{ table().number }}</span>
+@if (occupied()) {
+  <span class="meta" data-testid="table-meta">
+    <span data-testid="table-orders">{{ orders() }}</span> ·
+    <b class="money" data-testid="table-total">{{ table().total | cop }}</b>
+    @if (table().waiterName; as waiter) {
+      · <span data-testid="table-waiter">{{ waiter }}</span>
+    }
+  </span>
+} @else {
+  <span class="meta" data-testid="table-meta">{{ empty }}</span>
+}
+<ng-content />
