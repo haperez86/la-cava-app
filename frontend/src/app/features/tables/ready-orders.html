@@ -1,0 +1,28 @@
+<section class="ready" id="listos" aria-labelledby="ready-title" data-testid="ready-orders">
+  <h3 id="ready-title">
+    {{ title }}
+    <span class="count" data-testid="ready-count">{{ ready().length }}</span>
+  </h3>
+  @for (order of ready(); track order.id) {
+    <article class="card ready-card" data-testid="ready-order">
+      <div class="ready-info">
+        <strong data-testid="ready-title-text">Pedido #{{ order.id }} · Mesa {{ order.tableNumber }}</strong>
+        <small class="muted">
+          @if (order.readyAt) {
+            Listo <time [attr.datetime]="order.readyAt">{{ formatTime(order.readyAt) }}</time>
+          }
+        </small>
+        <ul class="items">
+          @for (item of order.items; track item.id) {
+            <li><b>{{ item.quantity }} ×</b> {{ item.productName }}</li>
+          }
+        </ul>
+      </div>
+      <button type="button" class="btn primary" data-testid="deliver-order" [disabled]="isBusy(order)" (click)="deliver(order)">
+        Recogido y entregado
+      </button>
+    </article>
+  } @empty {
+    <p class="muted empty" data-testid="ready-empty">{{ emptyText }}</p>
+  }
+</section>

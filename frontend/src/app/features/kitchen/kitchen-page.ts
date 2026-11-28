@@ -20,6 +20,9 @@ export const KITCHEN_COLUMNS: readonly { readonly status: OrderStatus; readonly 
 /** Texto del botón de listo (CA2). */
 export const readyLabel = (order: Order): string => `Listo · avisar a ${order.waiterName}`;
 
+/** Toast tras "Reenviar aviso" (HU-14 CA4). */
+export const resentMessage = (order: Order): string => `Aviso reenviado a ${order.waiterName}`;
+
 /**
  * `/preparacion` "Comandas" (ADMIN y KITCHEN, D25, D40): columnas por estado (una sola columna en pantallas angostas),
  * "Iniciar preparación", "Listo · avisar a <mesero>" e "Imprimir comanda". Refresco manual hasta HU-15 (SSE).
@@ -82,6 +85,27 @@ export class KitchenPage {
 
   protected ready(order: Order): Promise<void> {
     return this.act(order, () => this.#kitchen.ready(order.id));
+  }
+
+  /** HU-14 CA4: crea un aviso nuevo para el mesero; un 409 (ya no está listo) refresca el tablero. */
+  protected async notifyAgain(order: Order): Promise<void> {
+    if (this.isBusy(order)) {
+      return;
+    }
+    this.busy.update((set) => new Set(set).add(order.id));
+    try {
+      await this.#kitchen.notifyAgain(order.id);
+      this.#toast.success(resentMessage(order));
+    } catch (e) {
+      this.#toast.error(problemMessage(e));
+      await this.reload();
+    } finally {
+      this.busy.update((set) => {
+        const next = new Set(set);
+        next.delete(order.id);
+        return next;
+      });
+    }
   }
 
   /** CA3: tirilla de 80 mm con iframe oculto. */

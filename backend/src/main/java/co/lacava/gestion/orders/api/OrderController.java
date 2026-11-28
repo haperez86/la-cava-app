@@ -1,6 +1,7 @@
 package co.lacava.gestion.orders.api;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -84,6 +85,29 @@ class OrderController {
     @Operation(summary = "Marca el pedido listo: IN_PREPARATION → READY con readyAt; otro estado: 409")
     OrderView ready(@PathVariable long id) {
         return orderService.ready(id);
+    }
+
+    @PostMapping("/{id}/notify-again")
+    @PreAuthorize("hasAnyRole('ADMIN', 'KITCHEN')")
+    @Operation(summary = "Reenvía el aviso al mesero (crea uno nuevo); solo en READY, otro estado: 409")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void notifyAgain(@PathVariable long id) {
+        orderService.notifyAgain(id);
+    }
+
+    @PostMapping("/{id}/deliver")
+    @PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
+    @Operation(summary = "Entrega: READY → DELIVERED y marca leídos sus avisos; mesero solo los suyos (404 si es "
+            + "ajeno); otro estado: 409")
+    OrderView deliver(@PathVariable long id, @AuthenticationPrincipal Jwt jwt, Authentication authentication) {
+        return orderService.deliver(id, CurrentUser.id(jwt), roleOf(authentication));
+    }
+
+    @GetMapping("/mine")
+    @PreAuthorize("hasRole('WAITER')")
+    @Operation(summary = "Pedidos propios del mesero no entregados (PENDING, IN_PREPARATION, READY)")
+    List<OrderView> mine(@AuthenticationPrincipal Jwt jwt) {
+        return orderService.mine(CurrentUser.id(jwt));
     }
 
     @PostMapping

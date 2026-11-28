@@ -8,6 +8,7 @@ import { Icon } from '../../shared/icons/icon';
 import { Order } from '../orders/order.model';
 import { OrderDialog, RESCAN_TABLE } from '../orders/order-dialog';
 import { LoadedTable, QrScanDialog } from './qr-scan-dialog';
+import { ReadyOrders } from './ready-orders';
 import { TableAccountOrders } from './table-account-orders';
 import { TableLegend } from './table-legend';
 import { TableStatusCard } from './table-status-card';
@@ -34,7 +35,7 @@ export function passExpired(passExpiresAt: string | null | undefined, now = Date
  */
 @Component({
   selector: 'app-waiter-tables',
-  imports: [CdkTrapFocus, Icon, OrderDialog, QrScanDialog, TableAccountOrders, TableLegend, TableStatusCard],
+  imports: [CdkTrapFocus, Icon, OrderDialog, QrScanDialog, ReadyOrders, TableAccountOrders, TableLegend, TableStatusCard],
   templateUrl: './waiter-tables.html',
   styleUrl: './waiter-tables.scss',
   host: { '(document:keydown.escape)': 'onEscape()' },
@@ -128,6 +129,11 @@ export class WaiterTables {
       return { ...loaded, table: { ...loaded.table, account: { orders, total } } };
     });
     // HU-09: el estado de la mesa en la grilla cambia con el nuevo pedido.
+    void this.load();
+  }
+
+  /** LCV-HU-14 CA3: un pedido entregado cambia la etapa de su mesa en la grilla. */
+  protected onDelivered(): void {
     void this.load();
   }
 

@@ -54,6 +54,11 @@
                   {{ readyLabel(order) }}
                 </button>
               }
+              @if (order.status === 'READY') {
+                <button type="button" class="btn gold" data-testid="notify-again" [disabled]="isBusy(order)" (click)="notifyAgain(order)">
+                  Reenviar aviso
+                </button>
+              }
               <button type="button" class="btn" data-testid="print-order" (click)="print(order)">Imprimir comanda</button>
             </div>
           </article>

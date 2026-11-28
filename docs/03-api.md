@@ -59,12 +59,12 @@ Mesa: `{id, number, active, status, stage, openOrders, total, waiterName}`; `sta
 | POST | `/orders` | M, C, A | `{tableId, waiterId?, items:[{productId, quantity, note?}], note?, tableCode?}`. Mesero: `waiterId` se ignora (es él) y `tableCode` del QR es **obligatorio**. 422 por existencia insuficiente o producto no disponible |
 | GET | `/orders` | A, C | Filtros `status`, `q` (número, mesa o mesero), fechas; paginado |
 | GET | `/orders/summary` | A, C | Contadores `{all, PENDING, IN_PREPARATION, READY, DELIVERED, CLOSED, CANCELLED}` con los mismos `q`/`from`/`to`, ignorando `status` (D39) |
-| GET | `/orders/mine` | M | Pedidos propios no entregados |
+| GET | `/orders/mine` | M | Pedidos propios no entregados (`PENDING`, `IN_PREPARATION`, `READY`): arreglo de `OrderResponse`, del más antiguo al más reciente (HU-14, D42) |
 | GET | `/orders/{id}` | todos | El mesero solo los suyos |
 | POST | `/orders/{id}/start` | P, A | `PENDING → IN_PREPARATION`; guarda `startedAt`; devuelve el `OrderResponse` (HU-12, D40) |
-| POST | `/orders/{id}/ready` | P, A | `IN_PREPARATION → READY`; guarda `readyAt`; devuelve el `OrderResponse`. El aviso al mesero llega con HU-13/HU-14 |
-| POST | `/orders/{id}/notify-again` | P, A | Solo en `READY` |
-| POST | `/orders/{id}/deliver` | M (propio), A | `READY → DELIVERED`; marca leídos sus avisos |
+| POST | `/orders/{id}/ready` | P, A | `IN_PREPARATION → READY`; guarda `readyAt`; devuelve el `OrderResponse`. En la misma transacción crea el aviso `ORDER_READY` del mesero y, tras el commit, lo envía por SSE solo a sus conexiones (HU-14, D42) |
+| POST | `/orders/{id}/notify-again` | P, A | Solo en `READY` (otro estado → 409): crea un aviso nuevo igual y lo envía al mesero; 204 sin cuerpo (HU-14, D42) |
+| POST | `/orders/{id}/deliver` | M (propio), A | `READY → DELIVERED`; guarda `delivered_at`, marca leídos sus avisos y emite `order-changed`; devuelve el `OrderResponse`. Ajeno para el mesero → 404; fuera de `READY` → 409 (HU-14, D42) |
 | POST | `/orders/{id}/cancel` | A, C | `{reason}`; solo `PENDING`; devuelve el stock a sus lotes |
 | GET | `/kitchen/board` | P, A | Pedidos `PENDING`, `IN_PREPARATION` y `READY` con ítems: arreglo de `OrderResponse`, sin paginar (D40) |
 
@@ -75,10 +75,11 @@ Pedido (`OrderResponse`): `{id, tableId, tableNumber, waiterId, waiterName, stat
 |---|---|---|---|
 | POST | `/notifications/stream-ticket` | todos | → `{ticket}` de un solo uso y 60 s de vigencia (porque `EventSource` no envía el header Authorization) |
 | GET | `/notifications/stream?ticket=…` | todos | `text/event-stream`. Eventos: `notification` (aviso para el usuario), `order-changed` (`{orderId, tableId, status}`, para refrescar vistas) y `heartbeat` cada 25 s |
-| GET | `/notifications/unread` | todos | Avisos no leídos del usuario |
-| POST | `/notifications/{id}/read` | todos | |
+| GET | `/notifications/unread` | todos | Avisos no leídos del usuario autenticado, del más antiguo al más reciente: arreglo de `{id, type, orderId, tableNumber, message, createdAt, readAt}` |
+| POST | `/notifications/{id}/read` | todos | Marca leído un aviso propio; ajeno o inexistente → 404; uno ya leído no falla (200 sin cuerpo) |
 
-HU-13 (D41): ticket aleatorio de un solo uso; un ticket vencido, reutilizado, inexistente o de un usuario inactivo → 401 `ProblemDetail`. El stream envía un comentario `:connected` al abrir y `order-changed` a todos los conectados solo después del commit (crear, iniciar, marcar listo y cancelar). `notification` y `unread` llegan con HU-14.
+HU-13 (D41): ticket aleatorio de un solo uso; un ticket vencido, reutilizado, inexistente o de un usuario inactivo → 401 `ProblemDetail`. El stream envía un comentario `:connected` al abrir y `order-changed` a todos los conectados solo después del commit (crear, iniciar, marcar listo y cancelar).
+HU-14 (D42): `ready` y `notify-again` guardan en `notification` un aviso `ORDER_READY` con el mensaje "Pedido #N listo · Mesa M" y, tras el commit, lo envían como evento SSE `notification` solo a las conexiones del mesero del pedido. Forma del aviso (evento y `unread`): `{id, type: "ORDER_READY"|"ORDER_CREATED", orderId, tableNumber, message, createdAt, readAt}` (`readAt` es `null` hasta que se lee). Los avisos `ORDER_CREATED` a Preparación llegan con HU-15.
 
 Al reconectar, el cliente pide un ticket nuevo y vuelve a consultar `unread` y los datos de la vista.
 

@@ -7,6 +7,7 @@ import { ORDERS_URL } from '../orders/orders.service';
 export const KITCHEN_BOARD_URL = '/api/v1/kitchen/board';
 export const startOrderUrl = (id: number) => `${ORDERS_URL}/${id}/start`;
 export const readyOrderUrl = (id: number) => `${ORDERS_URL}/${id}/ready`;
+export const notifyAgainUrl = (id: number) => `${ORDERS_URL}/${id}/notify-again`;
 
 /** Acceso a la API del tablero de preparación (LCV-HU-12, D40). */
 @Service()
@@ -23,8 +24,13 @@ export class KitchenService {
     return firstValueFrom(this.#http.post<Order>(startOrderUrl(id), null));
   }
 
-  /** CA2: `IN_PREPARATION → READY` (el aviso al mesero llega con HU-13/HU-14). */
+  /** CA2: `IN_PREPARATION → READY`; el backend avisa al mesero del pedido (HU-14). */
   ready(id: number): Promise<Order> {
     return firstValueFrom(this.#http.post<Order>(readyOrderUrl(id), null));
+  }
+
+  /** HU-14 CA4: "Reenviar aviso" crea un aviso nuevo para el mesero (409 si el pedido ya no está listo). */
+  notifyAgain(id: number): Promise<void> {
+    return firstValueFrom(this.#http.post<void>(notifyAgainUrl(id), null));
   }
 }

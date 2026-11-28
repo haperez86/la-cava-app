@@ -22,6 +22,7 @@ import co.lacava.gestion.inventory.application.InventoryService;
 import co.lacava.gestion.inventory.application.LotAllocation;
 import co.lacava.gestion.inventory.domain.MovementType;
 import co.lacava.gestion.menu.application.ProductState;
+import co.lacava.gestion.notifications.application.NotificationService;
 import co.lacava.gestion.menu.domain.Product;
 import co.lacava.gestion.menu.infrastructure.ProductRepository;
 import co.lacava.gestion.orders.domain.CustomerOrder;
@@ -73,6 +74,9 @@ public class OrderService {
     public static final String CANCEL_REASON_REQUIRED = "El motivo de cancelación es obligatorio.";
     public static final String CANCEL_REASON_TOO_LONG = "El motivo admite máximo " + CANCEL_REASON_MAX
             + " caracteres.";
+    public static final String ONLY_READY_NOTIFIABLE = "Solo se puede reenviar el aviso de un pedido listo.";
+    private static final List<OrderStatus> MINE_STATUSES = List.of(OrderStatus.PENDING, OrderStatus.IN_PREPARATION,
+            OrderStatus.READY);
     public static final String ONLY_PENDING_CANCELLABLE = "Solo se puede cancelar un pedido pendiente.";
 
     private final CustomerOrderRepository orders;
@@ -86,12 +90,14 @@ public class OrderService {
     private final OrderViews views;
     private final Clock clock;
     private final ApplicationEventPublisher events;
+    private final NotificationService notifications;
 
     public OrderService(CustomerOrderRepository orders, OrderItemRepository items, OrderItemLotRepository itemLots,
             DiningTableRepository tables, AppUserRepository users, ProductRepository products,
             InventoryService inventory, TablePassService passes, OrderViews views, Clock clock,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events, NotificationService notifications) {
         this.events = events;
+        this.notifications = notifications;
         this.orders = orders;
         this.items = items;
         this.itemLots = itemLots;
@@ -214,12 +220,45 @@ public class OrderService {
     }
 
     /**
-     * Preparación lo marca listo: {@code IN_PREPARATION → READY} con {@code ready_at}. En HU-12 solo cambia el estado;
-     * el aviso al mesero llega con HU-13/HU-14 (D40).
+     * Preparación lo marca listo: {@code IN_PREPARATION → READY} con {@code ready_at}. En la misma transacción crea el
+     * aviso {@code ORDER_READY} del mesero, que sale por SSE solo a sus conexiones después del commit (HU-14, D42).
      */
     @Transactional
     public OrderView ready(long id) {
-        return advance(id, OrderStatus.READY);
+        OrderView view = advance(id, OrderStatus.READY);
+        notifications.notifyOrderReady(view.waiterId(), view.id(), view.tableNumber());
+        return view;
+    }
+
+    /** Preparación reenvía el aviso: solo en {@code READY} (si no, 409); crea un aviso nuevo igual (CA4, D42). */
+    @Transactional
+    public void notifyAgain(long id) {
+        CustomerOrder order = orders.findById(id).orElseThrow(() -> BusinessException.notFound(ORDER_NOT_FOUND));
+        if (order.getStatus() != OrderStatus.READY) {
+            throw BusinessException.conflict(ONLY_READY_NOTIFIABLE);
+        }
+        int tableNumber = tables.findById(order.getTableId()).orElseThrow().getNumber();
+        notifications.notifyOrderReady(order.getWaiterId(), order.getId(), tableNumber);
+    }
+
+    /**
+     * El mesero (solo su pedido; ajeno → 404, D38) o el administrador entrega: {@code READY → DELIVERED} con
+     * {@code delivered_at}, marca leídos los avisos del pedido y emite {@code order-changed} (CA3, D42).
+     */
+    @Transactional
+    public OrderView deliver(long id, long actorId, Role actorRole) {
+        CustomerOrder order = orders.findById(id)
+                .filter(o -> actorRole != Role.WAITER || o.getWaiterId() == actorId)
+                .orElseThrow(() -> BusinessException.notFound(ORDER_NOT_FOUND));
+        OrderView view = advance(order.getId(), OrderStatus.DELIVERED);
+        notifications.markOrderRead(order.getId());
+        return view;
+    }
+
+    /** Pedidos propios del mesero aún no entregados ({@code PENDING}, {@code IN_PREPARATION}, {@code READY}). */
+    @Transactional(readOnly = true)
+    public List<OrderView> mine(long waiterId) {
+        return views.of(orders.findByWaiterIdAndStatusInOrderByCreatedAtAscIdAsc(waiterId, MINE_STATUSES));
     }
 
     /** Transición solo por {@link OrderStateMachine}: inválida → 409, inexistente → 404, conflicto de versión → 409. */

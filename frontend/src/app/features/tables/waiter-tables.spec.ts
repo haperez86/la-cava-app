@@ -106,6 +106,7 @@ describe('WaiterTables', () => {
   });
 
   afterEach(() => {
+    http.match(`${ORDERS_URL}/mine`); // HU-14: "Listos para recoger" se prueba en ready-orders.spec.ts
     http.verify();
     delete (navigator as { vibrate?: unknown }).vibrate;
     localStorage.clear();

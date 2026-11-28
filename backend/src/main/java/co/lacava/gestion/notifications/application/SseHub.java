@@ -47,6 +47,14 @@ public class SseHub {
         emitters.forEach((userId, list) -> list.forEach(emitter -> send(userId, emitter, name, data)));
     }
 
+    /** Envía el evento solo a las conexiones del usuario (D42). */
+    public void sendTo(long userId, String name, Object data) {
+        List<SseEmitter> mine = emitters.get(userId);
+        if (mine != null) {
+            mine.forEach(emitter -> send(userId, emitter, name, data));
+        }
+    }
+
     public int connections() {
         return emitters.values().stream().mapToInt(List::size).sum();
     }

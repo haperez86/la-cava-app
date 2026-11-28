@@ -5,6 +5,7 @@ import { filter, map } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { ROLE_LABELS } from '../auth/role';
 import { HealthService } from '../http/health.service';
+import { NotificationService } from '../notifications/notification.service';
 import { SseClient } from '../notifications/sse-client';
 import { BrandLogo } from '../../shared/brand/brand-logo';
 import { Icon } from '../../shared/icons/icon';
@@ -30,6 +31,13 @@ export class Shell {
       .map((w) => w[0].toUpperCase())
       .join(''),
   );
+  /** HU-14: campana con los avisos no leídos (por ahora solo el mesero los recibe, D42). */
+  protected readonly isWaiter = computed(() => this.#auth.role() === 'WAITER');
+  protected readonly unreadCount = inject(NotificationService).count;
+  protected readonly bellLabel = computed(() => {
+    const n = this.unreadCount();
+    return n === 0 ? 'Avisos: ninguno sin leer' : `Avisos: ${n} sin leer`;
+  });
   protected readonly items = computed(() =>
     navItemsFor(this.#auth.role()).map((item) => ({ ...item, label: navLabel(item, this.#auth.role()) })),
   );

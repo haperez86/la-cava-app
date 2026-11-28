@@ -43,6 +43,16 @@ export class OrdersService {
     return firstValueFrom(this.#http.post<Order>(`${ORDERS_URL}/${id}/cancel`, { reason }));
   }
 
+  /** HU-14 CA1/CA2: pedidos propios del mesero aún no entregados (`PENDING`, `IN_PREPARATION`, `READY`). */
+  mine(): Promise<Order[]> {
+    return firstValueFrom(this.#http.get<Order[]>(`${ORDERS_URL}/mine`));
+  }
+
+  /** HU-14 CA3: "Recogido y entregado" (`READY → DELIVERED`); el backend marca leídos sus avisos. */
+  deliver(id: number): Promise<Order> {
+    return firstValueFrom(this.#http.post<Order>(`${ORDERS_URL}/${id}/deliver`, null));
+  }
+
   /** CA4: meseros activos para asignar el pedido (A, C). */
   waiters(): Promise<Waiter[]> {
     return firstValueFrom(this.#http.get<Waiter[]>(WAITERS_URL));

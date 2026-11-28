@@ -118,11 +118,12 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA3** Los eventos se emiten solo **después del commit** de la transacción que los origina.
 - **Desviaciones:** alcance según D41. Único evento real: `order-changed` (crear, iniciar, listo, cancelar); la tabla `notification`, `unread` y el evento `notification` llegan con HU-14. Heartbeat configurable con `app.sse.heartbeat-ms`. El cliente reconecta solo ante error de `EventSource` (sin watchdog de heartbeat). Pendientes: validar un stream real por el proxy de D23 (8091/4291) con las variables de entorno cargadas; confirmar que proxy y logs de acceso no registren la query `?ticket=`; el ticket se busca por hash, no en tiempo constante (256 bits y un solo uso, no explotable).
 
-### LCV-HU-14 · Aviso al mesero de pedido listo ⬜
+### LCV-HU-14 · Aviso al mesero de pedido listo ✅
 - **CA1** Cuando Preparación marca listo, el mesero del pedido recibe al instante el toast "Pedido #N listo · Mesa M", la vibración, el contador en la campana y el ítem en "Listos para recoger". Los demás meseros no lo reciben.
 - **CA2** Si estaba desconectado, al volver ve sus avisos no leídos.
 - **CA3** "Recogido y entregado" pasa el pedido a `DELIVERED` y marca leídos sus avisos.
 - **CA4** "Reenviar aviso" genera un aviso nuevo.
+- **Desviaciones:** alcance según D42. Se implementó `GET /orders/mine` (estaba en docs/03 y faltaba). `notify-again` → 204 y `POST /notifications/{id}/read` → 200, ambos sin cuerpo. La campana solo se muestra al mesero (HU-15 la extiende a Preparación); enlaza a `/mesas` sin desplazarse a "Listos para recoger". Toast y vibración para cualquier evento `notification`. Pendientes menores: orden de imports y constantes en `OrderService`; prueba explícita con dos meseros conectados a la vez.
 
 ### LCV-HU-15 · Aviso a Preparación y refresco automático ⬜
 - **CA1** Al crear un pedido, los usuarios de Preparación conectados reciben "Nuevo pedido #N · Mesa M" y el tablero se actualiza solo.

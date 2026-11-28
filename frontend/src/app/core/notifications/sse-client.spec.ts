@@ -83,6 +83,19 @@ describe('SseClient', () => {
     expect(sse.lastOrderChange()?.orderId).toBe(5);
   });
 
+  it('LCV-HU-14 CA1 emite cada evento notification recibido y descarta datos mal formados', async () => {
+    const received: number[] = [];
+    sse.notification$.subscribe((n) => received.push(n.id));
+    sse.start();
+    const source = await grantTicket('t1');
+    const payload = (id: number) =>
+      `{"id":${id},"type":"ORDER_READY","orderId":5,"tableNumber":3,"message":"Pedido #5 listo · Mesa 3","createdAt":"2026-11-28T20:00:00Z","readAt":null}`;
+    source.emit('notification', payload(1));
+    source.emit('notification', payload(2));
+    source.emit('notification', 'no-es-json');
+    expect(received).toEqual([1, 2]);
+  });
+
   it('CA2 backoff exponencial de 1 s a 30 s', () => {
     expect([0, 1, 2, 3, 4, 5, 6, 10].map(backoffDelay)).toEqual([1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000]);
     expect(backoffDelay(50)).toBe(BACKOFF_MAX_MS);

@@ -20,6 +20,7 @@ describe('TablesPage', () => {
   });
 
   afterEach(() => {
+    http.match('/api/v1/orders/mine'); // HU-14: "Listos para recoger" se prueba en ready-orders.spec.ts
     http.verify();
     localStorage.clear();
   });

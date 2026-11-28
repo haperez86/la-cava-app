@@ -5,7 +5,7 @@ import { ToastService } from '../../core/notifications/toast.service';
 import { HtmlPrinter, PRINT_ERROR } from '../../core/print/print-html';
 import { Order, OrderStatus } from '../orders/order.model';
 import { comandaHtml } from './comanda-ticket';
-import { KITCHEN_BOARD_URL, KitchenService, readyOrderUrl, startOrderUrl } from './kitchen.service';
+import { KITCHEN_BOARD_URL, KitchenService, notifyAgainUrl, readyOrderUrl, startOrderUrl } from './kitchen.service';
 import { KITCHEN_EMPTY, KitchenPage } from './kitchen-page';
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -164,6 +164,33 @@ describe('KitchenPage (LCV-HU-12)', () => {
     http.expectOne(KITCHEN_BOARD_URL).flush([order(5, 'IN_PREPARATION'), BOARD[1], BOARD[2]]);
     await settle();
     expect(toastsOf()[0]).toEqual(['error', 'El pedido está en preparación y no puede pasar a en preparación.']);
+  });
+
+  it('LCV-HU-14 CA4 Reenviar aviso appears only in the READY column and posts notify-again with a confirmation toast', async () => {
+    expect(inColumn('PENDING', 'notify-again')).toHaveLength(0);
+    expect(inColumn('IN_PREPARATION', 'notify-again')).toHaveLength(0);
+    const button = inColumn('READY', 'notify-again')[0] as HTMLButtonElement;
+    expect(button.textContent?.trim()).toBe('Reenviar aviso');
+
+    button.click();
+    button.click();
+    const request = http.expectOne(notifyAgainUrl(3));
+    expect(request.request.method).toBe('POST');
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    await settle();
+
+    expect(toastsOf()).toContainEqual(['success', 'Aviso reenviado a Laura Gómez']);
+  });
+
+  it('LCV-HU-14 CA4 a 409 on Reenviar aviso shows the server message and refreshes the board', async () => {
+    (inColumn('READY', 'notify-again')[0] as HTMLButtonElement).click();
+    http
+      .expectOne(notifyAgainUrl(3))
+      .flush({ status: 409, detail: 'Solo se puede reenviar el aviso de un pedido listo.' }, { status: 409, statusText: 'Conflict' });
+    await settle();
+    http.expectOne(KITCHEN_BOARD_URL).flush([BOARD[0], BOARD[1], order(3, 'DELIVERED')]);
+    await settle();
+    expect(toastsOf()[0]).toEqual(['error', 'Solo se puede reenviar el aviso de un pedido listo.']);
   });
 
   it('CA3 Imprimir comanda sends the 80 mm ticket of that order to the printer', async () => {

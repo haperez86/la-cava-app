@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { InjectionToken, Service, effect, inject, signal, untracked } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { AppNotification } from './notification.model';
 
 export const STREAM_TICKET_URL = '/api/v1/notifications/stream-ticket';
 export const STREAM_URL = '/api/v1/notifications/stream';
@@ -40,11 +41,14 @@ export class SseClient {
   readonly #connected = signal(false);
   readonly #reconnections = signal(0);
   readonly #lastOrderChange = signal<OrderChangedEvent | null>(null);
+  readonly #notifications = new Subject<AppNotification>();
 
   readonly connected = this.#connected.asReadonly();
   readonly reconnections = this.#reconnections.asReadonly();
   /** Último `order-changed` recibido. */
   readonly lastOrderChange = this.#lastOrderChange.asReadonly();
+  /** Cada evento `notification` recibido (HU-14, D42); un `Subject` para no perder avisos que llegan seguidos. */
+  readonly notification$: Observable<AppNotification> = this.#notifications.asObservable();
 
   #active = false;
   #everConnected = false;
@@ -98,6 +102,13 @@ export class SseClient {
     source.addEventListener('order-changed', (event) => {
       try {
         this.#lastOrderChange.set(JSON.parse((event as MessageEvent<string>).data) as OrderChangedEvent);
+      } catch {
+        // Evento mal formado: se ignora.
+      }
+    });
+    source.addEventListener('notification', (event) => {
+      try {
+        this.#notifications.next(JSON.parse((event as MessageEvent<string>).data) as AppNotification);
       } catch {
         // Evento mal formado: se ignora.
       }

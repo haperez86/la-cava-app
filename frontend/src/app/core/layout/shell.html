@@ -17,6 +17,14 @@
     <header class="topbar">
       <b class="crumb">{{ title() }}</b>
       <div class="user" data-testid="user">
+        @if (isWaiter()) {
+          <a class="bell" routerLink="/mesas" fragment="listos" data-testid="bell" [attr.aria-label]="bellLabel()">
+            <app-icon name="bell" [size]="20" />
+            @if (unreadCount() > 0) {
+              <span class="bell-count" data-testid="bell-count">{{ unreadCount() }}</span>
+            }
+          </a>
+        }
         <div class="avatar" aria-hidden="true">{{ initials() }}</div>
         <div class="user-info">
           <span class="user-name" data-testid="user-name">{{ user()?.fullName }}</span>

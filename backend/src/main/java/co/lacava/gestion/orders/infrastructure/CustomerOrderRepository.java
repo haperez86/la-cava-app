@@ -18,6 +18,10 @@ public interface CustomerOrderRepository
     /** Pedidos en los estados indicados, del más antiguo al más reciente (tablero de preparación, HU-12). */
     List<CustomerOrder> findByStatusInOrderByCreatedAtAscIdAsc(Collection<OrderStatus> statuses);
 
+    /** Pedidos de un mesero en los estados indicados, del más antiguo al más reciente (HU-14). */
+    List<CustomerOrder> findByWaiterIdAndStatusInOrderByCreatedAtAscIdAsc(Long waiterId,
+            Collection<OrderStatus> statuses);
+
     /** Pedidos de la mesa en los estados indicados, del más antiguo al más reciente. */
     List<CustomerOrder> findByTableIdAndStatusInOrderByCreatedAtAscIdAsc(Long tableId,
             Collection<OrderStatus> statuses);
