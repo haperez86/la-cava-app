@@ -1,10 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, DestroyRef, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { ROLE_LABELS } from '../auth/role';
 import { HealthService } from '../http/health.service';
+import { SseClient } from '../notifications/sse-client';
 import { BrandLogo } from '../../shared/brand/brand-logo';
 import { Icon } from '../../shared/icons/icon';
 import { NavItem, navItemsFor, navLabel } from './nav-items';
@@ -48,6 +49,10 @@ export class Shell {
 
   constructor() {
     this.health.check();
+    // HU-13: el canal SSE vive mientras el usuario está dentro de la aplicación.
+    const sse = inject(SseClient);
+    sse.start();
+    inject(DestroyRef).onDestroy(() => sse.stop());
   }
 
   protected logout(): void {

@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -84,10 +85,13 @@ public class OrderService {
     private final TablePassService passes;
     private final OrderViews views;
     private final Clock clock;
+    private final ApplicationEventPublisher events;
 
     public OrderService(CustomerOrderRepository orders, OrderItemRepository items, OrderItemLotRepository itemLots,
             DiningTableRepository tables, AppUserRepository users, ProductRepository products,
-            InventoryService inventory, TablePassService passes, OrderViews views, Clock clock) {
+            InventoryService inventory, TablePassService passes, OrderViews views, Clock clock,
+            ApplicationEventPublisher events) {
+        this.events = events;
         this.orders = orders;
         this.items = items;
         this.itemLots = itemLots;
@@ -168,6 +172,7 @@ public class OrderService {
             List<OrderItem> ofProduct = saved.stream().filter(i -> i.getProductId().equals(product.getId())).toList();
             itemLots.saveAll(distribute(ofProduct, allocations));
         }
+        events.publishEvent(changed(order));
         return views.of(order);
     }
 
@@ -198,6 +203,7 @@ public class OrderService {
             byLot.merge(used.getLotId(), used.getQuantity(), Math::addExact);
         }
         inventory.returnToLots(order.getId(), byLot, actorId);
+        events.publishEvent(changed(order));
         return views.of(order);
     }
 
@@ -221,7 +227,13 @@ public class OrderService {
         CustomerOrder order = orders.findById(id).orElseThrow(() -> BusinessException.notFound(ORDER_NOT_FOUND));
         OrderStateMachine.transition(order, to, clock.instant(), null);
         orders.saveAndFlush(order);
+        events.publishEvent(changed(order));
         return views.of(order);
+    }
+
+    /** {@code order-changed} (HU-13): llega a los conectados solo si la transacción se confirma. */
+    private static OrderChanged changed(CustomerOrder order) {
+        return new OrderChanged(order.getId(), order.getTableId(), order.getStatus());
     }
 
     /** {@code true} si ya hay algún pedido (idempotencia de los datos de ejemplo). */

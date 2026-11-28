@@ -8,6 +8,7 @@ import { Home } from '../../features/home/home';
 import { AuthService } from '../auth/auth.service';
 import { Role } from '../auth/role';
 import { storeTestSession } from '../auth/testing';
+import { STREAM_TICKET_URL } from '../notifications/sse-client';
 import { Shell } from './shell';
 
 @Component({ template: '' })
@@ -47,6 +48,7 @@ describe('Shell', () => {
   });
 
   afterEach(() => {
+    http.match(STREAM_TICKET_URL); // HU-13: el shell abre el canal SSE; se prueba en sse-client.spec.ts
     http.verify();
     localStorage.clear();
   });

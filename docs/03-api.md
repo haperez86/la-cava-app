@@ -78,6 +78,8 @@ Pedido (`OrderResponse`): `{id, tableId, tableNumber, waiterId, waiterName, stat
 | GET | `/notifications/unread` | todos | Avisos no leídos del usuario |
 | POST | `/notifications/{id}/read` | todos | |
 
+HU-13 (D41): ticket aleatorio de un solo uso; un ticket vencido, reutilizado, inexistente o de un usuario inactivo → 401 `ProblemDetail`. El stream envía un comentario `:connected` al abrir y `order-changed` a todos los conectados solo después del commit (crear, iniciar, marcar listo y cancelar). `notification` y `unread` llegan con HU-14.
+
 Al reconectar, el cliente pide un ticket nuevo y vuelve a consultar `unread` y los datos de la vista.
 
 ## Caja y facturación

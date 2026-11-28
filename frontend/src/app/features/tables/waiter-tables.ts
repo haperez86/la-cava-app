@@ -2,6 +2,7 @@ import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { Component, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../../core/auth/auth.service';
 import { problemMessage } from '../../core/http/problem';
+import { refreshOnReconnect } from '../../core/notifications/sse-client';
 import { ToastService } from '../../core/notifications/toast.service';
 import { Icon } from '../../shared/icons/icon';
 import { Order } from '../orders/order.model';
@@ -65,6 +66,8 @@ export class WaiterTables {
 
   constructor() {
     void this.load();
+    // HU-13 CA2: tras una caída del canal SSE los datos pueden estar viejos.
+    refreshOnReconnect(() => void this.load());
   }
 
   protected openScanner(): void {

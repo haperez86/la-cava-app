@@ -112,10 +112,11 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA3** "Imprimir comanda" genera la tirilla de 80 mm.
 - **Desviaciones:** alcance según D40. `ready` solo cambia el estado; el aviso persistido al mesero llega con HU-13/HU-14. El tablero se refresca a mano y después de cada acción hasta HU-15. `OrderResponse` suma `startedAt` y `readyAt`. Pendiente menor: en tablet la columna "Listos" baja a una segunda fila (2 columnas); evaluar 3 columnas desde tablet.
 
-### LCV-HU-13 · Canal SSE ⬜
+### LCV-HU-13 · Canal SSE ✅
 - **CA1** Con un ticket válido me conecto a `/notifications/stream`; un ticket vencido o reutilizado → 401.
 - **CA2** Recibo `heartbeat` cada 25 s; si se cae la conexión, el cliente reconecta con backoff y refresca los datos.
 - **CA3** Los eventos se emiten solo **después del commit** de la transacción que los origina.
+- **Desviaciones:** alcance según D41. Único evento real: `order-changed` (crear, iniciar, listo, cancelar); la tabla `notification`, `unread` y el evento `notification` llegan con HU-14. Heartbeat configurable con `app.sse.heartbeat-ms`. El cliente reconecta solo ante error de `EventSource` (sin watchdog de heartbeat). Pendientes: validar un stream real por el proxy de D23 (8091/4291) con las variables de entorno cargadas; confirmar que proxy y logs de acceso no registren la query `?ticket=`; el ticket se busca por hash, no en tiempo constante (256 bits y un solo uso, no explotable).
 
 ### LCV-HU-14 · Aviso al mesero de pedido listo ⬜
 - **CA1** Cuando Preparación marca listo, el mesero del pedido recibe al instante el toast "Pedido #N listo · Mesa M", la vibración, el contador en la campana y el ítem en "Listos para recoger". Los demás meseros no lo reciben.

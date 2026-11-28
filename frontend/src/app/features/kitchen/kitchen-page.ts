@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { problemMessage } from '../../core/http/problem';
+import { refreshOnReconnect } from '../../core/notifications/sse-client';
 import { ToastService } from '../../core/notifications/toast.service';
 import { HtmlPrinter, PRINT_ERROR } from '../../core/print/print-html';
 import { formatBusinessDateTime } from '../../shared/dates/business-date';
@@ -58,6 +59,8 @@ export class KitchenPage {
 
   constructor() {
     void this.reload();
+    // HU-13 CA2: tras una caída del canal SSE los datos pueden estar viejos.
+    refreshOnReconnect(() => void this.reload());
   }
 
   /** CA1: vuelve a pedir el tablero (también tras un 409 por un cambio concurrente). */
