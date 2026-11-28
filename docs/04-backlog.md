@@ -106,10 +106,11 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 
 ## Épica 5 · Preparación y tiempo real
 
-### LCV-HU-12 · Tablero de preparación ⬜
+### LCV-HU-12 · Tablero de preparación ✅
 - **CA1** Veo los pedidos `PENDING`, `IN_PREPARATION` y `READY` con mesa, mesero, ítems, observaciones y hora.
 - **CA2** "Iniciar preparación" y "Listo · avisar a <mesero>" cambian el estado.
 - **CA3** "Imprimir comanda" genera la tirilla de 80 mm.
+- **Desviaciones:** alcance según D40. `ready` solo cambia el estado; el aviso persistido al mesero llega con HU-13/HU-14. El tablero se refresca a mano y después de cada acción hasta HU-15. `OrderResponse` suma `startedAt` y `readyAt`. Pendiente menor: en tablet la columna "Listos" baja a una segunda fila (2 columnas); evaluar 3 columnas desde tablet.
 
 ### LCV-HU-13 · Canal SSE ⬜
 - **CA1** Con un ticket válido me conecto a `/notifications/stream`; un ticket vencido o reutilizado → 401.

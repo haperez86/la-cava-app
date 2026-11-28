@@ -201,6 +201,29 @@ public class OrderService {
         return views.of(order);
     }
 
+    /** Preparación inicia el pedido: {@code PENDING → IN_PREPARATION} con {@code started_at} (LCV-HU-12, D40). */
+    @Transactional
+    public OrderView start(long id) {
+        return advance(id, OrderStatus.IN_PREPARATION);
+    }
+
+    /**
+     * Preparación lo marca listo: {@code IN_PREPARATION → READY} con {@code ready_at}. En HU-12 solo cambia el estado;
+     * el aviso al mesero llega con HU-13/HU-14 (D40).
+     */
+    @Transactional
+    public OrderView ready(long id) {
+        return advance(id, OrderStatus.READY);
+    }
+
+    /** Transición solo por {@link OrderStateMachine}: inválida → 409, inexistente → 404, conflicto de versión → 409. */
+    private OrderView advance(long id, OrderStatus to) {
+        CustomerOrder order = orders.findById(id).orElseThrow(() -> BusinessException.notFound(ORDER_NOT_FOUND));
+        OrderStateMachine.transition(order, to, clock.instant(), null);
+        orders.saveAndFlush(order);
+        return views.of(order);
+    }
+
     /** {@code true} si ya hay algún pedido (idempotencia de los datos de ejemplo). */
     @Transactional(readOnly = true)
     public boolean hasAny() {

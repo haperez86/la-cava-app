@@ -72,6 +72,20 @@ class OrderController {
         return orderService.cancel(id, request.reason(), CurrentUser.id(jwt));
     }
 
+    @PostMapping("/{id}/start")
+    @PreAuthorize("hasAnyRole('ADMIN', 'KITCHEN')")
+    @Operation(summary = "Inicia la preparación: PENDING → IN_PREPARATION con startedAt; otro estado: 409")
+    OrderView start(@PathVariable long id) {
+        return orderService.start(id);
+    }
+
+    @PostMapping("/{id}/ready")
+    @PreAuthorize("hasAnyRole('ADMIN', 'KITCHEN')")
+    @Operation(summary = "Marca el pedido listo: IN_PREPARATION → READY con readyAt; otro estado: 409")
+    OrderView ready(@PathVariable long id) {
+        return orderService.ready(id);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER', 'WAITER')")

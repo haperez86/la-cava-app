@@ -15,6 +15,9 @@ import co.lacava.gestion.orders.domain.OrderStatus;
 public interface CustomerOrderRepository
         extends JpaRepository<CustomerOrder, Long>, JpaSpecificationExecutor<CustomerOrder> {
 
+    /** Pedidos en los estados indicados, del más antiguo al más reciente (tablero de preparación, HU-12). */
+    List<CustomerOrder> findByStatusInOrderByCreatedAtAscIdAsc(Collection<OrderStatus> statuses);
+
     /** Pedidos de la mesa en los estados indicados, del más antiguo al más reciente. */
     List<CustomerOrder> findByTableIdAndStatusInOrderByCreatedAtAscIdAsc(Long tableId,
             Collection<OrderStatus> statuses);

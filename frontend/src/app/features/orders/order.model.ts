@@ -46,6 +46,9 @@ export interface Order {
   /** Motivo y fecha de la cancelación (HU-11, D39); `null` o ausentes si el pedido no está cancelado. */
   readonly cancelReason?: string | null;
   readonly cancelledAt?: string | null;
+  /** Marcas de preparación (HU-12, D40): `null` o ausentes hasta que el pedido pasa por ese estado. */
+  readonly startedAt?: string | null;
+  readonly readyAt?: string | null;
 }
 
 /** Filtro de estado del listado; `null` = todos. */

@@ -1,0 +1,202 @@
+@use 'styles/breakpoints' as bp;
+
+// Celular primero: encabezado en columna con el botón al 100%.
+.page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+// Comandas (.kitchen-grid del skill): una columna por estado; en celular y tablet angosta, una sola columna apilada.
+.kitchen-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.kitchen-col {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .count {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 1px 8px;
+    font-family: var(--font-body);
+    font-size: 12px;
+  }
+}
+
+.col-empty {
+  margin: 0;
+}
+
+// Comanda: tarjeta con borde izquierdo ámbar.
+.comanda {
+  display: grid;
+  gap: 10px;
+  border-left: 4px solid var(--amber);
+
+  &.is-ready {
+    animation: glow 1.8s ease-in-out infinite;
+  }
+}
+
+.comanda-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 10px;
+
+  div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+}
+
+.comanda-title {
+  font-family: var(--font-title);
+  font-size: 20px;
+}
+
+.meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+
+  li {
+    display: grid;
+    gap: 2px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 15px;
+  }
+}
+
+.item-note {
+  color: var(--busy);
+  font-size: 12px;
+}
+
+.order-note {
+  margin: 0;
+  font-size: 13px;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+
+  .btn {
+    min-height: 44px;
+    width: 100%;
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ready) 27%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--ready) 0%, transparent);
+  }
+}
+
+// Tablet: dos columnas de estado lado a lado en lugar de apiladas (la tercera baja).
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .kitchen-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-head {
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+
+    .btn {
+      width: auto;
+    }
+  }
+
+  .comanda {
+    padding: 24px;
+  }
+
+  .comanda-title {
+    font-size: 23px;
+  }
+
+  .items li {
+    min-height: 54px;
+    align-content: center;
+  }
+
+  .actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    .btn {
+      min-height: 50px;
+    }
+  }
+}
+
+// Escritorio: tres columnas, una por estado.
+@media (min-width: #{bp.$bp-tablet-max + 1}) {
+  .kitchen-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

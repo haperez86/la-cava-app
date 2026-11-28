@@ -1,0 +1,66 @@
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Preparación</div>
+    <h2>Comandas</h2>
+    <p class="muted">Pedidos por preparar, en preparación y listos para recoger.</p>
+  </div>
+  <button type="button" class="btn" data-testid="refresh" [disabled]="loading()" (click)="reload()">Actualizar</button>
+</div>
+
+@if (isEmpty()) {
+  <div class="card empty" data-testid="kitchen-empty">{{ emptyText }}</div>
+} @else {
+  <div class="kitchen-grid" [attr.aria-busy]="loading()">
+    @for (column of columns; track column.status) {
+      <section class="kitchen-col" [attr.aria-label]="column.title" [attr.data-testid]="'col-' + column.status">
+        <h3>
+          {{ column.title }}
+          <span class="count" [attr.data-testid]="'count-' + column.status">{{ byStatus().get(column.status)?.length ?? 0 }}</span>
+        </h3>
+        @for (order of byStatus().get(column.status); track order.id) {
+          <article class="card comanda" [class.is-ready]="order.status === 'READY'" data-testid="comanda">
+            <header class="comanda-head">
+              <div>
+                <strong class="comanda-title" data-testid="comanda-table">Mesa {{ order.tableNumber }}</strong>
+                <small class="muted" data-testid="comanda-number">Pedido #{{ order.id }}</small>
+              </div>
+              <span class="pill {{ statusPill[order.status] }}" data-testid="comanda-status">{{ statusLabel[order.status] }}</span>
+            </header>
+            <p class="meta">
+              <span data-testid="comanda-waiter">{{ order.waiterName }}</span> ·
+              <time data-testid="comanda-time" [attr.datetime]="order.createdAt">{{ formatTime(order.createdAt) }}</time>
+            </p>
+            <ul class="items">
+              @for (item of order.items; track item.id) {
+                <li data-testid="comanda-item">
+                  <b>{{ item.quantity }} ×</b> {{ item.productName }}
+                  @if (item.note) {
+                    <small class="item-note" data-testid="comanda-item-note">» {{ item.note }}</small>
+                  }
+                </li>
+              }
+            </ul>
+            @if (order.note) {
+              <p class="order-note txt-amber" data-testid="comanda-note">Obs.: {{ order.note }}</p>
+            }
+            <div class="actions">
+              @if (order.status === 'PENDING') {
+                <button type="button" class="btn primary" data-testid="start-order" [disabled]="isBusy(order)" (click)="start(order)">
+                  Iniciar preparación
+                </button>
+              }
+              @if (order.status === 'IN_PREPARATION') {
+                <button type="button" class="btn gold" data-testid="ready-order" [disabled]="isBusy(order)" (click)="ready(order)">
+                  {{ readyLabel(order) }}
+                </button>
+              }
+              <button type="button" class="btn" data-testid="print-order" (click)="print(order)">Imprimir comanda</button>
+            </div>
+          </article>
+        } @empty {
+          <p class="muted col-empty">Sin pedidos.</p>
+        }
+      </section>
+    }
+  </div>
+}
