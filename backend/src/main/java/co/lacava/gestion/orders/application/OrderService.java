@@ -178,6 +178,7 @@ public class OrderService {
             List<OrderItem> ofProduct = saved.stream().filter(i -> i.getProductId().equals(product.getId())).toList();
             itemLots.saveAll(distribute(ofProduct, allocations));
         }
+        notifications.notifyOrderCreated(order.getId(), table.getNumber());
         events.publishEvent(changed(order));
         return views.of(order);
     }

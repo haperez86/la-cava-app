@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { AppNotification } from '../../core/notifications/notification.model';
 import { UNREAD_URL } from '../../core/notifications/notification.service';
-import { OrderChangedEvent, SseClient } from '../../core/notifications/sse-client';
+import { OrderChangedEvent, REFRESH_BURST_MS, SseClient } from '../../core/notifications/sse-client';
 import { ToastService } from '../../core/notifications/toast.service';
 import { Order, OrderStatus } from '../orders/order.model';
 import { ORDERS_URL } from '../orders/orders.service';
@@ -96,6 +96,7 @@ describe('ReadyOrders (LCV-HU-14)', () => {
 
     lastOrderChange.set({ orderId: 1, tableId: 1, status: 'READY' });
     TestBed.tick();
+    await new Promise((resolve) => setTimeout(resolve, REFRESH_BURST_MS + 50));
     http.expectOne(MINE_URL).flush([order(1, 'READY')]);
     await refresh();
 

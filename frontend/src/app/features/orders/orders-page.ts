@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { problemMessage } from '../../core/http/problem';
-import { refreshOnReconnect } from '../../core/notifications/sse-client';
+import { refreshOnOrderChange, refreshOnReconnect } from '../../core/notifications/sse-client';
 import { ToastService } from '../../core/notifications/toast.service';
 import { formatBusinessDateTime } from '../../shared/dates/business-date';
 import { DEFAULT_PAGE_SIZE, Pagination } from '../../shared/pagination/pagination';
@@ -72,6 +72,8 @@ export class OrdersPage {
     void this.reload();
     // HU-13 CA2: tras una caída del canal SSE los datos pueden estar viejos.
     refreshOnReconnect(() => void this.reload());
+    // HU-15 CA2: se actualiza solo ante `order-changed`, sin recargar la página.
+    refreshOnOrderChange(() => void this.reload());
   }
 
   /** Recarga lista y contadores (tras crear o cancelar). */

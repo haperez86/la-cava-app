@@ -11,6 +11,8 @@ import co.lacava.gestion.notifications.domain.Notification;
 import co.lacava.gestion.notifications.domain.NotificationType;
 import co.lacava.gestion.notifications.infrastructure.NotificationRepository;
 import co.lacava.gestion.shared.error.BusinessException;
+import co.lacava.gestion.users.domain.Role;
+import co.lacava.gestion.users.infrastructure.AppUserRepository;
 
 /** Avisos persistidos y su envío por SSE después del commit (D42, CLAUDE.md). */
 @Service
@@ -21,8 +23,11 @@ public class NotificationService {
     private final NotificationRepository notifications;
     private final Clock clock;
     private final ApplicationEventPublisher events;
+    private final AppUserRepository users;
 
-    public NotificationService(NotificationRepository notifications, Clock clock, ApplicationEventPublisher events) {
+    public NotificationService(NotificationRepository notifications, Clock clock, ApplicationEventPublisher events,
+            AppUserRepository users) {
+        this.users = users;
         this.notifications = notifications;
         this.clock = clock;
         this.events = events;
@@ -34,6 +39,17 @@ public class NotificationService {
         Notification saved = notifications.save(new Notification(waiterId, NotificationType.ORDER_READY, orderId,
                 tableNumber, "Pedido #" + orderId + " listo · Mesa " + tableNumber, clock.instant()));
         events.publishEvent(new NotificationCreated(waiterId, NotificationView.of(saved)));
+    }
+
+    /** Guarda "Nuevo pedido #N · Mesa M" para cada usuario activo de Preparación y lo publica (D43); misma transacción. */
+    @Transactional
+    public void notifyOrderCreated(long orderId, int tableNumber) {
+        String message = "Nuevo pedido #" + orderId + " · Mesa " + tableNumber;
+        users.findByRoleAndActiveTrueOrderByFullNameAscIdAsc(Role.KITCHEN).forEach(user -> {
+            Notification saved = notifications.save(new Notification(user.getId(), NotificationType.ORDER_CREATED,
+                    orderId, tableNumber, message, clock.instant()));
+            events.publishEvent(new NotificationCreated(user.getId(), NotificationView.of(saved)));
+        });
     }
 
     /** Marca leídos los avisos pendientes del pedido (entrega, CA3). */

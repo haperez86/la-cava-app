@@ -100,7 +100,7 @@ class OrderReadyNotificationIntegrationTest extends IntegrationTest {
     void ca1FailedReadyCreatesNoNotification() throws Exception {
         long id = createOrder();
         as("jorge", post(ORDERS + id + "/ready"), null).andExpect(status().isConflict());
-        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM notification", Integer.class)).isZero();
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM notification WHERE type = 'ORDER_READY'", Integer.class)).isZero();
     }
 
     @Test
@@ -114,7 +114,7 @@ class OrderReadyNotificationIntegrationTest extends IntegrationTest {
                 .andExpect(jsonPath("$[0].type").value("ORDER_READY")).andExpect(jsonPath("$[0].readAt").doesNotExist());
         as("marta", get(NOTIFICATIONS + "/unread"), null).andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
-        long notificationId = jdbcTemplate.queryForObject("SELECT id FROM notification", Long.class);
+        long notificationId = jdbcTemplate.queryForObject("SELECT id FROM notification WHERE type = 'ORDER_READY'", Long.class);
 
         as("marta", post(NOTIFICATIONS + "/" + notificationId + "/read"), null).andExpect(status().isNotFound());
         as("laura", get(NOTIFICATIONS + "/unread"), null).andExpect(jsonPath("$.length()").value(1));
@@ -150,7 +150,7 @@ class OrderReadyNotificationIntegrationTest extends IntegrationTest {
         as("laura", post(ORDERS + id + "/deliver"), null).andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DELIVERED"));
 
-        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM notification WHERE read_at IS NULL",
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM notification WHERE type = 'ORDER_READY' AND read_at IS NULL",
                 Integer.class)).isZero();
         assertThat(jdbcTemplate.queryForObject("SELECT delivered_at IS NOT NULL FROM customer_order WHERE id = ?",
                 Boolean.class, id)).isTrue();
@@ -187,7 +187,7 @@ class OrderReadyNotificationIntegrationTest extends IntegrationTest {
 
         await().atMost(Duration.ofSeconds(5))
                 .until(() -> body(laura).contains("event:notification"));
-        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM notification WHERE order_id = ?",
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM notification WHERE type = 'ORDER_READY' AND order_id = ?",
                 Integer.class, id)).isEqualTo(2);
         as("laura", get(NOTIFICATIONS + "/unread"), null).andExpect(jsonPath("$.length()").value(2));
         as("jorge", post(ORDERS + 9999 + "/notify-again"), null).andExpect(status().isNotFound());

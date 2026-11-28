@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { AppNotification } from './notification.model';
-import { NotificationService, UNREAD_URL, VIBRATION_PATTERN_MS } from './notification.service';
+import { NotificationService, UNREAD_URL, VIBRATION_PATTERN_MS, readNotificationUrl } from './notification.service';
 import { SseClient } from './sse-client';
 import { ToastService } from './toast.service';
 
@@ -96,6 +96,36 @@ describe('NotificationService (LCV-HU-14)', () => {
     http.expectOne(UNREAD_URL).flush([]);
     await done;
     expect(service.count()).toBe(0);
+  });
+
+  it('CA1 (HU-15) an ORDER_CREATED notification shows an info toast without vibrating and raises the counter', () => {
+    stream.next({ ...notice(1, 9, 2), type: 'ORDER_CREATED', message: 'Nuevo pedido #9 · Mesa 2' });
+
+    expect(toast.toasts().map((t) => [t.kind, t.message])).toEqual([['info', 'Nuevo pedido #9 · Mesa 2']]);
+    expect(vibrate).not.toHaveBeenCalled();
+    expect(service.count()).toBe(1);
+  });
+
+  it('CA1 (HU-15) markOrderCreatedRead posts read for each ORDER_CREATED only and drops them from the counter', async () => {
+    stream.next({ ...notice(1, 9, 2), type: 'ORDER_CREATED' });
+    stream.next({ ...notice(2, 10, 2), type: 'ORDER_CREATED' });
+    stream.next(notice(3));
+
+    const done = service.markOrderCreatedRead();
+    void service.markOrderCreatedRead(); // un segundo llamado no repite los POST en curso
+    http.expectOne(readNotificationUrl(1)).flush(null);
+    http.expectOne(readNotificationUrl(2)).flush(null);
+    await done;
+
+    expect(service.unread().map((n) => n.id)).toEqual([3]);
+  });
+
+  it('CA1 (HU-15) a failed read keeps the notification unread', async () => {
+    stream.next({ ...notice(1, 9, 2), type: 'ORDER_CREATED' });
+    const done = service.markOrderCreatedRead();
+    http.expectOne(readNotificationUrl(1)).flush(null, { status: 500, statusText: 'Error' });
+    await done;
+    expect(service.count()).toBe(1);
   });
 
   it('CA2 a failed unread request keeps the current list', async () => {

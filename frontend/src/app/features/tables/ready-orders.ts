@@ -1,7 +1,7 @@
-import { Component, computed, effect, inject, output, signal, untracked } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { problemMessage } from '../../core/http/problem';
 import { NotificationService } from '../../core/notifications/notification.service';
-import { SseClient, refreshOnReconnect } from '../../core/notifications/sse-client';
+import { refreshOnOrderChange, refreshOnReconnect } from '../../core/notifications/sse-client';
 import { ToastService } from '../../core/notifications/toast.service';
 import { formatBusinessDateTime } from '../../shared/dates/business-date';
 import { Order } from '../orders/order.model';
@@ -38,13 +38,8 @@ export class ReadyOrders {
   constructor() {
     void this.load();
     refreshOnReconnect(() => void this.load());
-    // CA1: el pedido aparece al instante, sin recargar, cuando Preparación lo marca listo.
-    const sse = inject(SseClient);
-    effect(() => {
-      if (sse.lastOrderChange()) {
-        untracked(() => void this.load());
-      }
-    });
+    // CA1: el pedido aparece solo, sin recargar, cuando Preparación lo marca listo (ráfagas agrupadas, D43).
+    refreshOnOrderChange(() => void this.load());
   }
 
   protected isBusy(order: Order): boolean {

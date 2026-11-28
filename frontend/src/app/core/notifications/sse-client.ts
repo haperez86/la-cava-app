@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { InjectionToken, Service, effect, inject, signal, untracked } from '@angular/core';
+import { DestroyRef, InjectionToken, Service, effect, inject, signal, untracked } from '@angular/core';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { AppNotification } from './notification.model';
 
@@ -153,4 +153,38 @@ export function refreshOnReconnect(refresh: () => void): void {
       untracked(refresh);
     }
   });
+}
+
+/** Ventana que agrupa ráfagas de eventos en una sola recarga (D43). */
+export const REFRESH_BURST_MS = 300;
+
+/**
+ * Ejecuta `refresh` cuando llega un `order-changed` (HU-15 CA2, D43), agrupando las ráfagas: el primer evento abre una
+ * ventana de {@link REFRESH_BURST_MS} y los siguientes dentro de ella no suman otra recarga. El temporizador se cancela
+ * al destruirse la vista, así una vista cerrada no recarga. Llamar en un contexto de inyección. Devuelve el disparador
+ * agrupado para que la vista lo use con otros eventos (p. ej. `notification`).
+ */
+export function refreshOnOrderChange(refresh: () => void): () => void {
+  const sse = inject(SseClient);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const trigger = (): void => {
+    if (timer !== undefined) {
+      return;
+    }
+    timer = setTimeout(() => {
+      timer = undefined;
+      refresh();
+    }, REFRESH_BURST_MS);
+  };
+  inject(DestroyRef).onDestroy(() => clearTimeout(timer));
+  // Un evento anterior a abrir la vista no cuenta: la vista ya cargó sus datos al crearse.
+  let seen = untracked(sse.lastOrderChange);
+  effect(() => {
+    const change = sse.lastOrderChange();
+    if (change && change !== seen) {
+      seen = change;
+      trigger();
+    }
+  });
+  return trigger;
 }

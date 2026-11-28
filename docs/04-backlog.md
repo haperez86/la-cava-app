@@ -125,9 +125,10 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA4** "Reenviar aviso" genera un aviso nuevo.
 - **Desviaciones:** alcance según D42. Se implementó `GET /orders/mine` (estaba en docs/03 y faltaba). `notify-again` → 204 y `POST /notifications/{id}/read` → 200, ambos sin cuerpo. La campana solo se muestra al mesero (HU-15 la extiende a Preparación); enlaza a `/mesas` sin desplazarse a "Listos para recoger". Toast y vibración para cualquier evento `notification`. Pendientes menores: orden de imports y constantes en `OrderService`; prueba explícita con dos meseros conectados a la vez.
 
-### LCV-HU-15 · Aviso a Preparación y refresco automático ⬜
+### LCV-HU-15 · Aviso a Preparación y refresco automático ✅
 - **CA1** Al crear un pedido, los usuarios de Preparación conectados reciben "Nuevo pedido #N · Mesa M" y el tablero se actualiza solo.
 - **CA2** Mesas, caja y tablero se actualizan ante eventos `order-changed` sin recargar la página.
+- **Desviaciones:** alcance según D43. La caja aún no existe: su refresco por `order-changed` se hace en HU-16/HU-17 con `refreshOnOrderChange`. Los `ORDER_CREATED` se marcan leídos también mientras el tablero sigue abierto. Ráfagas agrupadas a 300 ms. Pendiente menor: sin prueba de reintento si falla el `POST /notifications/{id}/read` del tablero.
 
 ---
 

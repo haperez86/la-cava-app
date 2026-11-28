@@ -31,8 +31,12 @@ export class Shell {
       .map((w) => w[0].toUpperCase())
       .join(''),
   );
-  /** HU-14: campana con los avisos no leídos (por ahora solo el mesero los recibe, D42). */
+  /** HU-14: campana con los avisos no leídos (mesero, D42, y Preparación, D43). */
   protected readonly isWaiter = computed(() => this.#auth.role() === 'WAITER');
+  /** HU-15 (D43): Preparación también ve la campana; lleva al tablero. */
+  protected readonly hasBell = computed(() => this.#auth.role() === 'WAITER' || this.#auth.role() === 'KITCHEN');
+  protected readonly bellLink = computed(() => (this.isWaiter() ? '/mesas' : '/preparacion'));
+  protected readonly bellFragment = computed(() => (this.isWaiter() ? 'listos' : undefined));
   protected readonly unreadCount = inject(NotificationService).count;
   protected readonly bellLabel = computed(() => {
     const n = this.unreadCount();

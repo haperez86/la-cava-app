@@ -1,6 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { problemMessage } from '../../core/http/problem';
-import { refreshOnReconnect } from '../../core/notifications/sse-client';
+import { NotificationService } from '../../core/notifications/notification.service';
+import { refreshOnOrderChange, refreshOnReconnect, SseClient } from '../../core/notifications/sse-client';
 import { ToastService } from '../../core/notifications/toast.service';
 import { HtmlPrinter, PRINT_ERROR } from '../../core/print/print-html';
 import { formatBusinessDateTime } from '../../shared/dates/business-date';
@@ -25,7 +27,7 @@ export const resentMessage = (order: Order): string => `Aviso reenviado a ${orde
 
 /**
  * `/preparacion` "Comandas" (ADMIN y KITCHEN, D25, D40): columnas por estado (una sola columna en pantallas angostas),
- * "Iniciar preparación", "Listo · avisar a <mesero>" e "Imprimir comanda". Refresco manual hasta HU-15 (SSE).
+ * "Iniciar preparación", "Listo · avisar a <mesero>" e "Imprimir comanda". Se actualiza solo (SSE, HU-15).
  */
 @Component({
   selector: 'app-kitchen-page',
@@ -36,6 +38,7 @@ export class KitchenPage {
   readonly #kitchen = inject(KitchenService);
   readonly #toast = inject(ToastService);
   readonly #printer = inject(HtmlPrinter);
+  readonly #notifications = inject(NotificationService);
 
   protected readonly columns = KITCHEN_COLUMNS;
   protected readonly statusLabel = ORDER_STATUS_LABEL;
@@ -64,6 +67,21 @@ export class KitchenPage {
     void this.reload();
     // HU-13 CA2: tras una caída del canal SSE los datos pueden estar viejos.
     refreshOnReconnect(() => void this.reload());
+    // HU-15 CA1 y CA2: el tablero se actualiza solo ante `order-changed` y ante un aviso de pedido nuevo (D43).
+    const trigger = refreshOnOrderChange(() => void this.reload());
+    inject(SseClient)
+      .notification$.pipe(takeUntilDestroyed())
+      .subscribe((n) => {
+        if (n.type === 'ORDER_CREATED') {
+          trigger();
+        }
+      });
+    // Con el tablero abierto los avisos de pedido nuevo quedan leídos (D43), también los que lleguen después.
+    effect(() => {
+      if (this.#notifications.unread().some((n) => n.type === 'ORDER_CREATED')) {
+        void this.#notifications.markOrderCreatedRead();
+      }
+    });
   }
 
   /** CA1: vuelve a pedir el tablero (también tras un 409 por un cambio concurrente). */

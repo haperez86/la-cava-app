@@ -79,7 +79,8 @@ Pedido (`OrderResponse`): `{id, tableId, tableNumber, waiterId, waiterName, stat
 | POST | `/notifications/{id}/read` | todos | Marca leído un aviso propio; ajeno o inexistente → 404; uno ya leído no falla (200 sin cuerpo) |
 
 HU-13 (D41): ticket aleatorio de un solo uso; un ticket vencido, reutilizado, inexistente o de un usuario inactivo → 401 `ProblemDetail`. El stream envía un comentario `:connected` al abrir y `order-changed` a todos los conectados solo después del commit (crear, iniciar, marcar listo y cancelar).
-HU-14 (D42): `ready` y `notify-again` guardan en `notification` un aviso `ORDER_READY` con el mensaje "Pedido #N listo · Mesa M" y, tras el commit, lo envían como evento SSE `notification` solo a las conexiones del mesero del pedido. Forma del aviso (evento y `unread`): `{id, type: "ORDER_READY"|"ORDER_CREATED", orderId, tableNumber, message, createdAt, readAt}` (`readAt` es `null` hasta que se lee). Los avisos `ORDER_CREATED` a Preparación llegan con HU-15.
+HU-14 (D42): `ready` y `notify-again` guardan en `notification` un aviso `ORDER_READY` con el mensaje "Pedido #N listo · Mesa M" y, tras el commit, lo envían como evento SSE `notification` solo a las conexiones del mesero del pedido. Forma del aviso (evento y `unread`): `{id, type: "ORDER_READY"|"ORDER_CREATED", orderId, tableNumber, message, createdAt, readAt}` (`readAt` es `null` hasta que se lee). Los avisos `ORDER_CREATED` a Preparación se describen en HU-15.
+HU-15 (D43): `POST /orders` guarda, en la misma transacción, un aviso `ORDER_CREATED` con el mensaje "Nuevo pedido #N · Mesa M" para cada usuario activo con rol `KITCHEN` y, tras el commit, lo envía como evento `notification` solo a sus conexiones; un pedido rechazado (422 u otro error) no crea avisos ni emite. Se marcan leídos con `POST /notifications/{id}/read` (sin endpoint nuevo).
 
 Al reconectar, el cliente pide un ticket nuevo y vuelve a consultar `unread` y los datos de la vista.
 

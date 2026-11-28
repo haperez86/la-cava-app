@@ -84,8 +84,19 @@ describe('Shell bell (LCV-HU-14)', () => {
     expect(bell.getAttribute('aria-label')).toBe('Avisos: 2 sin leer');
   });
 
-  it.each<Role>(['ADMIN', 'KITCHEN'])('CA1 %s does not get the waiter bell', async (role) => {
-    const root = await open(role);
+  it('CA1 (HU-15) the kitchen bell shows the unread counter and links to the board', async () => {
+    const root = await open('KITCHEN');
+    const bell = root.querySelector<HTMLAnchorElement>('[data-testid="bell"]')!;
+    expect(bell.getAttribute('href')).toBe('/preparacion');
+
+    stream.next({ ...notice(1), type: 'ORDER_CREATED', message: 'Nuevo pedido #1 · Mesa 3' });
+    harness.detectChanges();
+
+    expect(root.querySelector('[data-testid="bell-count"]')?.textContent?.trim()).toBe('1');
+  });
+
+  it('CA1 ADMIN does not get a bell', async () => {
+    const root = await open('ADMIN');
     expect(root.querySelector('[data-testid="bell"]')).toBeNull();
   });
 });

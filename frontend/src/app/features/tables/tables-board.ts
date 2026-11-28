@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { problemMessage } from '../../core/http/problem';
-import { refreshOnReconnect } from '../../core/notifications/sse-client';
+import { refreshOnOrderChange, refreshOnReconnect } from '../../core/notifications/sse-client';
 import { ToastService } from '../../core/notifications/toast.service';
 import { TableAccountDialog } from './table-account-dialog';
 import { TableLegend } from './table-legend';
@@ -36,6 +36,8 @@ export class TablesBoard {
     void this.load();
     // HU-13 CA2: tras una caída del canal SSE los datos pueden estar viejos.
     refreshOnReconnect(() => void this.load());
+    // HU-15 CA2: se actualiza solo ante `order-changed`, sin recargar la página.
+    refreshOnOrderChange(() => void this.load());
   }
 
   protected open(table: DiningTable): void {
