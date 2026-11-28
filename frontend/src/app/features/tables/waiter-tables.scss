@@ -39,26 +39,6 @@
   font-weight: 700;
 }
 
-.table-tile {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--surface);
-  min-height: 72px;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  overflow-wrap: anywhere;
-}
-
-.num {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 19px;
-  font-weight: 700;
-}
-
 .empty {
   grid-column: 1 / -1;
   padding: 28px;
@@ -76,64 +56,6 @@
   margin: 10px 0 0;
 }
 
-// Cuenta de la mesa (.order-box de la demo).
-.order-box {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px;
-  margin: 12px 0;
-  min-width: 0;
-}
-
-.order-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
-.order-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-  min-width: 0;
-  overflow-wrap: anywhere;
-
-  &:last-child {
-    border: 0;
-  }
-
-  strong {
-    display: block;
-    font-size: 13px;
-  }
-
-  small {
-    color: var(--muted);
-  }
-}
-
-.money {
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.order-note {
-  margin: 8px 0 0;
-}
-
-.total-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 14px 0 0;
-  font-size: 17px;
-  font-weight: 750;
-}
-
 @media (min-width: #{bp.$bp-mobile-max + 1}) {
   .page-head {
     flex-direction: row;
@@ -148,9 +70,5 @@
   .qr-btn {
     width: auto;
     flex-shrink: 0;
-  }
-
-  .num {
-    font-size: 21px;
   }
 }

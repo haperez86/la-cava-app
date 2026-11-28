@@ -8,12 +8,13 @@
   </button>
 </div>
 
-<!-- CA4: las mesas solo se muestran; no son botones ni se abren al tocarlas. -->
+<!-- HU-09 CA2: leyenda de estados. -->
+<app-table-legend />
+
+<!-- HU-08 CA4: las mesas solo se muestran (con su estado, HU-09 CA1); no son botones ni se abren al tocarlas. -->
 <div class="table-grid" data-testid="waiter-table-list" [attr.aria-busy]="loading()">
   @for (table of tables(); track table.id) {
-    <article class="table-tile" data-testid="waiter-table">
-      <span class="num"><app-icon name="tables" [size]="16" /> Mesa {{ table.number }}</span>
-    </article>
+    <app-table-status-card [table]="table" data-testid="waiter-table" />
   } @empty {
     @if (!loading()) {
       <div class="card empty" data-testid="empty">No hay mesas activas.</div>
@@ -64,37 +65,7 @@
         <p class="muted account" data-testid="account-state">{{ accountNote() }}</p>
 
         <!-- LCV-HU-10: pedidos abiertos de la mesa con sus ítems y el total. -->
-        @for (order of loaded.table.account.orders; track order.id) {
-          <section class="order-box" data-testid="account-order">
-            <div class="order-head">
-              <div>
-                <strong>Pedido #{{ order.id }}</strong>
-                <div class="muted">{{ order.waiterName }}</div>
-              </div>
-              <span class="pill {{ statusPill[order.status] }}">{{ statusLabel[order.status] }}</span>
-            </div>
-            @for (item of order.items; track item.id) {
-              <div class="order-row">
-                <div>
-                  <strong>{{ item.quantity }} × {{ item.productName }}</strong>
-                  @if (item.note) {
-                    <small>Obs.: {{ item.note }}</small>
-                  }
-                </div>
-                <span class="money">{{ item.subtotal | cop }}</span>
-              </div>
-            }
-            @if (order.note) {
-              <p class="muted order-note">Observación: {{ order.note }}</p>
-            }
-          </section>
-        }
-        @if (loaded.table.account.orders.length) {
-          <div class="total-line" data-testid="account-total">
-            <span>Total de la mesa</span>
-            <span>{{ loaded.table.account.total | cop }}</span>
-          </div>
-        }
+        <app-table-account-orders [account]="loaded.table.account" />
 
         <div class="modal-actions">
           <button type="button" class="btn" (click)="closeTable()">Cerrar</button>

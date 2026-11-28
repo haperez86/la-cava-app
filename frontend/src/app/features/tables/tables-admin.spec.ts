@@ -7,14 +7,16 @@ import { QrCodeRenderer } from './qr-sheet';
 import { DUPLICATE_TABLE_DETAIL, TABLE_NUMBER_INVALID } from './table-form';
 import { NO_ACTIVE_TABLES, TablesAdmin, rotatedMessage } from './tables-admin';
 import { DiningTable, QrSheetEntry } from './tables.model';
-import { QR_SHEET_URL, TABLES_URL, rotateTokenUrl, tableActiveUrl } from './tables.service';
+import { QR_SHEET_URL, TABLES_URL, rotateTokenUrl, tableAccountUrl, tableActiveUrl } from './tables.service';
+import { freeTable, occupiedTable } from './testing';
+import { formatCop } from '../../shared/pipes/cop-currency.pipe';
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const TABLES: DiningTable[] = [
-  { id: 12, number: 2, active: false },
-  { id: 11, number: 1, active: true },
-  { id: 13, number: 3, active: true },
+  freeTable(12, 2, false),
+  freeTable(11, 1),
+  freeTable(13, 3),
 ];
 
 const SHEET: QrSheetEntry[] = [
@@ -100,6 +102,47 @@ describe('TablesAdmin', () => {
     expect(tile(1).querySelector('[data-testid="toggle-active"]')?.textContent?.trim()).toBe('Desactivar');
   });
 
+  it('LCV-HU-09 CA1/CA2 each card shows state, stage, orders, total and waiter, with the legend', async () => {
+    await render([occupiedTable(11, 1, 'READY', 2, 54000, 'Mateo Ruiz'), freeTable(13, 3), freeTable(12, 2, false)]);
+
+    expect(root.querySelector('[data-testid="table-legend"]')).not.toBeNull();
+    expect(tile(1).querySelector('[data-testid="table-status"]')?.textContent?.trim()).toBe('Ocupada');
+    expect(tile(1).querySelector('[data-testid="table-stage"]')?.textContent?.trim()).toBe('Listo para recoger');
+    expect(tile(1).querySelector('[data-testid="table-orders"]')?.textContent?.trim()).toBe('2 pedidos');
+    expect(tile(1).querySelector('[data-testid="table-total"]')?.textContent?.trim()).toBe(formatCop(54000));
+    expect(tile(1).querySelector('[data-testid="table-waiter"]')?.textContent?.trim()).toBe('Mateo Ruiz');
+    expect(tile(3).querySelector('[data-testid="table-status"]')?.textContent?.trim()).toBe('Disponible');
+    expect(tile(3).querySelector('[data-testid="table-stage"]')).toBeNull();
+    expect(tile(2).querySelector<HTMLButtonElement>('[data-testid="view-account"]')!.disabled).toBe(true);
+  });
+
+  it('LCV-HU-09 "Ver cuenta": inactive without open orders stays disabled; inactive with open orders is enabled and opens', async () => {
+    const inactiveWithOrders = { ...occupiedTable(12, 2, 'SERVED', 1, 18000), active: false };
+    await render([freeTable(11, 1, false), inactiveWithOrders]);
+
+    expect(tile(1).querySelector<HTMLButtonElement>('[data-testid="view-account"]')!.disabled).toBe(true);
+    const button = tile(2).querySelector<HTMLButtonElement>('[data-testid="view-account"]')!;
+    expect(button.disabled).toBe(false);
+
+    click(button);
+    await refresh();
+    http.expectOne(tableAccountUrl(12)).flush({ id: 12, number: 2, account: { orders: [], total: 0 } });
+    await refresh();
+    expect(root.querySelector('[data-testid="account-dialog"] h3')?.textContent).toBe('Mesa 2');
+  });
+
+  it('LCV-HU-09 "Ver cuenta" opens the table account', async () => {
+    await render([occupiedTable(11, 1, 'PENDING', 1, 18000, 'Mateo Ruiz'), freeTable(13, 3)]);
+
+    click(tile(1).querySelector('[data-testid="view-account"]'));
+    await refresh();
+    http.expectOne(tableAccountUrl(11)).flush({ id: 11, number: 1, account: { orders: [], total: 0 } });
+    await refresh();
+
+    expect(root.querySelector('[data-testid="account-dialog"] h3')?.textContent).toBe('Mesa 1');
+    expect(root.querySelector('[data-testid="account-new-order"]')).not.toBeNull();
+  });
+
   it('CA1 creates a table sending {number} and reloads the grid', async () => {
     await render();
     const success = vi.spyOn(toast, 'success');
@@ -114,7 +157,7 @@ describe('TablesAdmin', () => {
     req.flush({ id: 14, number: 4, active: true }, { status: 201, statusText: 'Created' });
     await refresh();
 
-    http.expectOne((r) => r.url === TABLES_URL && r.method === 'GET').flush([...TABLES, { id: 14, number: 4, active: true }]);
+    http.expectOne((r) => r.url === TABLES_URL && r.method === 'GET').flush([...TABLES, freeTable(14, 4)]);
     await refresh();
 
     expect(root.querySelector('#tf-number')).toBeNull();

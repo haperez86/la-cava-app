@@ -31,7 +31,7 @@ import co.lacava.gestion.tables.application.TableView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-/** LCV-HU-07: mesas y códigos QR. El token y el PIN solo salen en {@code qr-sheet} (ADMIN). */
+/** LCV-HU-07 y LCV-HU-09: mesas, códigos QR y estado de mesas. El token y el PIN solo salen en {@code qr-sheet} (ADMIN). */
 @RestController
 @RequestMapping("/api/v1/tables")
 @Tag(name = "Mesas")
@@ -45,7 +45,8 @@ class TableController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'CASHIER', 'WAITER')")
-    @Operation(summary = "Mesas ordenadas por número (sin token ni PIN)")
+    @Operation(summary = "Mesas ordenadas por número con estado (FREE/OCCUPIED), etapa más urgente, pedidos abiertos, "
+            + "total y último mesero (sin token ni PIN)")
     List<TableView> list() {
         return tableService.list();
     }

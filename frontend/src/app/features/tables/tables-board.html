@@ -1,0 +1,36 @@
+<div class="page-head">
+  <div>
+    <div class="eyebrow">La Cava · Copas y tablas</div>
+    <h2>Mesas</h2>
+    <p class="muted">Estado de cada mesa. Toca una mesa para ver su cuenta o agregarle un pedido.</p>
+  </div>
+</div>
+
+<!-- El nombre accesible del botón es el contenido de la tarjeta (estado, etapa, pedidos, total, mesero); esto lo describe. -->
+<span id="board-tile-hint" class="sr-only">Abre la cuenta de la mesa</span>
+
+<!-- CA2: leyenda de estados. -->
+<app-table-legend />
+
+<!-- CA1: estado, etapa más urgente, pedidos, total y mesero de cada mesa. -->
+<div class="table-grid" data-testid="board-table-list" [attr.aria-busy]="loading()">
+  @for (table of tables(); track table.id) {
+    <button
+      type="button"
+      class="tile-btn"
+      data-testid="board-table"
+      aria-describedby="board-tile-hint"
+      (click)="open(table)"
+    >
+      <app-table-status-card [table]="table" />
+    </button>
+  } @empty {
+    @if (!loading()) {
+      <div class="card empty" data-testid="empty">No hay mesas activas.</div>
+    }
+  }
+</div>
+
+@if (selected(); as table) {
+  <app-table-account-dialog [table]="table" (closed)="closeAccount()" (changed)="load()" />
+}

@@ -1,0 +1,76 @@
+@use 'styles/breakpoints' as bp;
+@use 'table-grid';
+
+// Mesas (.table-grid): 1 columna ≤ 380px, 2 en móvil, 3 en tablet y máximo 6 en escritorio.
+@include table-grid.table-grid;
+
+.page-head {
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 25px;
+    margin: 4px 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.eyebrow {
+  color: var(--eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+// La tarjeta va dentro de un botón sin estilo propio: toda la tarjeta es el área táctil.
+.tile-btn {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover app-table-status-card {
+    box-shadow: var(--shadow);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (min-width: #{bp.$bp-mobile-max + 1}) {
+  .page-head h2 {
+    font-size: 29px;
+  }
+}

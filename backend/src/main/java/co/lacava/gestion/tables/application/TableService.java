@@ -2,6 +2,7 @@ package co.lacava.gestion.tables.application;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -38,9 +39,13 @@ public class TableService {
         this.openOrders = openOrders;
     }
 
+    /** LCV-HU-09 CA1: mesas por número con estado, etapa, pedidos abiertos, total y último mesero (sin N+1). */
     @Transactional(readOnly = true)
     public List<TableView> list() {
-        return tables.findAllByOrderByNumberAsc().stream().map(TableService::view).toList();
+        Map<Long, TableOccupancy> occupancy = openOrders.occupancyByTable();
+        return tables.findAllByOrderByNumberAsc().stream()
+                .map(t -> TableView.of(t.getId(), t.getNumber(), t.isActive(), occupancy.get(t.getId())))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +60,8 @@ public class TableService {
             throw BusinessException.conflict(DUPLICATE_NUMBER);
         }
         DiningTable table = new DiningTable(number, tokens.newToken(number), tokens.newPin(), clock.instant());
-        return view(tables.save(table));
+        DiningTable saved = tables.save(table);
+        return TableView.of(saved.getId(), saved.getNumber(), saved.isActive(), null);
     }
 
     /** CA1: activa o desactiva la mesa. */
@@ -138,8 +144,9 @@ public class TableService {
                 pass.value(), pass.expiresAt());
     }
 
-    private static TableView view(DiningTable table) {
-        return new TableView(table.getId(), table.getNumber(), table.isActive());
+    private TableView view(DiningTable table) {
+        return TableView.of(table.getId(), table.getNumber(), table.isActive(),
+                openOrders.occupancyByTable().get(table.getId()));
     }
 
     private static BusinessException invalidCode() {

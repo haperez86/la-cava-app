@@ -1,10 +1,24 @@
 import { Order } from '../orders/order.model';
 
-/** Mesa de GET /api/v1/tables (HU-07; los campos de estado llegan con HU-09, D35). */
+/** Estado de la mesa (LCV-HU-09): ocupada si tiene pedidos abiertos. */
+export type TableStatus = 'FREE' | 'OCCUPIED';
+
+/** Etapa más urgente de los pedidos abiertos: READY > IN_PREPARATION > PENDING > SERVED (LCV-HU-09 CA1). */
+export type TableStage = 'READY' | 'IN_PREPARATION' | 'PENDING' | 'SERVED';
+
+/**
+ * Mesa de GET /api/v1/tables (HU-07) con su estado (HU-09, D35): `stage`, `waiterName` son `null` si está libre;
+ * `total` es el de sus pedidos abiertos.
+ */
 export interface DiningTable {
   readonly id: number;
   readonly number: number;
   readonly active: boolean;
+  readonly status: TableStatus;
+  readonly stage: TableStage | null;
+  readonly openOrders: number;
+  readonly total: number;
+  readonly waiterName: string | null;
 }
 
 /** Fila de GET /api/v1/tables/qr-sheet: solo mesas activas; `code` = `LACAVA:MESA:<n>:<token>` (D12). */
@@ -21,6 +35,13 @@ export type ResolveTableRequest = { readonly code: string } | { readonly number:
 export interface TableAccount {
   readonly orders: readonly Order[];
   readonly total: number;
+}
+
+/** Respuesta de GET /api/v1/tables/{id}/account (A, C). */
+export interface TableAccountResponse {
+  readonly id: number;
+  readonly number: number;
+  readonly account: TableAccount;
 }
 
 /**

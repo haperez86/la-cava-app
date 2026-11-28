@@ -19,6 +19,8 @@ import co.lacava.gestion.orders.infrastructure.CustomerOrderRepository;
 import co.lacava.gestion.orders.infrastructure.OrderItemRepository;
 import co.lacava.gestion.tables.application.OpenTableOrders;
 import co.lacava.gestion.tables.application.TableAccount;
+import co.lacava.gestion.tables.application.TableOccupancy;
+import co.lacava.gestion.tables.application.TableStage;
 import co.lacava.gestion.tables.domain.DiningTable;
 import co.lacava.gestion.tables.infrastructure.DiningTableRepository;
 import co.lacava.gestion.users.domain.AppUser;
@@ -26,10 +28,15 @@ import co.lacava.gestion.users.infrastructure.AppUserRepository;
 
 /**
  * Arma {@link OrderView} en lote (ítems, mesas y meseros con una consulta cada uno) y da a {@code tables} la cuenta
- * abierta de una mesa (D38). Solo usa repositorios: así {@code TableService} puede depender de él sin ciclo.
+ * abierta de una mesa (D38) y su resumen de ocupación (LCV-HU-09). Solo usa repositorios: así {@code TableService}
+ * puede depender de él sin ciclo.
  */
 @Component
 public class OrderViews implements OpenTableOrders {
+
+    /** Rango 1..4 de {@code summarizeOpenByTable} → etapa (§3.3: READY > IN_PREPARATION > PENDING > SERVED). */
+    private static final TableStage[] STAGE_BY_RANK = { TableStage.READY, TableStage.IN_PREPARATION,
+            TableStage.PENDING, TableStage.SERVED };
 
     private final CustomerOrderRepository orders;
     private final OrderItemRepository items;
@@ -51,6 +58,17 @@ public class OrderViews implements OpenTableOrders {
         List<OrderView> open = of(orders.findByTableIdAndStatusInOrderByCreatedAtAscIdAsc(tableId, OrderStatus.OPEN));
         BigDecimal total = open.stream().map(OrderView::total).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new TableAccount.Account(open, total);
+    }
+
+    /** LCV-HU-09: una sola consulta agregada (GROUP BY mesa) para todas las mesas ocupadas. */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, TableOccupancy> occupancyByTable() {
+        List<String> open = OrderStatus.OPEN.stream().map(OrderStatus::name).toList();
+        return orders.summarizeOpenByTable(open).stream()
+                .map(s -> new TableOccupancy(s.getTableId(), s.getOpenOrders().intValue(), s.getTotal(),
+                        STAGE_BY_RANK[s.getStageRank() - 1], s.getWaiterName()))
+                .collect(Collectors.toMap(TableOccupancy::tableId, Function.identity()));
     }
 
     @Transactional(readOnly = true)

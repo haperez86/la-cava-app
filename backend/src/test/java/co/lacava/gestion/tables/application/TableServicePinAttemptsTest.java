@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -50,7 +51,7 @@ class TableServicePinAttemptsTest {
 
     private TableService service(TableTokenService tokens) {
         return new TableService(tables, tokens, clock, new PinAttemptService(clock, 5, Duration.ofMinutes(15)),
-                new TablePassService(new QrProperties(SECRET), clock), tableId -> TableAccount.Account.empty());
+                new TablePassService(new QrProperties(SECRET), clock), new NoOpenOrders());
     }
 
     @Test
@@ -122,5 +123,18 @@ class TableServicePinAttemptsTest {
         assertThatThrownBy(() -> service.resolveByPin(3, PIN, USER_ID, "laura"))
                 .as("bloqueado: el PIN correcto también da el 404 genérico")
                 .hasMessage(TableService.INVALID_CODE);
+    }
+
+    /** Sin pedidos: cuenta vacía y ninguna mesa ocupada. */
+    private static final class NoOpenOrders implements OpenTableOrders {
+        @Override
+        public TableAccount.Account openAccount(long tableId) {
+            return TableAccount.Account.empty();
+        }
+
+        @Override
+        public Map<Long, TableOccupancy> occupancyByTable() {
+            return Map.of();
+        }
     }
 }

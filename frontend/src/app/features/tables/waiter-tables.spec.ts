@@ -14,13 +14,14 @@ import { Order } from '../orders/order.model';
 import { RESCAN_TABLE } from '../orders/order-dialog';
 import { ORDERS_URL } from '../orders/orders.service';
 import { formatCop } from '../../shared/pipes/cop-currency.pipe';
+import { freeTable, occupiedTable } from './testing';
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const TABLES: DiningTable[] = [
-  { id: 13, number: 3, active: true },
-  { id: 12, number: 2, active: false },
-  { id: 11, number: 1, active: true },
+  freeTable(13, 3),
+  freeTable(12, 2, false),
+  freeTable(11, 1),
 ];
 
 const PASS = 'LCP.40.1.1790000000.firma';
@@ -156,7 +157,7 @@ describe('WaiterTables', () => {
     await render();
 
     const tiles = Array.from(root.querySelectorAll('[data-testid="waiter-table"]'));
-    expect(tiles.map((t) => t.textContent?.trim())).toEqual(['Mesa 1', 'Mesa 3']);
+    expect(tiles.map((t) => t.querySelector('.num')?.textContent?.trim())).toEqual(['Mesa 1', 'Mesa 3']);
     expect(q('scan-help')?.textContent).toBe(SCAN_TO_OPEN);
     expect(q('scan-qr')?.textContent).toContain('Escanear QR de mesa');
   });
@@ -176,6 +177,33 @@ describe('WaiterTables', () => {
     expect(q('table-modal')).toBeNull();
     expect(root.querySelector('app-qr-scan-dialog')).toBeNull();
     expect(scanner.start).not.toHaveBeenCalled();
+    http.expectNone(RESOLVE_TABLE_URL);
+  });
+
+  it('LCV-HU-09 CA1/CA2 the tiles show state, stage, orders, total and waiter with the legend, and stay non-interactive', async () => {
+    fixture = TestBed.createComponent(WaiterTables);
+    root = fixture.nativeElement as HTMLElement;
+    await fixture.whenStable();
+    http.expectOne(TABLES_URL).flush([freeTable(11, 1), occupiedTable(13, 3, 'IN_PREPARATION', 2, 36000, 'Laura Peña')]);
+    await refresh();
+
+    expect(q('table-legend')).not.toBeNull();
+    const [free, busy] = Array.from(root.querySelectorAll<HTMLElement>('[data-testid="waiter-table"]'));
+    expect(free.querySelector('[data-testid="table-status"]')?.textContent?.trim()).toBe('Disponible');
+    expect(free.querySelector('[data-testid="table-stage"]')).toBeNull();
+    expect(busy.querySelector('[data-testid="table-status"]')?.textContent?.trim()).toBe('Ocupada');
+    expect(busy.querySelector('[data-testid="table-stage"]')?.textContent?.trim()).toBe('En preparación');
+    expect(busy.querySelector('[data-testid="table-orders"]')?.textContent?.trim()).toBe('2 pedidos');
+    expect(busy.querySelector('[data-testid="table-total"]')?.textContent?.trim()).toBe(formatCop(36000));
+    expect(busy.querySelector('[data-testid="table-waiter"]')?.textContent?.trim()).toBe('Laura Peña');
+
+    // HU-08 CA4 se mantiene: ni botón ni foco, y tocarla no abre nada.
+    expect(busy.tagName).not.toBe('BUTTON');
+    expect(busy.closest('button, a, [role="button"]')).toBeNull();
+    expect(busy.querySelector('button, a, [role="button"], [tabindex]')).toBeNull();
+    busy.click();
+    await refresh();
+    expect(q('table-modal')).toBeNull();
     http.expectNone(RESOLVE_TABLE_URL);
   });
 
@@ -379,6 +407,7 @@ describe('WaiterTables', () => {
     expect(req.request.body).toEqual({ tableId: 40, tableCode: PASS, items: [{ productId: 3, quantity: 1 }] });
     req.flush(order(27, 1));
     await refresh();
+    http.expectOne(TABLES_URL).flush(TABLES);
   });
 
   it('LCV-HU-10 CA5 after 201 the order modal closes and the table account shows the open orders and total', async () => {
@@ -389,6 +418,9 @@ describe('WaiterTables', () => {
     await addMalbecAndSend();
 
     http.expectOne(ORDERS_URL).flush(order(27, 1));
+    await refresh();
+    // HU-09: la grilla se refresca para mostrar el nuevo estado de la mesa.
+    http.expectOne(TABLES_URL).flush([...TABLES, occupiedTable(40, 4, 'PENDING', 2, 54000)]);
     await refresh();
 
     expect(q('order-dialog')).toBeNull();

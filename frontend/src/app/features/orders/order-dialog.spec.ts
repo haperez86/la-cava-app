@@ -22,6 +22,7 @@ import {
   orderSent,
 } from './order-dialog';
 import { ORDERS_URL, WAITERS_URL } from './orders.service';
+import { freeTable } from '../tables/testing';
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -57,9 +58,9 @@ const PRODUCTS: Product[] = [
 ];
 
 const TABLES: DiningTable[] = [
-  { id: 13, number: 3, active: true },
-  { id: 12, number: 2, active: false },
-  { id: 11, number: 1, active: true },
+  freeTable(13, 3),
+  freeTable(12, 2, false),
+  freeTable(11, 1),
 ];
 
 const WAITER_TABLE: OrderTable = { id: 40, number: 4 };

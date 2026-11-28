@@ -36,6 +36,7 @@ import co.lacava.gestion.menu.application.ProductView;
 import co.lacava.gestion.orders.application.NewOrder;
 import co.lacava.gestion.orders.application.OrderService;
 import co.lacava.gestion.tables.application.TableService;
+import co.lacava.gestion.tables.application.TableStatus;
 import co.lacava.gestion.tables.application.TableView;
 import co.lacava.gestion.users.application.UserService;
 import co.lacava.gestion.users.domain.AppUser;
@@ -141,8 +142,7 @@ class LocalDataSeederTest {
         when(users.findByUsername(anyString())).thenReturn(Optional.of(user));
         when(products.findByName(anyString())).thenReturn(Optional.of(view("existente")));
         when(tables.existsByNumber(anyInt())).thenReturn(true);
-        when(tables.list()).thenReturn(List.of(new TableView(12L, 2, true), new TableView(15L, 5, true),
-                new TableView(18L, 8, true)));
+        when(tables.list()).thenReturn(List.of(freeTable(12L, 2), freeTable(15L, 5), freeTable(18L, 8)));
         when(orders.hasAny()).thenReturn(false);
         when(inventory.today()).thenReturn(LocalDate.of(2026, 11, 27));
 
@@ -179,5 +179,9 @@ class LocalDataSeederTest {
     private static ProductView view(String name) {
         return new ProductView(7L, name, 1L, "Tablas", BigDecimal.TEN, null, null, 0, true, null, null, 0,
                 ProductState.OUT_OF_STOCK, false, "Agotado");
+    }
+
+    private static TableView freeTable(long id, int number) {
+        return new TableView(id, number, true, TableStatus.FREE, null, 0, BigDecimal.ZERO, null);
     }
 }

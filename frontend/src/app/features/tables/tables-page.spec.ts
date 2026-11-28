@@ -6,7 +6,7 @@ import { storeTestSession } from '../../core/auth/testing';
 import { TablesPage } from './tables-page';
 import { TABLES_URL } from './tables.service';
 
-/** HU-07 CA1: solo ADMIN ve la gestión; HU-08: el mesero ve "Mis mesas"; el cajero sigue con el aviso (HU-09). */
+/** HU-07 CA1: solo ADMIN ve la gestión; HU-08: el mesero ve "Mis mesas"; HU-09: el cajero ve el estado de las mesas. */
 describe('TablesPage', () => {
   let http: HttpTestingController;
 
@@ -37,17 +37,38 @@ describe('TablesPage', () => {
     expect(root.querySelector('[data-testid="tables-placeholder"]')).toBeNull();
   });
 
-  it('CA1 CASHIER does not see the management (placeholder, no API calls)', async () => {
+  it('CA1 CASHIER does not see the management; HU-09 sees the tables state board', async () => {
     storeTestSession('CASHIER');
     const fixture = TestBed.createComponent(TablesPage);
+    await fixture.whenStable();
+    http.expectOne(TABLES_URL).flush([]);
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
 
     expect(root.querySelector('app-tables-admin')).toBeNull();
     expect(root.querySelector('app-waiter-tables')).toBeNull();
     expect(root.querySelector('[data-testid="new-table"]')).toBeNull();
-    expect(root.querySelector('[data-testid="tables-placeholder"]')?.textContent).toContain('próximamente');
-    http.expectNone(TABLES_URL);
+    expect(root.querySelector('[data-testid="tables-placeholder"]')).toBeNull();
+    expect(root.querySelector('app-tables-board')).not.toBeNull();
+  });
+
+  it.each<Role>(['ADMIN', 'CASHIER', 'WAITER'])('LCV-HU-09 CA2 %s sees the tables state legend', async (role) => {
+    storeTestSession(role);
+    const fixture = TestBed.createComponent(TablesPage);
+    await fixture.whenStable();
+    http.expectOne(TABLES_URL).flush([]);
+    await fixture.whenStable();
+    const legend = (fixture.nativeElement as HTMLElement).querySelector('[data-testid="table-legend"]');
+
+    expect(legend).not.toBeNull();
+    expect(Array.from(legend!.querySelectorAll('[data-testid="legend-item"]')).map((i) => i.textContent?.replace('●', '').trim())).toEqual([
+      'Disponible',
+      'Ocupada',
+      'Listo para recoger',
+      'En preparación',
+      'Pendiente',
+      'Servido',
+    ]);
   });
 
   it('HU-08 only WAITER sees "Mis mesas" with the QR scanner', async () => {

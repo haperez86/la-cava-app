@@ -4,10 +4,12 @@ import { AuthService } from '../../core/auth/auth.service';
 import { problemMessage } from '../../core/http/problem';
 import { ToastService } from '../../core/notifications/toast.service';
 import { Icon } from '../../shared/icons/icon';
-import { CopCurrencyPipe } from '../../shared/pipes/cop-currency.pipe';
-import { ORDER_STATUS_LABEL, ORDER_STATUS_PILL, Order } from '../orders/order.model';
+import { Order } from '../orders/order.model';
 import { OrderDialog, RESCAN_TABLE } from '../orders/order-dialog';
 import { LoadedTable, QrScanDialog } from './qr-scan-dialog';
+import { TableAccountOrders } from './table-account-orders';
+import { TableLegend } from './table-legend';
+import { TableStatusCard } from './table-status-card';
 import { DiningTable } from './tables.model';
 import { TablesService } from './tables.service';
 
@@ -26,12 +28,12 @@ export function passExpired(passExpiresAt: string | null | undefined, now = Date
 }
 
 /**
- * "Mis mesas" del mesero (LCV-HU-08): las mesas activas solo se muestran (CA4); se abren escaneando su QR (CA1)
+ * "Mis mesas" del mesero (LCV-HU-08): las mesas activas solo se muestran (CA4), con su estado y la leyenda (HU-09); se abren escaneando su QR (CA1)
  * o con número y PIN (CA2). Desde la mesa abierta se asignan pedidos con su comprobante (LCV-HU-10 CA4).
  */
 @Component({
   selector: 'app-waiter-tables',
-  imports: [CdkTrapFocus, CopCurrencyPipe, Icon, OrderDialog, QrScanDialog],
+  imports: [CdkTrapFocus, Icon, OrderDialog, QrScanDialog, TableAccountOrders, TableLegend, TableStatusCard],
   templateUrl: './waiter-tables.html',
   styleUrl: './waiter-tables.scss',
   host: { '(document:keydown.escape)': 'onEscape()' },
@@ -48,8 +50,6 @@ export class WaiterTables {
       .sort((a, b) => a.number - b.number),
   );
   protected readonly helpText = SCAN_TO_OPEN;
-  protected readonly statusLabel = ORDER_STATUS_LABEL;
-  protected readonly statusPill = ORDER_STATUS_PILL;
   protected readonly loadedBy = LOADED_BY;
   protected readonly loading = signal(false);
   protected readonly scanning = signal(false);
@@ -124,6 +124,8 @@ export class WaiterTables {
       const total = orders.reduce((sum, o) => sum + Number(o.total), 0);
       return { ...loaded, table: { ...loaded.table, account: { orders, total } } };
     });
+    // HU-09: el estado de la mesa en la grilla cambia con el nuevo pedido.
+    void this.load();
   }
 
   /** 403 del comprobante: se cierra la mesa para que el mesero la escanee de nuevo. */

@@ -78,10 +78,11 @@ Cada criterio de aceptación (CA) debe quedar cubierto por al menos una prueba a
 - **CA4** En "Mis mesas" las mesas se ven pero **no** se pueden abrir tocándolas.
 - **Desviaciones:** incluye D36 (límite de intentos de PIN) con un `AttemptLimiter` genérico que ahora también usa el login sin cambiar D27; durante el bloqueo se sigue comparando el PIN y se descarta, para no delatarlo por tiempo; si no hay cámara o se niega el permiso, el diálogo pasa solo al modo manual; textos de error de cámara propios; el botón "Asignar pedido" queda deshabilitado hasta HU-10; zxing se carga bajo demanda. Pendiente para HU-10: hoy ni el QR (el frontend no lo guarda) ni el PIN dejan un `tableCode` para crear pedidos (D13); hay que decidirlo al empezar HU-10. Pendiente menor: quitar `PinAttemptService.isLocked`, que no se usa.
 
-### LCV-HU-09 · Estado de mesas ⛔
-- **Bloqueada:** su estado, etapa, número de pedidos, total y mesero salen de los pedidos (HU-10). Se implementa justo después de HU-10 (D35).
+### LCV-HU-09 · Estado de mesas ✅
+- Estuvo ⛔ bloqueada hasta HU-10 (D35); se implementa en la rama de la Épica 4.
 - **CA1** Cada mesa muestra Disponible/Ocupada y, si está ocupada, la etapa más urgente (Listo para recoger > En preparación > Pendiente > Servido) resaltada, junto con el número de pedidos, el total y el mesero.
 - **CA2** La leyenda de estados es visible.
+- **Desviaciones:** las respuestas de `POST`/`PATCH /tables` también traen el estado; total 0 en mesas libres; el mesero de la mesa es el del pedido abierto más reciente (desempate por id); la leyenda va en orden de urgencia; el cajero y el mesero solo ven mesas activas, y el administrador ve todas, con "Ver cuenta" habilitado mientras la mesa tenga pedidos abiertos; el mesero ve estado, total y mesero de todas las mesas (consulta, no opera); el cajero abre la cuenta de una mesa y crea pedidos con la mesa fija. Pendientes menores: `view()` al activar o regenerar calcula el resumen de todas las mesas; el filtro parametrizado de estados puede no usar el índice parcial; falta una prueba de que POST/PATCH devuelven los campos nuevos.
 
 ---
 

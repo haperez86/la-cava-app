@@ -41,47 +41,9 @@
 // Mesas (.table-grid): 1 columna ≤ 380px, 2 en móvil, 3 en tablet y máximo 6 en escritorio.
 @include table-grid.table-grid;
 
-.table-tile {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--surface);
-  min-height: 105px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-wrap: anywhere;
-  // Las acciones se reparten según el ancho de la propia tarjeta, no el de la ventana.
-  container-type: inline-size;
-
-  &.off {
-    background: var(--bg);
-
-    .num {
-      color: var(--muted);
-    }
-  }
-}
-
-.tile-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.num {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 19px;
-  font-weight: 700;
-}
-
 .actions {
   display: grid;
+  width: 100%;
   gap: 6px;
   margin-top: auto;
 
@@ -92,15 +54,11 @@
   }
 }
 
-// Tarjeta ancha (escritorio con pocas columnas o pantallas grandes): "Imprimir QR" y
-// "Regenerar QR" en una fila y "Desactivar" debajo, en vez de tres botones apilados.
+// Tarjeta ancha (escritorio con pocas columnas o pantallas grandes): las cuatro acciones en 2 × 2 en vez de
+// apiladas. El contenedor es la propia tarjeta (`app-table-status-card`).
 @container (min-width: 300px) {
   .actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    .btn:last-child {
-      grid-column: 1 / -1;
-    }
   }
 }
 
@@ -130,15 +88,6 @@
     .btn {
       width: auto;
     }
-  }
-
-  .table-tile {
-    padding: 14px;
-    min-height: 116px;
-  }
-
-  .num {
-    font-size: 21px;
   }
 
   .actions .btn {
